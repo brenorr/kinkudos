@@ -134,7 +134,7 @@ O [plano técnico da economia](docs/ECONOMY_PLAN.md) detalha o reaproveitamento 
 ## 2.1 Experiência — XP
 
 - [x] Criar saldo acumulativo de experiência.
-- [ ] Ligar a configuração de XP às missões na Fase 3.
+- [x] Ligar a configuração de XP às missões na Fase 3.
 - [x] Registrar experiência em histórico.
 - [x] Garantir crédito único por ocorrência no serviço de XP.
 - [x] Preservar experiência em dias sem atividades.
@@ -147,7 +147,7 @@ XP representa progresso e aprendizado, não poder de compra.
 A moeda existente deverá ser reaproveitada sempre que possível.
 
 - [x] Reutilizar a recompensa em pontos por tarefa como valor em moedas.
-- [ ] Ligar o crédito único de moedas e XP ao fluxo de missões na Fase 3.
+- [x] Ligar o crédito único de moedas e XP ao fluxo de missões na Fase 3.
 - [x] Configurar limite diário de ganhos.
 - [x] Configurar limite máximo de saldo opcional.
 - [x] Configurar limite diário de penalidades.
@@ -204,6 +204,8 @@ Tipos sugeridos:
 
 Evoluir o sistema atual de tarefas para um sistema de missões.
 
+O [plano técnico de missões e rotinas](docs/MISSIONS_PLAN.md) descreve o reaproveitamento das tarefas, a aprovação e o crédito único por ocorrência.
+
 ## Tipos de missão
 
 - Diária.
@@ -217,24 +219,24 @@ Evoluir o sistema atual de tarefas para um sistema de missões.
 
 ## Funcionalidades
 
-- [ ] Nome temático da missão.
-- [ ] Descrição objetiva da atividade real.
-- [ ] Categoria.
-- [ ] Ícone.
-- [ ] Dificuldade.
-- [ ] Horário sugerido.
-- [ ] Prazo opcional.
-- [ ] Recompensa em XP.
-- [ ] Recompensa em moedas.
-- [ ] Checklist de subtarefas.
-- [ ] Temporizador visual opcional.
-- [ ] Modo de foco com uma etapa visível por vez e feedback de revisão que indica o que falta.
-- [ ] Recorrência.
-- [ ] Aprovação parental configurável por tarefa e exigida por padrão.
-- [ ] Dependências entre missões.
-- [ ] Agrupamento por rotina.
-- [ ] Modo férias.
-- [ ] Possibilidade de solicitar ajuda.
+- [x] Nome temático da missão.
+- [x] Descrição objetiva da atividade real.
+- [x] Categoria.
+- [x] Ícone.
+- [x] Dificuldade.
+- [x] Horário sugerido.
+- [x] Prazo opcional.
+- [x] Recompensa em XP.
+- [x] Recompensa em moedas.
+- [x] Checklist de subtarefas.
+- [x] Temporizador visual opcional.
+- [x] Modo de foco com uma etapa visível por vez e feedback de revisão que indica o que falta.
+- [x] Recorrência.
+- [x] Aprovação parental configurável por tarefa e exigida por padrão.
+- [x] Dependências entre missões.
+- [x] Agrupamento por rotina.
+- [x] Modo férias.
+- [x] Possibilidade de solicitar ajuda.
 
 ## Rotinas
 
@@ -268,6 +270,7 @@ Recompensa:
 
 Estados adicionais:
 
+- `IN_REVIEW`
 - `REJECTED`
 - `CANCELLED`
 - `SKIPPED`

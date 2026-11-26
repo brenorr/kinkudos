@@ -1,4 +1,5 @@
 import random
+from calendar import monthrange
 from datetime import timedelta
 from uuid import uuid4
 from zoneinfo import ZoneInfo
@@ -7,10 +8,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Exists, Sum
+from django.db.models import Exists, Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from . import missions
 from .models import (
     AssignedTask,
     AssignedTaskBatch,
@@ -28,6 +30,8 @@ from .models import (
     GoalStatus,
     LedgerEntry,
     LedgerKind,
+    MissionOccurrence,
+    MissionStatus,
     OccurrenceCredit,
     PointGift,
     Proposal,
@@ -157,7 +161,7 @@ def post_ledger_entry(
 
 
 @transaction.atomic
-def credit_occurrence(*, child, occurrence_key, xp, coins, description, actor=None):
+def credit_occurrence(*, child, occurrence_key, xp, coins, description, actor=None, source_id=None):
     """Record a finalized occurrence in the caller's state-transition transaction."""
     if not occurrence_key or len(occurrence_key) > 120 or xp < 0 or coins < 0:
         raise ValidationError(_("Invalid occurrence credit."))
@@ -174,7 +178,7 @@ def credit_occurrence(*, child, occurrence_key, xp, coins, description, actor=No
         return existing
     entry = post_ledger_entry(
         child=child, delta=coins, kind=LedgerKind.TASK, description=description,
-        actor=actor, source_type="occurrence", operation_key=f"occurrence:{occurrence_key}",
+        actor=actor, source_id=source_id, source_type="occurrence", operation_key=f"occurrence:{occurrence_key}",
     )
     return OccurrenceCredit.objects.create(
         child=child, occurrence_key=occurrence_key, xp=xp, coin_entry=entry, actor=actor,
@@ -353,26 +357,30 @@ def randomize_daily_themes(*, current_date=None, chooser=None):
     return changed
 
 
-def submit_task(*, child, task, photo_bonus_snapshot=0, child_note=""):
+@transaction.atomic
+def submit_task(*, child, task, photo_bonus_snapshot=0, child_note="", day=None):
     if not task.is_active:
         raise ValidationError(_("This task is no longer active."))
-    try:
-        with transaction.atomic():
-            return TaskClaim.objects.create(
-                child=child,
-                task=task,
-                task_title=task.title,
-                reward_snapshot=task.reward,
-                photo_bonus_snapshot=photo_bonus_snapshot,
-                child_note=child_note.strip()[:200],
-            )
-    except IntegrityError as exc:
-        raise ValidationError(_("This task is already awaiting approval.")) from exc
+    ChildProfile.objects.select_for_update().get(pk=child.pk, is_active=True)
+    day = day or timezone.localdate()
+    legacy_claim, legacy_assignment = missions.legacy_pending(child, task, day)
+    if legacy_claim:
+        raise ValidationError(_("This task is already awaiting approval."))
+    if legacy_assignment:
+        raise ValidationError(_("This task already has a pending record. Continue it from the dashboard."))
+    occurrence = missions.resolve_catalog_occurrence(child, task, day=day)
+    return missions.submit_mission(
+        child=child, occurrence=occurrence, note=child_note, bonus=photo_bonus_snapshot,
+    )
 
 
 @transaction.atomic
 def approve_task_claim(*, claim, actor):
     locked = TaskClaim.objects.select_related("child").get(pk=claim.pk)
+    if locked.occurrence_id and locked.status == RequestStatus.APPROVED:
+        entry = missions.completed_credit(locked.occurrence).coin_entry
+        entry.was_replayed = True
+        return entry
     if locked.status != RequestStatus.PENDING:
         raise ValidationError(_("This request has already been resolved."))
     decided_at = timezone.now()
@@ -386,6 +394,11 @@ def approve_task_claim(*, claim, actor):
     )
     if not claimed:
         raise ValidationError(_("This request has already been resolved."))
+    if locked.occurrence_id:
+        return missions.finalize(
+            locked.occurrence, allowed=(MissionStatus.PENDING_APPROVAL,),
+            actor=actor, bonus=locked.photo_bonus_snapshot,
+        ).coin_entry
     entry = post_ledger_entry(
         child=locked.child,
         delta=locked.total_reward,
@@ -415,6 +428,11 @@ def reject_task_claim(*, claim, actor, reason):
         )
         if not claimed:
             raise ValidationError(_("This request has already been resolved."))
+        if claim.occurrence_id:
+            missions.transition(claim.occurrence, (MissionStatus.PENDING_APPROVAL,), MissionStatus.REJECTED)
+            AssignedTask.objects.filter(occurrence=claim.occurrence).update(
+                status=AssignedTaskStatus.CANCELLED, cancelled_at=decided_at, cancelled_by=actor,
+            )
         return TaskClaim.objects.get(pk=claim.pk)
 
 
@@ -432,6 +450,8 @@ def request_task_revision(*, claim, actor, reason):
         )
         if not claimed:
             raise ValidationError(_("This request has already been resolved."))
+        if claim.occurrence_id:
+            missions.transition(claim.occurrence, (MissionStatus.PENDING_APPROVAL,), MissionStatus.IN_REVIEW)
         return TaskClaim.objects.get(pk=claim.pk)
 
 
@@ -453,6 +473,10 @@ def resubmit_task_claim(*, claim, child_note=None):
         ).update(**updates)
         if not claimed:
             raise ValidationError(_("This task is not awaiting corrections."))
+        if claim.occurrence_id:
+            missions.transition(claim.occurrence, (MissionStatus.IN_REVIEW,), MissionStatus.PENDING_APPROVAL)
+            if len(claim.occurrence.checked_steps) != len(claim.occurrence.checklist):
+                raise ValidationError(_("Finish the checklist before submitting this mission."))
         return TaskClaim.objects.get(pk=claim.pk)
 
 
@@ -492,12 +516,7 @@ def assigned_task_nudge_at(*, now=None):
 
 
 def ensure_task_completion(*, child, task, completed_on=None):
-    """Mark a catalog task as credited today for Assign/Award day gating.
-
-    Children may submit and have the same catalog task approved multiple times
-    in one day. The unique (child, task, completed_on) row is only a day marker
-    for parent Assign/Award — never a reason to fail a second credit.
-    """
+    """Keep the daily catalog marker used by legacy Assign/Award and history."""
     if task is None:
         return None
     completed_on = completed_on or timezone.localdate()
@@ -509,11 +528,11 @@ def ensure_task_completion(*, child, task, completed_on=None):
     return completion
 
 
-def unavailable_assignment_task_ids(child):
-    today = timezone.localdate()
+def unavailable_assignment_task_ids(child, *, day=None):
+    today = day or timezone.localdate()
     pending_claim_ids = child.task_claims.filter(
-        status__in=[RequestStatus.PENDING, RequestStatus.NEEDS_CHANGES]
-    ).values_list("task_id", flat=True)
+        status__in=[RequestStatus.PENDING, RequestStatus.NEEDS_CHANGES], task__isnull=False,
+    ).filter(Q(occurrence__isnull=True) | Q(occurrence__local_date=today, occurrence__is_default_slot=True)).values_list("task_id", flat=True)
     active_assignment_ids = AssignedTask.objects.filter(
         batch__child=child,
         batch__assigned_on=today,
@@ -526,18 +545,18 @@ def unavailable_assignment_task_ids(child):
     return set(pending_claim_ids) | set(active_assignment_ids) | set(completed_ids)
 
 
-def custom_assignment_title_taken_today(child, title):
+def custom_assignment_title_taken_today(child, title, *, day=None):
     """True when a same-title custom assigned task is still counting for today."""
     title = (title or "").strip()
     if not title:
         return False
-    today = timezone.localdate()
+    today = day or timezone.localdate()
     return AssignedTask.objects.filter(
         batch__child=child,
         batch__assigned_on=today,
         task__isnull=True,
         title_snapshot=title,
-        status__in=[AssignedTaskStatus.PENDING, AssignedTaskStatus.COMPLETED],
+        status__in=[AssignedTaskStatus.PENDING, AssignedTaskStatus.SUBMITTED, AssignedTaskStatus.COMPLETED],
     ).exists()
 
 
@@ -552,13 +571,23 @@ def assign_tasks(
     blocks_rewards=False,
     task_notes=None,
     custom_note="",
+    custom_xp=0,
+    custom_requires_approval=True,
+    day=None,
+    preset=None,
+    operation_token=None,
 ):
     child = ChildProfile.objects.select_for_update().get(
         pk=child.pk,
         is_active=True,
     )
+    if operation_token:
+        existing = AssignedTaskBatch.objects.filter(child=child, create_token=operation_token).first()
+        if existing:
+            existing.was_replayed = True
+            return existing
     task_ids = [task.pk for task in tasks]
-    unavailable = unavailable_assignment_task_ids(child)
+    unavailable = unavailable_assignment_task_ids(child, day=day)
     if unavailable.intersection(task_ids):
         raise ValidationError(
             _("One or more selected tasks are no longer available today.")
@@ -570,28 +599,26 @@ def assign_tasks(
         child=child,
         assigned_by=actor,
         blocks_rewards=blocks_rewards,
+        assigned_on=day or timezone.localdate(), preset=preset, create_token=operation_token,
         nudge_at=assigned_task_nudge_at(now=now),
     )
-    AssignedTask.objects.bulk_create(
-        [
-            AssignedTask(
-                batch=batch,
-                task=task,
-                title_snapshot=task.title,
-                icon_snapshot=task.icon,
-                reward_snapshot=task.reward,
-                note_snapshot=(notes.get(task.pk) or "").strip(),
-            )
-            for task in tasks
-        ]
-    )
-    if custom_title:
+    for task in tasks:
+        occurrence = missions.resolve_catalog_occurrence(child, task, day=batch.assigned_on)
+        if occurrence.status not in missions.EDITABLE or hasattr(occurrence, "assignment"):
+            raise ValidationError(_("Choose the specific mission you want to complete."))
         AssignedTask.objects.create(
-            batch=batch,
-            title_snapshot=custom_title,
-            icon_snapshot="🧹",
-            reward_snapshot=custom_points,
-            note_snapshot=custom_note,
+            batch=batch, task=task, occurrence=occurrence, title_snapshot=occurrence.title,
+            icon_snapshot=task.icon, reward_snapshot=occurrence.coins,
+            note_snapshot=(notes.get(task.pk) or "").strip(),
+        )
+    if custom_title:
+        occurrence = MissionOccurrence.objects.create(
+            child=child, local_date=batch.assigned_on, title=custom_title, coins=custom_points,
+            instructions=custom_note, xp=custom_xp, requires_approval=custom_requires_approval,
+        )
+        AssignedTask.objects.create(
+            batch=batch, occurrence=occurrence, title_snapshot=custom_title,
+            icon_snapshot="🧹", reward_snapshot=custom_points, note_snapshot=custom_note,
         )
     return batch
 
@@ -610,6 +637,8 @@ def assignment_preset_matches_date(preset, day):
         return weekday in {5, 6}
     if preset.cadence == AssignmentPresetCadence.WEEKLY:
         return preset.weekly_weekday == weekday
+    if preset.cadence == AssignmentPresetCadence.MONTHLY and preset.monthly_day:
+        return day.day == min(preset.monthly_day, monthrange(day.year, day.month)[1])
     return False
 
 
@@ -629,6 +658,9 @@ def save_assignment_preset(
     weekday_mask=0,
     weekend_mode=AssignmentPresetWeekendMode.BOTH,
     weekly_weekday=None,
+    monthly_day=None,
+    custom_xp=0,
+    custom_requires_approval=True,
     run_at=None,
 ):
     from datetime import time as dt_time
@@ -652,6 +684,8 @@ def save_assignment_preset(
         raise ValidationError(_("Choose at least one weekday."))
     if cadence == AssignmentPresetCadence.WEEKLY and weekly_weekday is None:
         raise ValidationError(_("Choose a weekday for the weekly set."))
+    if cadence == AssignmentPresetCadence.MONTHLY and not (monthly_day and 1 <= monthly_day <= 31):
+        raise ValidationError(_("Choose a day of the month between 1 and 31."))
     if run_at is None:
         run_at = dt_time(7, 0)
     notes = task_notes or {}
@@ -669,6 +703,7 @@ def save_assignment_preset(
         weekly_weekday=(
             weekly_weekday if cadence == AssignmentPresetCadence.WEEKLY else None
         ),
+        monthly_day=monthly_day if cadence == AssignmentPresetCadence.MONTHLY else None,
         run_at=run_at,
         created_by=actor,
     )
@@ -687,7 +722,8 @@ def save_assignment_preset(
             AssignmentPresetItem(
                 preset=preset,
                 custom_title=custom_title[:120],
-                custom_points=custom_points,
+                custom_points=custom_points, custom_xp=custom_xp,
+                custom_requires_approval=custom_requires_approval,
                 note=(custom_note or "").strip()[:200],
                 sort_order=len(items),
             )
@@ -697,7 +733,7 @@ def save_assignment_preset(
 
 
 @transaction.atomic
-def apply_assignment_preset(*, preset, actor=None):
+def apply_assignment_preset(*, preset, actor=None, day=None):
     preset = (
         AssignmentPreset.objects.select_for_update()
         .select_related("child", "created_by")
@@ -708,12 +744,17 @@ def apply_assignment_preset(*, preset, actor=None):
         pk=preset.child_id,
         is_active=True,
     )
-    unavailable = unavailable_assignment_task_ids(child)
+    day = day or timezone.localdate()
+    if AssignedTaskBatch.objects.filter(preset=preset, assigned_on=day).exists():
+        return None
+    unavailable = unavailable_assignment_task_ids(child, day=day)
     catalog_tasks = []
     task_notes = {}
     custom_title = ""
     custom_points = None
     custom_note = ""
+    custom_xp = 0
+    custom_requires_approval = True
     for item in preset.items.all():
         if item.task_id:
             if item.task_id in unavailable:
@@ -727,7 +768,9 @@ def apply_assignment_preset(*, preset, actor=None):
             custom_title = item.custom_title
             custom_points = item.custom_points
             custom_note = item.note
-    if custom_title and custom_assignment_title_taken_today(child, custom_title):
+            custom_xp = item.custom_xp
+            custom_requires_approval = item.custom_requires_approval
+    if custom_title and custom_assignment_title_taken_today(child, custom_title, day=day):
         custom_title = ""
         custom_points = None
         custom_note = ""
@@ -741,10 +784,11 @@ def apply_assignment_preset(*, preset, actor=None):
         custom_points=custom_points,
         blocks_rewards=preset.blocks_rewards,
         task_notes=task_notes,
-        custom_note=custom_note,
+        custom_note=custom_note, custom_xp=custom_xp,
+        custom_requires_approval=custom_requires_approval, day=day, preset=preset,
     )
     AssignmentPreset.objects.filter(pk=preset.pk).update(
-        last_auto_assigned_on=timezone.localdate(),
+        last_auto_assigned_on=day,
         updated_at=timezone.now(),
     )
     return batch
@@ -754,8 +798,12 @@ def run_due_assignment_presets(*, current_time=None):
     from .push import notify_assigned_tasks
 
     current_time = current_time or timezone.now()
-    today = timezone.localdate()
-    local_time = timezone.localtime(current_time).time()
+    local_now = timezone.localtime(current_time)
+    today = local_now.date()
+    local_time = local_now.time()
+    family = FamilySettings.load()
+    if family.vacation_start and family.vacation_end and family.vacation_start <= today <= family.vacation_end:
+        return []
     preset_ids = list(
         AssignmentPreset.objects.filter(is_paused=False, child__is_active=True)
         .exclude(last_auto_assigned_on=today)
@@ -778,7 +826,7 @@ def run_due_assignment_presets(*, current_time=None):
                 continue
             if local_time < preset.run_at:
                 continue
-            batch = apply_assignment_preset(preset=preset, actor=preset.created_by)
+            batch = apply_assignment_preset(preset=preset, actor=preset.created_by, day=today)
             # Successful Apply stamps last_auto_assigned_on. An empty run must
             # not burn the day — retry on later ticks if work becomes available.
         if batch is not None:
@@ -832,6 +880,24 @@ def send_due_assigned_task_nudges(*, current_time=None):
 
 @transaction.atomic
 def complete_assigned_task(*, assigned_task, child):
+    if assigned_task.occurrence_id:
+        if assigned_task.batch.assigned_on != timezone.localdate() and assigned_task.occurrence.status in missions.EDITABLE:
+            raise ValidationError(_("This assigned task has expired."))
+        claim = missions.submit_mission(child=child, occurrence=assigned_task.occurrence)
+        if claim.status == RequestStatus.APPROVED:
+            credit = missions.completed_credit(claim.occurrence)
+            credit.coin_entry.was_replayed = getattr(claim, "was_replayed", False)
+            if not credit.coin_entry.was_replayed:
+                from .push import notify_assigned_task_completed
+
+                assigned_task.ledger_entry = credit.coin_entry
+                notify_assigned_task_completed(assigned_task)
+            return credit.coin_entry
+        if not getattr(claim, "was_replayed", False):
+            from .push import notify_task_claim
+
+            notify_task_claim(claim)
+        return None
     today = timezone.localdate()
     completed_at = timezone.now()
     claimed = AssignedTask.objects.filter(
@@ -875,6 +941,15 @@ def complete_assigned_task(*, assigned_task, child):
     return entry
 
 
+def _cancel_mission_claims(occurrence_ids, actor, cancelled_at):
+    MissionOccurrence.objects.filter(
+        pk__in=occurrence_ids, status__in=(*missions.EDITABLE, *missions.WAITING),
+    ).update(status=MissionStatus.CANCELLED)
+    TaskClaim.objects.filter(
+        occurrence_id__in=occurrence_ids, status__in=(RequestStatus.PENDING, RequestStatus.NEEDS_CHANGES),
+    ).update(status=RequestStatus.CANCELLED, decided_at=cancelled_at, decided_by=actor)
+
+
 @transaction.atomic
 def cancel_assigned_task(*, assigned_task, actor):
     today = timezone.localdate()
@@ -882,7 +957,7 @@ def cancel_assigned_task(*, assigned_task, actor):
     claimed = AssignedTask.objects.filter(
         pk=assigned_task.pk,
         batch__assigned_on=today,
-        status=AssignedTaskStatus.PENDING,
+        status__in=(AssignedTaskStatus.PENDING, AssignedTaskStatus.SUBMITTED),
     ).update(
         status=AssignedTaskStatus.CANCELLED,
         cancelled_at=cancelled_at,
@@ -890,9 +965,11 @@ def cancel_assigned_task(*, assigned_task, actor):
     )
     if not claimed:
         locked = AssignedTask.objects.select_related("batch").get(pk=assigned_task.pk)
-        if locked.status != AssignedTaskStatus.PENDING:
+        if locked.status not in (AssignedTaskStatus.PENDING, AssignedTaskStatus.SUBMITTED):
             raise ValidationError(_("Only a waiting assigned task can be cancelled."))
         raise ValidationError(_("This assigned task has expired."))
+    if assigned_task.occurrence_id:
+        _cancel_mission_claims([assigned_task.occurrence_id], actor, cancelled_at)
     return AssignedTask.objects.select_related("batch").get(pk=assigned_task.pk)
 
 
@@ -901,14 +978,11 @@ def cancel_assigned_task_batch(*, batch, actor):
     if batch.assigned_on != timezone.localdate():
         return 0
     now = timezone.now()
-    return AssignedTask.objects.select_for_update().filter(
-        batch=batch,
-        status=AssignedTaskStatus.PENDING,
-    ).update(
-        status=AssignedTaskStatus.CANCELLED,
-        cancelled_at=now,
-        cancelled_by=actor,
+    waiting = AssignedTask.objects.select_for_update().filter(
+        batch=batch, status__in=(AssignedTaskStatus.PENDING, AssignedTaskStatus.SUBMITTED),
     )
+    _cancel_mission_claims(list(waiting.exclude(occurrence_id=None).values_list("occurrence_id", flat=True)), actor, now)
+    return waiting.update(status=AssignedTaskStatus.CANCELLED, cancelled_at=now, cancelled_by=actor)
 
 
 def reward_is_affordable(child, reward):

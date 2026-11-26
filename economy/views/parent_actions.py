@@ -1,4 +1,6 @@
 
+from uuid import UUID
+
 from django.contrib import messages
 from django.contrib.auth import (
     get_user_model,
@@ -40,11 +42,13 @@ from economy.forms import (
     TaskDecisionCommentForm,
     TaskForm,
 )
+from economy.missions import record_catalog_completion, resolve_catalog_occurrence
 from economy.models import (
     AssignedTask,
     AssignedTaskBatch,
     AssignmentPreset,
     BirthDateChangeRequest,
+    ChildProfile,
     GoalCompletionRequest,
     GoalStatus,
     LedgerEntry,
@@ -57,7 +61,6 @@ from economy.models import (
     SavingsGoal,
     Task,
     TaskClaim,
-    TaskCompletion,
 )
 from economy.push import (
     notify_assigned_tasks,
@@ -80,7 +83,6 @@ from economy.services import (
     close_savings_goal,
     deactivate_parent_account,
     delete_savings_goal,
-    ensure_task_completion,
     keep_goal_active,
     post_ledger_entry,
     reject_proposal,
@@ -130,6 +132,7 @@ def _parent_decision_response(
 
 @parent_account_required
 @require_POST
+@transaction.atomic
 def parent_create_catalog(request, kind):
     forms = {"task": TaskForm, "penalty": PenaltyForm, "reward": RewardForm}
     form_class = forms.get(kind)
@@ -265,6 +268,7 @@ def parent_remove_child_account(request, child_id):
 
 @parent_account_required
 @require_POST
+@transaction.atomic
 def parent_edit_catalog(request, kind, item_id):
     forms = {"task": TaskForm, "penalty": PenaltyForm, "reward": RewardForm}
     models = {"task": Task, "penalty": PenaltyTemplate, "reward": Reward}
@@ -326,12 +330,13 @@ def parent_decide_task(request, claim_id, decision):
             entry = approve_task_claim(claim=claim, actor=request.user)
             claim.refresh_from_db()
             claim.child.refresh_from_db(fields=["balance"])
-            notify_task_decision(claim, approved=True, credited=entry.delta)
+            if not getattr(entry, "was_replayed", False):
+                notify_task_decision(claim, approved=True, credited=entry.delta)
             message = (
                 _("Task approved. %(amount)s coins credited.") % {"amount": entry.delta}
                 if entry.limit_reason else _("Task approved.")
             )
-            effect = "task"
+            effect = None if getattr(entry, "was_replayed", False) else "task"
             child = claim.child
         elif decision == "reject":
             form = TaskDecisionCommentForm(request.POST)
@@ -670,32 +675,52 @@ def parent_award_task(request, child_id):
         messages.error(request, _("Choose at least one active task."))
         return redirect("parent_dashboard")
 
-    tasks = list(form.cleaned_data["task_ids"])
-    today = timezone.localdate()
-    with transaction.atomic():
-        credited_ids = set(TaskCompletion.objects.filter(
-            child=child, task__in=tasks, completed_on=today,
-        ).values_list("task_id", flat=True))
-        tasks = [task for task in tasks if task.pk not in credited_ids]
-        if not tasks:
-            messages.error(request, _("Those tasks were already credited to this child today."))
-            return redirect("parent_dashboard")
-        total = 0
-        for task in tasks:
-            entry = post_ledger_entry(
-                child=child, delta=task.reward, kind=LedgerKind.TASK,
-                description=task.title, actor=request.user, source_id=task.pk,
-                source_type="catalog_task",
-                operation_key=f"direct-task:{child.pk}:{task.pk}:{today.isoformat()}",
-            )
-            ensure_task_completion(child=child, task=task, completed_on=today)
-            total += entry.delta
+    day = timezone.localdate()
+    if request.POST.get("mission_day", day.isoformat()) != day.isoformat():
+        messages.error(request, _("This mission is outside its scheduled time."))
+        return redirect("parent_dashboard")
+    try:
+        with transaction.atomic():
+            entries = [
+                record_catalog_completion(child=child, task=task, actor=request.user, day=day)
+                for task in form.cleaned_data["task_ids"]
+            ]
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect("parent_dashboard")
+    entries = [entry for entry in entries if entry is not None]
+    if not entries:
+        messages.error(request, _("Those tasks were already credited to this child today."))
+        return redirect("parent_dashboard")
+    total = sum(entry.delta for entry in entries)
     messages.success(
         request,
         _("%(name)s received %(count)s task(s) (total +%(total)s).")
-        % {"name": child.name, "count": len(tasks), "total": total},
+        % {"name": child.name, "count": len(entries), "total": total},
     )
     return redirect("parent_dashboard")
+
+@parent_required
+@require_POST
+@transaction.atomic
+def parent_repeat_mission(request, child_id):
+    child = get_accessible_child_or_404(request, child_id)
+    form = AwardTasksForm(request.POST)
+    try:
+        token = UUID(request.POST.get("operation_token", ""))
+        if not form.is_valid() or len(form.cleaned_data["task_ids"]) != 1:
+            raise ValidationError(_("Choose one task to add another occurrence."))
+        task = next(iter(form.cleaned_data["task_ids"]))
+        ChildProfile.objects.select_for_update().get(pk=child.pk, is_active=True)
+        resolve_catalog_occurrence(child, task, extra_token=token)
+    except ValueError:
+        messages.error(request, _("Reload the dashboard before adding another occurrence."))
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(request, _("Another mission occurrence is available today."))
+    return redirect("parent_dashboard")
+
 
 @parent_required
 @require_POST
@@ -716,8 +741,12 @@ def parent_assign_tasks(request, child_id):
             blocks_rewards=form.cleaned_data["blocks_rewards"],
             task_notes=form.cleaned_data["task_notes"],
             custom_note=form.cleaned_data["custom_note"],
+            custom_xp=form.cleaned_data["custom_xp"] or 0,
+            custom_requires_approval=form.cleaned_data["custom_requires_approval"],
+            operation_token=form.cleaned_data["operation_token"],
         )
-        notify_assigned_tasks(batch)
+        if not getattr(batch, "was_replayed", False):
+            notify_assigned_tasks(batch)
         messages.success(
             request,
             _("Tasks were assigned to %(name)s for today.")
@@ -746,11 +775,14 @@ def parent_save_assignment_preset(request, child_id):
             custom_title=form.cleaned_data["custom_title"],
             custom_points=form.cleaned_data["custom_points"],
             custom_note=form.cleaned_data["custom_note"],
+            custom_xp=form.cleaned_data["custom_xp"] or 0,
+            custom_requires_approval=form.cleaned_data["custom_requires_approval"],
             blocks_rewards=form.cleaned_data["blocks_rewards"],
             cadence=form.cleaned_data["cadence"],
             weekday_mask=form.cleaned_data["weekday_mask"],
             weekend_mode=form.cleaned_data["weekend_mode"],
             weekly_weekday=form.cleaned_data["weekly_weekday"],
+            monthly_day=form.cleaned_data["monthly_day"],
             run_at=form.cleaned_data["run_at"],
         )
         messages.success(request, _('Saved set "%(name)s".') % {

@@ -69,36 +69,32 @@ class EconomyServiceTests(TestCase):
     def test_double_task_approval_is_one_winner(self):
         claim = submit_task(child=self.child, task=self.task)
         first = approve_task_claim(claim=claim, actor=self.parent)
-        with self.assertRaisesMessage(
-            ValidationError,
-            "This request has already been resolved.",
-        ):
-            approve_task_claim(claim=claim, actor=self.parent)
+        self.assertEqual(approve_task_claim(claim=claim, actor=self.parent).pk, first.pk)
         self.child.refresh_from_db()
         self.assertEqual(self.child.balance, 50)
         self.assertEqual(
             LedgerEntry.objects.filter(
                 child=self.child,
                 kind=LedgerKind.TASK,
-                source_id=claim.pk,
+                source_id=claim.occurrence_id,
             ).count(),
             1,
         )
         self.assertEqual(first.balance_after, 50)
 
-    def test_same_catalog_task_can_be_approved_multiple_times_per_day(self):
+    def test_same_catalog_task_replay_cannot_credit_twice_on_same_day(self):
         first = submit_task(child=self.child, task=self.task)
         approve_task_claim(claim=first, actor=self.parent)
         second = submit_task(child=self.child, task=self.task)
         approve_task_claim(claim=second, actor=self.parent)
         self.child.refresh_from_db()
-        self.assertEqual(self.child.balance, 100)
+        self.assertEqual(self.child.balance, 50)
         self.assertEqual(
             LedgerEntry.objects.filter(
                 child=self.child,
                 kind=LedgerKind.TASK,
             ).count(),
-            2,
+            1,
         )
         self.assertEqual(
             TaskCompletion.objects.filter(
@@ -121,10 +117,9 @@ class EconomyServiceTests(TestCase):
         self.assertEqual(claim.status, RequestStatus.REJECTED)
         self.assertEqual(claim.rejection_reason, "No")
 
-    def test_duplicate_pending_task_is_rejected(self):
-        submit_task(child=self.child, task=self.task)
-        with self.assertRaises(ValidationError):
-            submit_task(child=self.child, task=self.task)
+    def test_duplicate_pending_task_returns_existing_claim(self):
+        claim = submit_task(child=self.child, task=self.task)
+        self.assertEqual(submit_task(child=self.child, task=self.task).pk, claim.pk)
 
     def test_submit_task_stores_optional_child_note(self):
         claim = submit_task(

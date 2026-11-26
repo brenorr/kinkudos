@@ -167,6 +167,8 @@ class AssignedTaskServiceTests(TestCase):
         notify.assert_not_called()
 
     def test_completion_awards_immediately_and_only_once(self):
+        self.task.requires_approval = False
+        self.task.save(update_fields=["requires_approval"])
         item = self.create_batch().items.get(task=self.task)
         with patch("economy.push.notify_assigned_task_completed") as notify:
             entry = complete_assigned_task(assigned_task=item, child=self.child)
@@ -175,14 +177,13 @@ class AssignedTaskServiceTests(TestCase):
         self.child.refresh_from_db()
         item.refresh_from_db()
         self.assertEqual(self.child.balance, 20)
-        self.assertEqual(entry.kind, LedgerKind.ASSIGNED_TASK)
+        self.assertEqual(entry.source_type, "occurrence")
         self.assertEqual(item.status, AssignedTaskStatus.COMPLETED)
         self.assertEqual(item.ledger_entry, entry)
         self.assertTrue(
             TaskCompletion.objects.filter(child=self.child, task=self.task).exists()
         )
-        with self.assertRaises(ValidationError):
-            complete_assigned_task(assigned_task=item, child=self.child)
+        self.assertEqual(complete_assigned_task(assigned_task=item, child=self.child).pk, entry.pk)
         self.child.refresh_from_db()
         self.assertEqual(self.child.balance, 20)
 
@@ -255,18 +256,18 @@ class AssignedTaskServiceTests(TestCase):
         approve_task_claim(claim=claim, actor=self.parent)
         self.assertIn(self.task.pk, unavailable_assignment_task_ids(self.child))
 
-    def test_approve_after_assigned_completion_still_credits(self):
+    def test_assignment_submits_and_catalog_reuses_approval(self):
         batch = self.create_batch(blocks_rewards=False)
         complete_assigned_task(
             assigned_task=batch.items.get(task=self.task),
             child=self.child,
         )
         self.child.refresh_from_db()
-        balance_after_assigned = self.child.balance
+        self.assertEqual(self.child.balance, 0)
         claim = submit_task(child=self.child, task=self.task)
         approve_task_claim(claim=claim, actor=self.parent)
         self.child.refresh_from_db()
-        self.assertEqual(self.child.balance, balance_after_assigned + self.task.reward)
+        self.assertEqual(self.child.balance, self.task.reward)
         self.assertEqual(
             TaskCompletion.objects.filter(
                 child=self.child,
@@ -286,6 +287,8 @@ class AssignedTaskServiceTests(TestCase):
         self.assertNotIn(self.task.pk, unavailable_assignment_task_ids(self.child))
 
     def test_completed_catalog_task_is_available_again_next_day(self):
+        self.task.requires_approval = False
+        self.task.save(update_fields=["requires_approval"])
         batch = self.create_batch(blocks_rewards=False)
         complete_assigned_task(
             assigned_task=batch.items.get(task=self.task),
@@ -425,9 +428,9 @@ class AssignedTaskViewTests(TestCase):
             reverse("child_complete_assigned_task", args=[item.pk]),
             follow=True,
         )
-        self.assertContains(response, "received your points")
+        self.assertContains(response, "sent to the parents for approval")
         self.child.refresh_from_db()
-        self.assertEqual(self.child.balance, 20)
+        self.assertEqual(self.child.balance, 0)
 
     def test_child_cannot_complete_another_child_task(self):
         batch = assign_tasks(
@@ -538,6 +541,8 @@ class AssignedTaskViewTests(TestCase):
         self.assertEqual(titles, ["Today only"])
 
     def test_cancel_remaining_button_only_appears_for_waiting_batch(self):
+        self.task.requires_approval = False
+        self.task.save(update_fields=["requires_approval"])
         batch = assign_tasks(
             child=self.child,
             actor=self.parent,
@@ -786,6 +791,7 @@ class AssignmentPresetTests(TestCase):
             tasks=[],
             custom_title="Feed the cat",
             custom_points=5,
+            custom_requires_approval=False,
         )
         first = apply_assignment_preset(preset=preset, actor=self.parent)
         self.assertIsNotNone(first)
@@ -830,7 +836,7 @@ class AssignmentPresetTests(TestCase):
         notify_push.assert_not_called()
         self.assertEqual(self.child.assigned_task_batches.count(), 1)
 
-    def test_cancelled_custom_task_can_be_reapplied_same_day(self):
+    def test_cancelled_preset_does_not_create_a_second_batch_same_day(self):
         preset = save_assignment_preset(
             child=self.child,
             actor=self.parent,
@@ -845,5 +851,5 @@ class AssignmentPresetTests(TestCase):
             actor=self.parent,
         )
         second = apply_assignment_preset(preset=preset, actor=self.parent)
-        self.assertIsNotNone(second)
-        self.assertEqual(self.child.assigned_task_batches.count(), 2)
+        self.assertIsNone(second)
+        self.assertEqual(self.child.assigned_task_batches.count(), 1)

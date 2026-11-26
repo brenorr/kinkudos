@@ -64,8 +64,8 @@ class FinalReviewTests(TestCase):
     def test_parent_accordions_and_settings_use_shared_compact_surface(self):
         response = self.parent_response()
         content = response.content.decode()
-        self.assertContains(response, "parent-accordion", count=12)
-        self.assertContains(response, 'class="settings-section parent-accordion"', count=12, html=False)
+        self.assertContains(response, "parent-accordion", count=13)
+        self.assertContains(response, 'class="settings-section parent-accordion"', count=13, html=False)
         self.assertNotContains(
             response,
             "settings-section-standalone",

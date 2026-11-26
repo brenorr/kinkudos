@@ -5,6 +5,7 @@ from uuid import uuid4
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models import Count, Max, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import FileResponse, Http404, JsonResponse
@@ -14,8 +15,9 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_safe
 
+from economy import missions
 from economy.auth import (
     child_object_or_404,
     child_required,
@@ -53,6 +55,8 @@ from economy.models import (
     GoalStatus,
     LedgerKind,
     LotteryTicket,
+    MissionOccurrence,
+    MissionStatus,
     RequestStatus,
     Reward,
     RewardRequest,
@@ -65,6 +69,7 @@ from economy.models import (
 from economy.push import (
     notify_birth_date_change,
     notify_gift_received,
+    notify_mission_help,
     notify_proposal,
     notify_reward_request,
     notify_task_claim,
@@ -100,8 +105,8 @@ def child_dashboard(request):
             batch__assigned_on=today,
             status=AssignedTaskStatus.PENDING,
         )
-        .select_related("batch", "task")
-        .order_by("batch__created_at", "pk")
+        .select_related("batch", "task", "occurrence")
+        .order_by("occurrence__routine", "batch__created_at", "pk")
     )
     assigned_reward_block = assigned_tasks_block_rewards(child)
     child_lottery = lottery_state(child)
@@ -139,6 +144,12 @@ def child_dashboard(request):
             ]
         ).select_related("decided_by", "task")
     }
+    occurrence_claims = {
+        claim.occurrence_id: claim
+        for claim in child.task_claims.filter(occurrence_id__in=[
+            entry.source_id for entry in ledger_entries if entry.source_type == "occurrence"
+        ]).select_related("decided_by", "task")
+    }
     reward_requests_by_id = {
         reward_request.pk: reward_request
         for reward_request in child.reward_requests.filter(
@@ -168,6 +179,8 @@ def child_dashboard(request):
             if entry.kind == LedgerKind.TASK and entry.source_type in ("", "task_claim")
             else None
         )
+        if entry.source_type == "occurrence":
+            entry.task_claim = occurrence_claims.get(entry.source_id)
         entry.reward_request = (
             reward_requests_by_id.get(entry.source_id)
             if entry.kind == LedgerKind.REWARD
@@ -221,13 +234,21 @@ def child_dashboard(request):
     pending_task_ids = set(
         child.task_claims.filter(
             status__in=[RequestStatus.PENDING, RequestStatus.NEEDS_CHANGES]
-        ).values_list("task_id", flat=True)
+        ).filter(Q(occurrence__isnull=True) | Q(occurrence__local_date=today, occurrence__is_default_slot=True)).values_list("task_id", flat=True)
     )
     pending_reward_ids = set(
         child.reward_requests.filter(status=RequestStatus.PENDING).values_list(
             "reward_id", flat=True
         )
     )
+    extra_missions = child.missions.filter(
+        local_date=today, is_default_slot=False, status__in=missions.EDITABLE,
+        assignment__isnull=True,
+    ).order_by("routine", "pk")
+    completed_mission_task_ids = set(child.missions.filter(
+        local_date=today, is_default_slot=True, status=MissionStatus.COMPLETED,
+    ).values_list("task_id", flat=True))
+    recent_mission_credits = child.occurrence_credits.select_related("coin_entry")[:5]
     waiting_for_parents = _waiting_for_parents_items(child)
     return render(
         request,
@@ -236,7 +257,9 @@ def child_dashboard(request):
             "experience_total": child.occurrence_credits.aggregate(total=Sum("xp", default=0))["total"],
             "child": child,
             "greeting_name": greeting_name,
-            "tasks": Task.objects.filter(is_active=True, is_deleted=False),
+            "tasks": Task.objects.filter(is_active=True, is_deleted=False).exclude(
+                pk__in=active_assigned_tasks.exclude(task_id=None).values_list("task_id", flat=True)
+            ).order_by("routine", "sort_order", "title"),
             "rewards": rewards,
             "pending_task_ids": pending_task_ids,
             "pending_reward_ids": pending_reward_ids,
@@ -254,6 +277,10 @@ def child_dashboard(request):
             "goals": goals,
             "ledger": history_entries,
             "active_assigned_tasks": active_assigned_tasks,
+            "extra_missions": extra_missions,
+            "completed_mission_task_ids": completed_mission_task_ids,
+            "recent_mission_credits": recent_mission_credits,
+            "mission_day": today,
             "assigned_tasks_block_rewards": assigned_reward_block,
             "credit_reward_requests_blocked": reward_requests_blocked(child),
             "reward_requests_blocked": (
@@ -391,7 +418,21 @@ def _child_action_response(request, *, ok, effect=None):
 @child_required
 @require_POST
 def child_submit_task(request, task_id):
-    task = get_object_or_404(Task, pk=task_id, is_active=True)
+    task = get_object_or_404(Task, pk=task_id, is_active=True, is_deleted=False)
+    day = timezone.localdate()
+    if request.POST.get("mission_day", day.isoformat()) != day.isoformat():
+        messages.error(request, _("This mission is outside its scheduled time."))
+        return _child_action_response(request, ok=False)
+    return _submit_task_evidence(request, task=task, day=day)
+
+
+def _mission_receipt(credit):
+    return _("Mission complete. You earned %(xp)s XP and %(coins)s coins.") % {
+        "xp": credit.xp, "coins": credit.coin_entry.delta,
+    }
+
+
+def _submit_task_evidence(request, *, task=None, occurrence=None, day=None):
     form = TaskEvidenceForm(request.POST, request.FILES)
     if not form.is_valid():
         error = next(iter(form.errors.values()))[0]
@@ -413,15 +454,28 @@ def child_submit_task(request, task_id):
     submitted = False
     try:
         bonus = FamilySettings.load().photo_bonus_points if processed else 0
-        claim = submit_task(
-            child=request.child,
-            task=task,
-            photo_bonus_snapshot=bonus,
-            child_note=form.cleaned_data.get("child_note") or "",
-        )
-        if processed:
-            _replace_task_evidence(claim, processed)
-        notify_task_claim(claim)
+        with transaction.atomic():
+            if occurrence is None:
+                claim = submit_task(
+                    child=request.child, task=task, photo_bonus_snapshot=bonus, day=day,
+                    child_note=form.cleaned_data.get("child_note") or "",
+                )
+            else:
+                claim = missions.submit_mission(
+                    child=request.child, occurrence=occurrence, bonus=bonus,
+                    note=form.cleaned_data.get("child_note") or "",
+                )
+            replayed = getattr(claim, "was_replayed", False)
+            if processed and not replayed:
+                _replace_task_evidence(claim, processed)
+            if not replayed and claim.status == RequestStatus.PENDING:
+                notify_task_claim(claim)
+        if claim.status == RequestStatus.APPROVED and claim.occurrence_id:
+            messages.success(request, _mission_receipt(missions.completed_credit(claim.occurrence)))
+            return _child_action_response(request, ok=True, effect=None if replayed else "task")
+        if replayed:
+            messages.info(request, _("This task is already awaiting approval."))
+            return _child_action_response(request, ok=True)
         if request.child.theme == "block_world":
             success_message = _("Block sent to your parents for approval.")
         elif request.child.theme == "magic_academy":
@@ -452,13 +506,68 @@ def child_submit_task(request, task_id):
 
 @child_required
 @require_POST
+@transaction.atomic
+def child_start_mission(request, task_id):
+    task = get_object_or_404(Task, pk=task_id, is_active=True, is_deleted=False)
+    day = timezone.localdate()
+    if request.POST.get("mission_day", day.isoformat()) != day.isoformat():
+        messages.error(request, _("This mission is outside its scheduled time."))
+        return redirect("child_dashboard")
+    try:
+        occurrence = missions.resolve_catalog_occurrence(request.child, task, day=day)
+        if occurrence.status == MissionStatus.AVAILABLE:
+            missions.check_availability(occurrence)
+            missions.transition(occurrence, (MissionStatus.AVAILABLE,), MissionStatus.IN_PROGRESS)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect("child_dashboard")
+    return redirect("child_mission", occurrence_id=occurrence.pk)
+
+
+@child_required
+@require_safe
+def child_mission(request, occurrence_id):
+    occurrence = child_object_or_404(request, MissionOccurrence.objects.all(), pk=occurrence_id)
+    claim = TaskClaim.objects.filter(occurrence=occurrence).first()
+    receipt = missions.completed_credit(occurrence) if occurrence.status == MissionStatus.COMPLETED else None
+    return render(request, "economy/mission.html", {
+        "mission": occurrence,
+        "claim": claim,
+        "receipt": receipt,
+        "can_edit": occurrence.status in (*missions.EDITABLE, MissionStatus.IN_REVIEW),
+        "can_submit": occurrence.status in missions.EDITABLE,
+        "can_help": occurrence.status in (*missions.EDITABLE, *missions.WAITING),
+    })
+
+
+@child_required
+@require_POST
+def child_mission_action(request, occurrence_id):
+    occurrence = child_object_or_404(request, MissionOccurrence.objects.all(), pk=occurrence_id)
+    action = request.POST.get("action")
+    if action == "submit":
+        return _submit_task_evidence(request, occurrence=occurrence)
+    if action not in {"checklist", "help", "skip"}:
+        raise Http404
+    try:
+        try:
+            steps = [int(step) for step in request.POST.getlist("steps")]
+        except ValueError as exc:
+            raise ValidationError(_("Choose valid checklist steps.")) from exc
+        updated = missions.update_child_mission(
+            child=request.child, occurrence=occurrence, action=action, checked_steps=steps,
+        )
+        if action == "help" and updated:
+            notify_mission_help(occurrence)
+            messages.success(request, _("Help requested."))
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    return redirect("child_mission", occurrence_id=occurrence.pk)
+
+
+@child_required
+@require_POST
 def child_resubmit_task(request, claim_id):
-    claim = child_object_or_404(
-        request,
-        TaskClaim.objects.all(),
-        pk=claim_id,
-        status=RequestStatus.NEEDS_CHANGES,
-    )
     form = TaskEvidenceForm(request.POST, request.FILES)
     if not form.is_valid():
         error = next(iter(form.errors.values()))[0]
@@ -468,21 +577,24 @@ def child_resubmit_task(request, claim_id):
     upload = form.cleaned_data.get("proof")
     submitted = False
     try:
-        if form.cleaned_data.get("remove_evidence"):
-            _delete_task_evidence(claim)
-            claim.photo_bonus_snapshot = 0
-            claim.save(update_fields=["photo_bonus_snapshot"])
-        if upload:
-            processed = process_task_evidence(upload)
-            _replace_task_evidence(claim, processed)
-            claim.photo_bonus_snapshot = FamilySettings.load().photo_bonus_points
-            claim.save(update_fields=["photo_bonus_snapshot"])
-        resubmit_task_claim(
-            claim=claim,
-            child_note=form.cleaned_data.get("child_note") or "",
-        )
-        claim.refresh_from_db()
-        notify_task_claim(claim)
+        processed = process_task_evidence(upload) if upload else None
+        with transaction.atomic():
+            claim = child_object_or_404(
+                request, TaskClaim.objects.select_for_update(), pk=claim_id,
+                status=RequestStatus.NEEDS_CHANGES,
+            )
+            claim = resubmit_task_claim(
+                claim=claim, child_note=form.cleaned_data.get("child_note") or "",
+            )
+            if processed:
+                _replace_task_evidence(claim, processed)
+                claim.photo_bonus_snapshot = FamilySettings.load().photo_bonus_points
+                claim.save(update_fields=["photo_bonus_snapshot"])
+            elif form.cleaned_data.get("remove_evidence"):
+                _delete_task_evidence(claim)
+                claim.photo_bonus_snapshot = 0
+                claim.save(update_fields=["photo_bonus_snapshot"])
+            notify_task_claim(claim)
         messages.success(
             request,
             _("The corrected task was sent for approval again."),
@@ -851,10 +963,13 @@ def _child_state_payload(child):
                 ),
                 "statuses": _status_counts(child.birth_date_change_requests.all()),
             },
+            "missions": list(child.missions.filter(local_date=timezone.localdate()).order_by("pk").values_list(
+                "pk", "status", "checked_steps", "help_requested_at",
+            )),
             "task_catalog": list(
                 Task.objects.filter(is_active=True, is_deleted=False)
                 .order_by("sort_order", "title", "pk")
-                .values_list("pk", "title", "icon", "reward")
+                .values_list("pk", "title", "icon", "reward", "xp_reward", "requires_approval", "instructions", "checklist")
             ),
             "reward_catalog": list(
                 Reward.objects.filter(is_active=True, is_deleted=False)
@@ -1047,22 +1162,28 @@ def child_complete_assigned_task(request, assigned_task_id):
         batch__child=request.child,
     )
     completed = False
+    entry = None
     try:
         entry = complete_assigned_task(
             assigned_task=assigned_task,
             child=request.child,
         )
-        messages.success(
-            request,
-            _("Assigned task completed. %(amount)s coins credited.") % {"amount": entry.delta}
-            if entry.limit_reason else _("Assigned task completed. You received your points."),
-            extra_tags="task-success",
-        )
+        if entry is None:
+            messages.success(request, _("The task was sent to the parents for approval."))
+        elif assigned_task.occurrence_id:
+            messages.success(request, _mission_receipt(missions.completed_credit(assigned_task.occurrence)))
+        else:
+            messages.success(
+                request,
+                _("Assigned task completed. %(amount)s coins credited.") % {"amount": entry.delta}
+                if entry.limit_reason else _("Assigned task completed. You received your points."),
+                extra_tags="task-success",
+            )
         completed = True
     except ValidationError as exc:
         messages.error(request, exc.messages[0])
     return _child_action_response(
         request,
         ok=completed,
-        effect="task" if completed else None,
+        effect="task" if completed and entry is not None and not getattr(entry, "was_replayed", False) else None,
     )

@@ -97,11 +97,11 @@ class TaskEvidenceWorkflowTests(TestCase):
             HTTP_ACCEPT="application/json",
         )
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
             {
-                "ok": False,
+                "ok": True,
                 "redirect_url": reverse("child_dashboard"),
             },
         )
@@ -234,7 +234,7 @@ class TaskEvidenceWorkflowTests(TestCase):
         self.assertFalse(storage.exists(full_name))
         self.assertFalse(storage.exists(thumbnail_name))
         self.assertTrue(TaskClaim.objects.filter(pk=claim.pk).exists())
-        self.assertTrue(LedgerEntry.objects.filter(source_id=claim.pk).exists())
+        self.assertTrue(LedgerEntry.objects.filter(source_type="occurrence", source_id=claim.occurrence_id).exists())
         self.assertEqual(claim.child_note, "Under the bed is clean.")
 
 

@@ -1656,7 +1656,7 @@ class AccessAndWorkflowTests(TestCase):
             return post_ledger_entry(**kwargs)
 
         with patch(
-            "economy.views.parent_actions.post_ledger_entry",
+            "economy.services.post_ledger_entry",
             side_effect=fail_on_second_entry,
         ):
             with self.assertRaises(RuntimeError):

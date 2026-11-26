@@ -1961,3 +1961,38 @@ document.querySelectorAll("[data-pin-change]").forEach((box) => {
 
   paint();
 });
+
+document.querySelectorAll("[data-mission-timer]").forEach(timer => {
+  const display = timer.querySelector("output");
+  const toggle = timer.querySelector("[data-timer-toggle]");
+  const duration = Number(timer.dataset.missionTimer) * 60;
+  let remaining = duration;
+  let deadline = 0;
+  let interval;
+
+  const paint = () => {
+    const minutes = Math.floor(remaining / 60);
+    const seconds = String(remaining % 60).padStart(2, "0");
+    display.value = `${minutes}:${seconds}`;
+  };
+
+  toggle.addEventListener("click", () => {
+    if (interval) {
+      window.clearInterval(interval);
+      interval = undefined;
+      toggle.textContent = toggle.dataset.start;
+      return;
+    }
+    if (!remaining) remaining = duration;
+    paint();
+    deadline = Date.now() + remaining * 1000;
+    toggle.textContent = toggle.dataset.pause;
+    interval = window.setInterval(() => {
+      remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      paint();
+      if (!remaining) toggle.click();
+    }, 250);
+  });
+
+  paint();
+});

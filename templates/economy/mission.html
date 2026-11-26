@@ -1,0 +1,77 @@
+{% extends "economy/base.html" %}
+{% load i18n %}
+{% block title %}{{ mission.title }} – {{ project_name }}{% endblock %}
+{% block body_class %}theme-{{ mission.child.theme }} child-area{% endblock %}
+{% block content %}
+<section class="panel">
+  <a class="button button-secondary" href="{% url 'child_dashboard' %}#darbai">{% translate "Back to tasks" %}</a>
+  <h1>{{ mission.title }}</h1>
+  {% if mission.routine %}<p>{{ mission.routine }}</p>{% endif %}
+  {% if mission.task.category %}<p>{{ mission.task.category }}</p>{% endif %}
+  {% if mission.task and mission.task.mission_kind != 'standard' %}<p>{{ mission.task.get_mission_kind_display }}</p>{% endif %}
+  <p class="status-pill">{{ mission.get_status_display }}</p>
+  {% if mission.instructions %}<div>{{ mission.instructions|linebreaks }}</div>{% endif %}
+  {% if mission.suggested_at %}<p>{% translate "Suggested time" %} {{ mission.suggested_at|time:"TIME_FORMAT" }}</p>{% endif %}
+  {% if mission.deadline %}<p>{% translate "Deadline" %} {{ mission.deadline|date:"SHORT_DATETIME_FORMAT" }}</p>{% endif %}
+  {% if receipt %}
+    <p>{% blocktranslate with xp=receipt.xp coins=receipt.coin_entry.delta %}Mission complete. You earned {{ xp }} XP and {{ coins }} coins.{% endblocktranslate %}</p>
+  {% else %}
+    <p>{% blocktranslate with xp=mission.xp coins=mission.coins %}{{ xp }} XP and {{ coins }} coins{% endblocktranslate %}</p>
+  {% endif %}
+  {% if claim.revision_note %}<p>{{ claim.revision_note }}</p>{% endif %}
+  {% if claim.rejection_reason %}<p>{{ claim.rejection_reason }}</p>{% endif %}
+  {% if can_edit and mission.timer_minutes %}
+    <div data-mission-timer="{{ mission.timer_minutes }}">
+      <output aria-live="off" aria-label="{% translate 'Focus timer' %}"></output>
+      <button class="button button-secondary" type="button" data-timer-toggle data-start="{% translate 'Start timer' %}" data-pause="{% translate 'Pause timer' %}">{% translate "Start timer" %}</button>
+    </div>
+  {% endif %}
+  {% if mission.checklist %}
+    <form method="post" action="{% url 'child_mission_action' mission.pk %}" class="stack-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="checklist">
+      <fieldset>
+        <legend>{% translate "Checklist" %}</legend>
+        {% for step in mission.checklist %}
+          <details name="mission-focus-{{ mission.pk }}"{% if forloop.first %} open{% endif %}>
+            <summary>{% translate "Step" %} {{ forloop.counter }}</summary>
+            <label class="checkbox-field">
+              <input type="checkbox" name="steps" value="{{ forloop.counter0 }}"{% if forloop.counter0 in mission.checked_steps %} checked{% endif %}{% if not can_edit %} disabled{% endif %}>
+              {{ step }}
+            </label>
+          </details>
+        {% endfor %}
+      </fieldset>
+      {% if can_edit %}<button class="button button-secondary" type="submit">{% translate "Save checklist" %}</button>{% endif %}
+    </form>
+  {% endif %}
+  {% if can_submit %}
+    <form method="post" action="{% url 'child_mission_action' mission.pk %}" enctype="multipart/form-data" class="stack-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="submit">
+      <label>{% translate "What I did" %}<textarea class="field-control" name="child_note" maxlength="200" rows="2"></textarea></label>
+      <label>{% translate "Optional photo" %}<input class="field-control" type="file" name="proof" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"></label>
+      <button class="button button-primary" type="submit">{% if mission.requires_approval %}{% translate "Send for approval" %}{% else %}{% translate "Complete mission" %}{% endif %}</button>
+    </form>
+  {% elif mission.status == 'in_review' and claim %}
+    <form method="post" action="{% url 'child_resubmit_task' claim.pk %}" enctype="multipart/form-data" class="stack-form">
+      {% csrf_token %}
+      <label>{% translate "What I did" %}<textarea class="field-control" name="child_note" maxlength="200" rows="2">{{ claim.child_note }}</textarea></label>
+      <label>{% translate "Optional photo" %}<input class="field-control" type="file" name="proof" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"></label>
+      <button class="button button-primary" type="submit">{% translate "Send for approval" %}</button>
+    </form>
+  {% endif %}
+  {% if can_help %}
+    <form method="post" action="{% url 'child_mission_action' mission.pk %}">
+      {% csrf_token %}
+      <button class="button button-secondary" name="action" value="help"{% if mission.help_requested_at %} disabled{% endif %}>{% if mission.help_requested_at %}{% translate "Help requested." %}{% else %}{% translate "Ask for help" %}{% endif %}</button>
+    </form>
+  {% endif %}
+  {% if can_submit %}
+    <form method="post" action="{% url 'child_mission_action' mission.pk %}">
+      {% csrf_token %}
+      <button class="button button-secondary" name="action" value="skip">{% translate "Skip mission" %}</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

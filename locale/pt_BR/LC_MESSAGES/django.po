@@ -37,6 +37,9 @@ msgstr "%(task)s: +%(amount)s"
 msgid "%(unit)s available"
 msgstr "%(unit)s disponível"
 
+msgid "%(xp)s XP and %(coins)s coins"
+msgstr "%(xp)s XP e %(coins)s moedas"
+
 msgid "30 days"
 msgstr "30 dias"
 
@@ -54,6 +57,9 @@ msgstr "Uma mudança de aniversário já está à espera da aprovação dos resp
 
 msgid "A birthday change is awaiting approval"
 msgstr "Uma mudança de aniversário está aguardando aprovação"
+
+msgid "A child asked for help with a mission"
+msgstr "Uma criança pediu ajuda em uma missão"
 
 msgid "A child profile with this name already exists."
 msgstr "Já existe um perfil infantil com este nome."
@@ -151,6 +157,9 @@ msgstr "Tipo de atividade"
 msgid "Add"
 msgstr "Adicionar"
 
+msgid "Add another occurrence"
+msgstr "Adicionar outra ocorrência"
+
 msgid "Add at least one allowed IP address or network."
 msgstr "Adicione pelo menos um endereço IP ou rede permitido."
 
@@ -232,6 +241,9 @@ msgstr "Tablet Android"
 msgid "Annual Blockville Gift!"
 msgstr "Presente anual de Blockville!"
 
+msgid "Another mission occurrence is available today."
+msgstr "Outra ocorrência da missão está disponível hoje."
+
 msgid "Any time"
 msgstr "A qualquer hora."
 
@@ -273,6 +285,9 @@ msgstr "Estúdio Art"
 
 msgid "Ask a parent to allow child access on this device or open the private pairing link they created."
 msgstr "Peça a um pai para permitir o acesso dos filhos neste dispositivo ou abra o link de pareamento privado que eles criaram."
+
+msgid "Ask for help"
+msgstr "Pedir ajuda"
 
 msgid "Ask to improve"
 msgstr "Pedir para melhorar"
@@ -316,6 +331,9 @@ msgstr "Anexar Prova"
 msgid "Attention needed"
 msgstr "Atenção necessária"
 
+msgid "Available"
+msgstr "Disponível"
+
 msgid "Available balance: %(balance)s %(unit)s"
 msgstr "Saldo disponível: %(balance)s %(unit)s"
 
@@ -348,6 +366,9 @@ msgstr "Voltar para as configurações"
 
 msgid "Back to sign in"
 msgstr "Voltar para a tela de login"
+
+msgid "Back to tasks"
+msgstr "Voltar às tarefas"
 
 msgid "Back up now"
 msgstr "Para trás agora."
@@ -523,6 +544,9 @@ msgstr "Item de catálogo criado."
 msgid "Catalogs"
 msgstr "Catálogos"
 
+msgid "Category"
+msgstr "Categoria"
+
 msgid "Celebration day"
 msgstr "Dia de celebração"
 
@@ -625,6 +649,12 @@ msgstr "Verificando o link de pareamento privado…"
 msgid "Checking…"
 msgstr "A verificar…"
 
+msgid "Checklist"
+msgstr "Lista de etapas"
+
+msgid "Checklist (one step per line)"
+msgstr "Lista de etapas (uma por linha)"
+
 msgid "Child"
 msgstr "Criança"
 
@@ -697,6 +727,9 @@ msgstr "As crianças podem sugerir metas na área delas. As metas aprovadas apar
 msgid "Choose Save separately before adding points."
 msgstr "Escolha Salvar separadamente antes de adicionar pontos."
 
+msgid "Choose a day of the month between 1 and 31."
+msgstr "Escolha um dia do mês entre 1 e 31."
+
 msgid "Choose a profile"
 msgstr "Escolha um perfil"
 
@@ -717,6 +750,9 @@ msgstr "Escolha um status de feedback válido."
 
 msgid "Choose a valid savings mode."
 msgstr "Escolha um modo de poupança válido."
+
+msgid "Choose a valid start and end for vacation mode."
+msgstr "Escolha datas válidas para o início e o fim das férias."
 
 msgid "Choose a valid time zone."
 msgstr "Escolha um fuso horário válido."
@@ -781,6 +817,9 @@ msgstr "Escolher o modo"
 msgid "Choose one short emoji."
 msgstr "Escolha um emoji curto."
 
+msgid "Choose one task to add another occurrence."
+msgstr "Escolha uma tarefa para adicionar outra ocorrência."
+
 msgid "Choose penalties"
 msgstr "Escolha as penalidades"
 
@@ -790,11 +829,17 @@ msgstr "Escolher foto"
 msgid "Choose tasks"
 msgstr "Escolher tarefas"
 
+msgid "Choose the specific mission you want to complete."
+msgstr "Escolha qual missão você quer concluir."
+
 msgid "Choose the world you want to use. You can change it later in Settings."
 msgstr "Escolha o mundo que deseja usar. Você pode alterá-lo mais tarde em Configurações."
 
 msgid "Choose today or a future date."
 msgstr "Escolha hoje ou uma data futura."
+
+msgid "Choose valid checklist steps."
+msgstr "Selecione etapas válidas da lista."
 
 msgid "Choose who receives your points and how many to give."
 msgstr "Escolha quem recebe seus pontos e quantos para dar."
@@ -865,6 +910,9 @@ msgstr "Complete todas as missões antes do dia reiniciar à meia-noite."
 msgid "Complete goal"
 msgstr "Concluir meta"
 
+msgid "Complete mission"
+msgstr "Concluir missão"
+
 msgid "Complete tasks, earn points, and choose your reward."
 msgstr "Complete tarefas, ganhe pontos e escolha sua recompensa."
 
@@ -879,6 +927,9 @@ msgstr "Complete as tarefas atribuídas antes de solicitar uma nova recompensa."
 
 msgid "Complete the assigned tasks to unlock new reward requests."
 msgstr "Complete as tarefas atribuídas para desbloquear novos pedidos de recompensa."
+
+msgid "Complete the prerequisite mission first."
+msgstr "Conclua primeiro a missão necessária."
 
 msgid "Complete today's priority missions before midnight."
 msgstr "Complete as missões prioritárias de hoje antes da meia-noite."
@@ -933,6 +984,9 @@ msgstr "Gerencie pontos, saldos e a atribuição de tarefas."
 
 msgid "Control which devices can access child profiles."
 msgstr "Controle quais dispositivos podem acessar perfis de crianças."
+
+msgid "Cooperative"
+msgstr "Cooperativa"
 
 msgid "Copied"
 msgstr "Copiado"
@@ -1002,6 +1056,9 @@ msgstr "Criar recompensa"
 
 msgid "Create task"
 msgstr "Criar tarefa"
+
+msgid "Create the first occurrence before adding another."
+msgstr "Crie a primeira ocorrência antes de adicionar outra."
 
 msgid "Create the first parent administrator account. Email setup is optional and can be configured later in Settings."
 msgstr "Crie a primeira conta de responsável com permissão de administrador. Você pode configurar o e-mail depois, em Configurações."
@@ -1096,6 +1153,15 @@ msgstr "Dados e retenção"
 msgid "Date"
 msgstr "Data"
 
+msgid "Day of the month"
+msgstr "Dia do mês"
+
+msgid "Deadline"
+msgstr "Prazo"
+
+msgid "Deadline time"
+msgstr "Horário limite"
+
 msgid "Default language"
 msgstr "Idioma padrão"
 
@@ -1155,6 +1221,9 @@ msgstr "Nome do dispositivo salvo."
 
 msgid "Device pairing"
 msgstr "Pareamento de dispositivos"
+
+msgid "Difficulty"
+msgstr "Dificuldade"
 
 msgid "Director's note"
 msgstr "Nota do diretor"
@@ -1342,6 +1411,9 @@ msgstr "Contas existentes"
 msgid "Expired"
 msgstr "Expirado"
 
+msgid "Extra missions"
+msgstr "Missões extras"
+
 msgid "FIRST SIGN-IN"
 msgstr "PRIMEIRO SINAL"
 
@@ -1417,6 +1489,9 @@ msgstr "Termine todos os projetos antes que o estúdio feche à meia-noite."
 msgid "Finish setup"
 msgstr "Concluir configuração"
 
+msgid "Finish the checklist before submitting this mission."
+msgstr "Conclua as etapas antes de enviar a missão."
+
 msgid "Finish today's assigned missions before midnight."
 msgstr "Termine as missões de hoje antes da meia-noite."
 
@@ -1440,6 +1515,12 @@ msgstr "Termine de revelar o cartão surpresa aberto antes de comprar outro."
 
 msgid "Fix and resubmit"
 msgstr "Corrigir e reenviar"
+
+msgid "Focus timer"
+msgstr "Temporizador de foco"
+
+msgid "Focus timer (minutes)"
+msgstr "Temporizador de foco (minutos)"
 
 msgid "For example, kitchen tablet"
 msgstr "Por exemplo, tablet de cozinha"
@@ -1606,6 +1687,9 @@ msgstr "Olá!"
 msgid "Hello, %(name)s!"
 msgstr "Olá, %(name)s!"
 
+msgid "Help requested."
+msgstr "Pedido de ajuda enviado."
+
 msgid "Help the panda finish every task before bedtime at midnight."
 msgstr "Ajude o panda a terminar todas as tarefas antes de dormir à meia-noite."
 
@@ -1678,6 +1762,9 @@ msgstr "Se o endereço pertence a uma conta de responsável ativa, o e-mail de r
 msgid "If you did not make this request, ignore this email; your password will not be changed."
 msgstr "Se você não fez esta solicitação, ignore este e-mail; sua senha não será alterada."
 
+msgid "In progress"
+msgstr "Em andamento"
+
 msgid "Include your current IP address before restricting all access."
 msgstr "Inclua seu endereço IP atual antes de restringir todo o acesso."
 
@@ -1704,6 +1791,9 @@ msgstr "Loja de Inspiração"
 
 msgid "Install for notifications"
 msgstr "Instalar para notificações"
+
+msgid "Instructions"
+msgstr "Instruções"
 
 msgid "Internet access"
 msgstr "Acesso à Internet"
@@ -1813,6 +1903,9 @@ msgstr "Crônica Mágica"
 msgid "Magic Shop"
 msgstr "Loja de Magia"
 
+msgid "Main"
+msgstr "Principal"
+
 msgid "Make a panda wish"
 msgstr "Faz um desejo panda"
 
@@ -1854,6 +1947,15 @@ msgstr "Missão cumprida"
 
 msgid "Mission complete"
 msgstr "Missão concluída"
+
+msgid "Mission complete. You earned %(xp)s XP and %(coins)s coins."
+msgstr "Missão concluída. Você ganhou %(xp)s XP e %(coins)s moedas."
+
+msgid "Mission help requests"
+msgstr "Pedidos de ajuda em missões"
+
+msgid "Mission type"
+msgstr "Tipo de missão"
 
 msgid "Missions"
 msgstr "Missões"
@@ -2011,6 +2113,9 @@ msgstr "Novas solicitações de recompensa são pausadas porque metade do crédi
 msgid "Next"
 msgstr "Próxima"
 
+msgid "No"
+msgstr "Não"
+
 msgid "No IP addresses are blocked. Device pairing and sign-in protections remain active."
 msgstr "Nenhum endereço IP está bloqueado. As proteções de pareamento de dispositivos e de login permanecem ativas."
 
@@ -2113,8 +2218,14 @@ msgstr "Trava antiga"
 msgid "Old passcode"
 msgstr "Código antigo"
 
+msgid "On demand"
+msgstr "Sob demanda"
+
 msgid "On iPhone and iPad, notifications only work in the installed app. In Safari tap Share, choose Add to Home Screen, enable Open as Web App, then launch the app from its icon."
 msgstr "No iPhone e iPad, as notificações só funcionam no aplicativo instalado. No Safari toque em Comcompartilhar, escolha Adicionar à Tela Inicial, habilite Abrir como Aplicativo da Web e, em seguida, inicie a aplicação a partir do ícone."
+
+msgid "Once a month"
+msgstr "Uma vez por mês"
 
 msgid "Once a week"
 msgstr "Uma vez por semana"
@@ -2176,6 +2287,9 @@ msgstr "Abrir o feedback"
 msgid "Open guest invite"
 msgstr "Abrir convite de acesso"
 
+msgid "Open mission"
+msgstr "Abrir missão"
+
 msgid "Open parent area"
 msgstr "Abrir a área dos responsáveis"
 
@@ -2199,6 +2313,9 @@ msgstr "Restrições IP opcionais adicionam outra camada em cima do pareamento d
 
 msgid "Optional for providers that do not require a region."
 msgstr "Opcional para fornecedores que não necessitam de uma região."
+
+msgid "Optional photo"
+msgstr "Foto opcional"
 
 msgid "Optional — a short note for your parents"
 msgstr "Opcional — uma pequena nota para seus responsáveis"
@@ -2344,6 +2461,9 @@ msgstr "Reiniciar senha por conta"
 msgid "Pause"
 msgstr "Pausar"
 
+msgid "Pause timer"
+msgstr "Pausar temporizador"
+
 msgid "Paused"
 msgstr "Pausado"
 
@@ -2467,6 +2587,9 @@ msgstr "Pontos a dar"
 msgid "Points were saved for this goal."
 msgstr "Pontos foram salvos para esta meta."
 
+msgid "Prerequisite mission"
+msgstr "Missão necessária"
+
 msgid "Present artwork"
 msgstr "Apresentar a arte"
 
@@ -2557,6 +2680,9 @@ msgstr "Motivo"
 msgid "Recent backup actions"
 msgstr "Ações de backup recentes"
 
+msgid "Recent mission credits"
+msgstr "Créditos recentes de missões"
+
 msgid "Recipient"
 msgstr "Destinatário"
 
@@ -2583,6 +2709,9 @@ msgstr "Rejeitado por"
 
 msgid "Rejection reason"
 msgstr "Motivo da rejeição"
+
+msgid "Reload the dashboard before adding another occurrence."
+msgstr "Atualize o painel antes de adicionar outra ocorrência."
 
 msgid "Remove"
 msgstr "Remover"
@@ -2664,6 +2793,9 @@ msgstr "Necessário antes de alterar o acesso à rede."
 
 msgid "Required before changing sensitive email settings."
 msgstr "Necessário antes de alterar as configurações de email sensíveis."
+
+msgid "Requires parent approval"
+msgstr "Exige aprovação do responsável"
 
 msgid "Reset"
 msgstr "Reiniciar"
@@ -2785,6 +2917,9 @@ msgstr "Papel"
 msgid "Round cards — easy for little fingers."
 msgstr "Cards redondos, fáceis de tocar com dedinhos."
 
+msgid "Routine"
+msgstr "Rotina"
+
 msgid "Rub the silver surface with your finger. Three matching numbers reveal the result."
 msgstr "Esfregue a superfície de prata com o dedo. Três números correspondentes revelam o resultado."
 
@@ -2844,6 +2979,9 @@ msgstr "Salvar código de bambu"
 
 msgid "Save birthday"
 msgstr "Salvar o aniversário"
+
+msgid "Save checklist"
+msgstr "Salvar etapas"
 
 msgid "Save code"
 msgstr "Salvar código"
@@ -2995,6 +3133,9 @@ msgstr "Enviar feedback da família"
 msgid "Send feedback"
 msgstr "Enviar feedback"
 
+msgid "Send for approval"
+msgstr "Enviar para aprovação"
+
 msgid "Send gift"
 msgstr "Enviar presente"
 
@@ -3058,11 +3199,17 @@ msgstr "Motivo compartilhado (opcional)"
 msgid "Share…"
 msgstr "Compartilhar…"
 
+msgid "Shorter months use their last day."
+msgstr "Em meses mais curtos, a rotina roda no último dia."
+
 msgid "Show"
 msgstr "Mostrar"
 
 msgid "Shown in family-facing headings and messages."
 msgstr "Mostrado em cabeçalhos e mensagens voltados para a família."
+
+msgid "Side"
+msgstr "Secundária"
 
 msgid "Sign in"
 msgstr "Entrar"
@@ -3072,6 +3219,12 @@ msgstr "Sinal recebido! As provas da missão foram entregues ao QG."
 
 msgid "Silver Mystery Canvas"
 msgstr "Tela Misteriosa de Prata"
+
+msgid "Skip mission"
+msgstr "Pular missão"
+
+msgid "Skipped"
+msgstr "Pulada"
 
 msgid "Small tasks."
 msgstr "Pequenas tarefas."
@@ -3085,14 +3238,26 @@ msgstr "Algo não está funcionando"
 msgid "Spawn day"
 msgstr "Dia do Spawn"
 
+msgid "Special"
+msgstr "Especial"
+
 msgid "Spell complete"
 msgstr "Feitiço completo"
 
 msgid "Square buttons. Big taps."
 msgstr "Botões quadrados e grandes, fáceis de tocar."
 
+msgid "Standard"
+msgstr "Padrão"
+
+msgid "Start timer"
+msgstr "Iniciar temporizador"
+
 msgid "Status"
 msgstr "Status"
+
+msgid "Step"
+msgstr "Etapa"
 
 msgid "Storage provider"
 msgstr "Prestador de armazenamento"
@@ -3129,6 +3294,9 @@ msgstr "Sugerido"
 
 msgid "Suggested point amount"
 msgstr "Quantidade de pontos sugerida"
+
+msgid "Suggested time"
+msgstr "Horário sugerido"
 
 msgid "Suggested token amount"
 msgstr "Quantidade do token sugerida"
@@ -3240,6 +3408,9 @@ msgstr "Tarefas"
 
 msgid "Tasks and rewards"
 msgstr "Tarefas e recompensas"
+
+msgid "Tasks follow the approval setting on each mission. Submit them before the deadline."
+msgstr "Cada missão segue sua própria regra de aprovação. Envie antes do prazo."
 
 msgid "Tasks from your parents"
 msgstr "Tarefas de seus responsáveis"
@@ -3598,6 +3769,18 @@ msgstr "É uma surpresa! Revele todos os campos para descobrir o resultado."
 msgid "This message stays on your family server and is reviewed by parents."
 msgstr "Esta mensagem permanece no servidor da sua família e é revista pelos pais."
 
+msgid "This mission is no longer awaiting that action."
+msgstr "O estado atual da missão não permite esta ação."
+
+msgid "This mission is outside its scheduled time."
+msgstr "Esta missão está fora do horário previsto."
+
+msgid "This mission is waiting for the child to send corrections."
+msgstr "A missão aguarda o reenvio das correções pela criança."
+
+msgid "This mission request has already been used."
+msgstr "Esta solicitação de missão já foi usada."
+
 msgid "This month"
 msgstr "Este mês"
 
@@ -3612,6 +3795,9 @@ msgstr "Esta operação excederia o limite permitido de %(limit)s token."
 
 msgid "This pairing link is invalid or has expired."
 msgstr "Este link de pareamento é inválido ou expirou."
+
+msgid "This prerequisite would create a cycle."
+msgstr "Esta missão necessária criaria uma dependência circular."
 
 msgid "This proposal has already been resolved."
 msgstr "Esta proposta já foi resolvida."
@@ -3630,6 +3816,12 @@ msgstr "Esta recompensa já não está ativa."
 
 msgid "This sign-in link is invalid or has expired."
 msgstr "Este link de login é inválido ou expirou."
+
+msgid "This task already has a pending record. Continue it from the dashboard."
+msgstr "Esta tarefa já está pendente. Continue pelo registro no painel."
+
+msgid "This task has already been credited today."
+msgstr "Esta tarefa já recebeu crédito hoje."
 
 msgid "This task is already awaiting approval."
 msgstr "Esta tarefa já aguarda aprovação."
@@ -3811,6 +4003,9 @@ msgstr "Usar o padrão da instalação"
 msgid "Use this world"
 msgstr "Use este mundo"
 
+msgid "Use up to 15 steps of 120 characters each."
+msgstr "Use até 15 etapas de 120 caracteres cada."
+
 msgid "Used"
 msgstr "Usado"
 
@@ -3834,6 +4029,15 @@ msgstr "Usa os seus pontos disponíveis. Você ainda pode gastá-los, então o p
 
 msgid "VERSIONS"
 msgstr "VERSÕES"
+
+msgid "Vacation end"
+msgstr "Fim das férias"
+
+msgid "Vacation mode"
+msgstr "Modo férias"
+
+msgid "Vacation start"
+msgstr "Início das férias"
 
 msgid "Verify and save"
 msgstr "Verificar e salvar"
@@ -3945,6 +4149,12 @@ msgstr "Escreva no livro de feitiços"
 
 msgid "XP"
 msgstr "XP"
+
+msgid "XP reward"
+msgstr "Recompensa em XP"
+
+msgid "Yes"
+msgstr "Sim"
 
 msgid "You can add a photo of the finished task."
 msgstr "Você pode adicionar uma foto da tarefa terminada."

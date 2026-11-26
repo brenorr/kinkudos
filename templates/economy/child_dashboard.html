@@ -47,6 +47,9 @@
     <p>{{ child.theme|theme_text:"assigned_help" }}</p>
     <div class="assigned-task-list">
       {% for assigned_task in active_assigned_tasks %}
+        {% ifchanged assigned_task.occurrence.routine %}
+          {% if assigned_task.occurrence.routine %}<h3>{{ assigned_task.occurrence.routine }}</h3>{% endif %}
+        {% endifchanged %}
       <article class="assigned-task-row">
         <span class="item-icon">{{ assigned_task.icon_snapshot|icon_symbol }}</span>
         <div>
@@ -59,9 +62,13 @@
           </p>
           {% endif %}
         </div>
+        {% if assigned_task.occurrence_id %}
+          <a class="button button-secondary" href="{% url 'child_mission' assigned_task.occurrence_id %}">{% translate "Open mission" %}</a>
+        {% else %}
         <form method="post" action="{% url 'child_complete_assigned_task' assigned_task.pk %}" data-success-effect="task">{% csrf_token %}
           <button class="decision-icon-button decision-approve" type="submit" aria-label="{{ child.theme|theme_text:'assigned_complete' }}" title="{{ child.theme|theme_text:'assigned_complete' }}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-check"></use></svg></button>
         </form>
+        {% endif %}
       </article>
       {% endfor %}
     </div>
@@ -69,7 +76,7 @@
   {% endif %}
   <div class="section-heading"><p class="eyebrow">{% translate "Choose a task" %}</p><h2>{{ child.theme|theme_text:"nav_tasks" }}</h2></div>
   {% if revision_claims %}<div class="revision-list"><h3>{% if child.theme == "blockville" %}{{ child.theme|theme_text:"revision" }}{% else %}{% translate "Needs improvement" %}{% endif %}</h3>{% for claim in revision_claims %}
-    <article id="revision-claim-{{ claim.pk }}" class="revision-card notice-block notice-warning"><div><strong>{{ claim.task_title }}</strong>{% if claim.revision_note %}<p>{{ claim.revision_note }}</p>{% endif %}</div><button class="decision-icon-button decision-revise" type="button" data-open-dialog="resubmit-task-{{ claim.pk }}" aria-label="{% translate "Fix and resubmit" %}" title="{% translate "Fix and resubmit" %}"><svg class="action-icon" aria-hidden="true"><use href="#icon-rotate-left"></use></svg></button></article>
+    <article id="revision-claim-{{ claim.pk }}" class="revision-card notice-block notice-warning"><div><strong>{{ claim.task_title }}</strong>{% if claim.occurrence_id %} <a href="{% url 'child_mission' claim.occurrence_id %}">{% translate "Open mission" %}</a>{% endif %}{% if claim.revision_note %}<p>{{ claim.revision_note }}</p>{% endif %}</div><button class="decision-icon-button decision-revise" type="button" data-open-dialog="resubmit-task-{{ claim.pk }}" aria-label="{% translate "Fix and resubmit" %}" title="{% translate "Fix and resubmit" %}"><svg class="action-icon" aria-hidden="true"><use href="#icon-rotate-left"></use></svg></button></article>
     <dialog id="resubmit-task-{{ claim.pk }}" class="action-dialog evidence-dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="{% translate 'Close' %}" title="{% translate 'Close' %}">
         <svg class="action-icon" aria-hidden="true"><use href="#icon-xmark"></use></svg>
       </button><h2>{{ claim.task_title }}</h2><p class="revision-note">{{ claim.revision_note }}</p>
@@ -99,6 +106,19 @@
       </form>
     </article>
   {% endfor %}</div>{% endif %}
+  {% regroup extra_missions by routine as mission_groups %}
+  {% for group in mission_groups %}
+    <section>
+      <h3>{% if group.grouper %}{{ group.grouper }}{% else %}{% translate "Extra missions" %}{% endif %}</h3>
+      <ul>{% for mission in group.list %}<li><a href="{% url 'child_mission' mission.pk %}">{{ mission.title }}</a></li>{% endfor %}</ul>
+    </section>
+  {% endfor %}
+  {% if recent_mission_credits %}
+    <div class="notice-block">
+      <h3>{% translate "Recent mission credits" %}</h3>
+      <ul>{% for credit in recent_mission_credits %}<li>{{ credit.coin_entry.description }} · {% blocktranslate with xp=credit.xp coins=credit.coin_entry.delta %}{{ xp }} XP and {{ coins }} coins{% endblocktranslate %}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
   <div class="task-search">
     <label for="task-search-input">{% translate "Find a task" %}:</label>
     <input
@@ -116,13 +136,17 @@
     <div id="task-search-results" class="task-search-results" role="listbox" hidden data-task-search-results></div>
   </div>
   <div class="item-grid">{% for task in tasks %}
-    <article id="task-card-{{ task.pk }}" class="item-card" data-task-card data-task-search-text="{{ task.title }}"><span class="item-icon">{{ task.icon|icon_symbol }}</span><div><h3>{{ task.title }}</h3><p class="amount positive">+{{ task.reward }} {{ task.reward|currency_unit:child.theme }}</p></div>
-    {% if task.pk in pending_task_ids %}<span class="status-pill">{% if child.theme == "blockville" %}{{ child.theme|theme_text:"pending" }}{% else %}{% translate "Awaiting approval" %}{% endif %}</span>{% else %}<button class="decision-icon-button decision-approve workflow-card-button" type="button" data-open-dialog="submit-task-{{ task.pk }}" aria-label="{{ child.theme|theme_text:'task_button' }}" title="{{ child.theme|theme_text:'task_button' }}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-check"></use></svg></button>{% endif %}</article>
+    {% ifchanged task.routine %}{% if task.routine %}<h3>{{ task.routine }}</h3>{% endif %}{% endifchanged %}
+    <article id="task-card-{{ task.pk }}" class="item-card" data-task-card data-task-search-text="{{ task.title }}"><span class="item-icon">{{ task.icon|icon_symbol }}</span><div><h3>{{ task.title }}</h3>{% if task.category %}<p>{{ task.category }}</p>{% endif %}<p class="amount positive">+{{ task.reward }} {{ task.reward|currency_unit:child.theme }}</p></div>
+    {% if task.pk in pending_task_ids %}<span class="status-pill">{% if child.theme == "blockville" %}{{ child.theme|theme_text:"pending" }}{% else %}{% translate "Awaiting approval" %}{% endif %}</span>{% elif task.pk in completed_mission_task_ids %}<span class="status-pill">{% translate "Completed" %}</span>{% elif task.checklist or task.instructions or task.timer_minutes or task.prerequisite_id %}
+      <form method="post" action="{% url 'child_start_mission' task.pk %}">{% csrf_token %} <input type="hidden" name="mission_day" value="{{ mission_day|date:'Y-m-d' }}"><button class="button button-secondary">{% translate "Open mission" %}</button></form>
+    {% else %}<button class="decision-icon-button decision-approve workflow-card-button" type="button" data-open-dialog="submit-task-{{ task.pk }}" aria-label="{{ child.theme|theme_text:'task_button' }}" title="{{ child.theme|theme_text:'task_button' }}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-check"></use></svg></button>{% endif %}</article>
     <dialog id="submit-task-{{ task.pk }}" class="action-dialog evidence-dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="{% translate 'Close' %}" title="{% translate 'Close' %}">
         <svg class="action-icon" aria-hidden="true"><use href="#icon-xmark"></use></svg>
       </button><h2>{{ child.theme|theme_text:"task_modal_title" }}</h2><h3>{{ task.title }}</h3><p>{% translate "You can add a photo or a short note about what you did." %}</p>
       {% if family_settings.photo_bonus_points %}<p class="photo-bonus">+{{ family_settings.photo_bonus_points }} {{ family_settings.photo_bonus_points|currency_unit:child.theme }} {% translate "for a photo" %}</p>{% endif %}
       <form method="post" action="{% url 'child_submit_task' task.pk %}" enctype="multipart/form-data" class="stack-form evidence-form" data-success-effect="task">{% csrf_token %}
+        <input type="hidden" name="mission_day" value="{{ mission_day|date:'Y-m-d' }}">
         <input type="file" name="proof" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" data-evidence-input hidden>
         <img class="evidence-preview" alt="" data-evidence-preview hidden>
         <div class="evidence-actions"><button type="button" class="button button-secondary" data-evidence-camera><svg class="action-icon"><use href="#icon-camera"></use></svg>{% if child.theme == "blockville" %}{{ child.theme|theme_text:"task_photo" }}{% else %}{% translate "Take photo" %}{% endif %}</button><button type="button" class="button button-secondary" data-evidence-gallery>{% translate "Choose from gallery" %}</button><button type="button" class="text-button danger" data-evidence-remove hidden>{% translate "Remove photo" %}</button></div>
@@ -131,6 +155,7 @@
         </label>
         <button class="decision-icon-button decision-approve dialog-decision-action" type="submit" aria-label="{{ child.theme|theme_text:'task_modal_submit' }}" title="{{ child.theme|theme_text:'task_modal_submit' }}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-check"></use></svg></button>
       </form>
+      <form method="post" action="{% url 'child_start_mission' task.pk %}">{% csrf_token %} <input type="hidden" name="mission_day" value="{{ mission_day|date:'Y-m-d' }}"><button class="button button-secondary">{% translate "Open mission" %}</button></form>
     </dialog>
   {% empty %}<p class="empty-state">{% translate "There are no tasks yet." %}</p>{% endfor %}</div>
   <p class="empty-state" data-task-search-empty hidden>{% translate "No tasks match your search." %}</p>

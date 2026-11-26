@@ -25,6 +25,12 @@ data local e reversão ao extrato, três limites opcionais em `FamilySettings`
 e `OccurrenceCredit` como registro único de XP por ocorrência. Os
 lançamentos antigos ficam com os metadados novos vazios, e as solicitações
 e atribuições antigas conservam os valores prometidos.
+A migração `0038_mission_occurrences` introduz `MissionOccurrence`. Ela
+registra estado, data local, checklist, valores e regra de aprovação da
+execução. Pedidos e itens novos a referenciam. Lotes automáticos têm
+unicidade por preset e data. O crédito permanece em `OccurrenceCredit`,
+com a chave derivada do ID da ocorrência.
+
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

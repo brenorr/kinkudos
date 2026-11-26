@@ -163,6 +163,12 @@
   </div>
   <div class="parent-workspace">
   <section id="parent-home" class="parent-panel parent-home-panel" data-parent-panel="home">
+    {% if mission_help %}
+      <div class="notice-block notice-info">
+        <h2>{% translate "Mission help requests" %}</h2>
+        <ul>{% for mission in mission_help %}<li>{{ mission.child.name }} · {{ mission.title }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
 <section class="content-section parent-children-section">
   <div class="section-heading children-section-heading"><h2>{% translate "Children" %}</h2></div>
   <div class="stats-grid">
@@ -248,6 +254,8 @@
     <h2>{% translate "Add completed task" %}</h2><p class="dialog-context">{{ child.name }}</p>
     <form method="post" action="{% url 'parent_award_task' child.pk %}" class="stack-form">
       {% csrf_token %}
+      <input type="hidden" name="mission_day" value="{{ today|date:'Y-m-d' }}">
+      <input type="hidden" name="operation_token" value="{% new_operation_token %}">
       <fieldset class="choice-fieldset">
         <legend>{% translate "Choose completed tasks" %}:</legend>
         <div class="choice-list">
@@ -264,12 +272,13 @@
         </div>
       </fieldset>
       <button class="button button-primary" type="submit"{% if not active_tasks %} disabled{% endif %}>{% translate "Award selected tasks" %}</button>
+      <button class="button button-secondary" type="submit" formaction="{% url 'parent_repeat_mission' child.pk %}"{% if not active_tasks %} disabled{% endif %}>{% translate "Add another occurrence" %}</button>
     </form>
   </dialog>
   <dialog id="assign-tasks-{{ child.pk }}" class="action-dialog assigned-tasks-dialog">
     <button class="dialog-close" type="button" data-close-dialog aria-label="{% translate "Close" %}" title="{% translate "Close" %}"><svg class="action-icon"><use href="#icon-xmark"></use></svg></button>
     <h2>{% translate "Assign tasks for today" %}</h2><p class="dialog-context">{{ child.name }}</p>
-    <p>{% translate "The tasks expire at midnight. Completed tasks award points immediately." %}</p>
+    <p>{% translate "Tasks follow the approval setting on each mission. Submit them before the deadline." %}</p>
     {% if child.saved_assignment_presets %}
       <div class="assignment-presets">
         <h3>{% translate "Saved sets" %}</h3>
@@ -295,6 +304,7 @@
     {% endif %}
     <form method="post" action="{% url 'parent_assign_tasks' child.pk %}" class="stack-form">
       {% csrf_token %}
+      <input type="hidden" name="operation_token" value="{% new_operation_token %}">
       <fieldset class="choice-fieldset">
         <legend>{% translate "Choose tasks" %}:</legend>
         <div class="choice-list">
@@ -317,6 +327,8 @@
         <h3>{% translate "Custom task (optional)" %}</h3>
         <label>{% translate "Task name" %}:<input class="field-control" name="custom_title" maxlength="120"></label>
         <label>{% translate "Points" %}:<input class="field-control" name="custom_points" type="number" min="1" max="99999" maxlength="5" inputmode="numeric"></label>
+        <label>{% translate "XP reward" %}<input class="field-control" name="custom_xp" type="number" min="0" max="99999" value="0"></label>
+        <label>{% translate "Requires parent approval" %}<select class="field-control" name="custom_requires_approval"><option value="1">{% translate "Yes" %}</option><option value="0">{% translate "No" %}</option></select></label>
         <label>{% translate "Note (optional)" %}:<input class="field-control" name="custom_note" maxlength="200"></label>
       </div>
       <label class="checkbox-field">
@@ -377,6 +389,12 @@
               </select>
             </label>
           </div>
+          <label class="checkbox-field preset-cadence-choice"><input type="radio" name="cadence" value="monthly" data-preset-cadence><span>{% translate "Once a month" %}</span></label>
+          <div class="preset-cadence-panel" data-preset-cadence-panel="monthly" hidden>
+            <label>{% translate "Day of the month" %}<input class="field-control" type="number" name="monthly_day" min="1" max="31"></label>
+            <small>{% translate "Shorter months use their last day." %}</small>
+          </div>
+          <label class="checkbox-field preset-cadence-choice"><input type="radio" name="cadence" value="event" data-preset-cadence><span>{% translate "On demand" %}</span></label>
         </fieldset>
         <label>{% translate "Send at" %}:<input class="field-control" name="run_at" type="time" value="07:00"></label>
         <button class="button button-secondary" type="submit" formaction="{% url 'parent_save_assignment_preset' child.pk %}" data-save-assignment-preset>{% translate "Save set" %}</button>
@@ -405,6 +423,7 @@
                 <span class="assigned-task-history-status">
                   {% if item.status == "completed" %}{% translate "Completed" %}
                   {% elif item.status == "cancelled" %}{% translate "Cancelled" %}
+                  {% elif item.status == "submitted" %}{% translate "Awaiting approval" %}
                   {% else %}{% translate "Waiting" %}{% endif %}
                 </span>
                 {% if item.status != "completed" and item.status != "cancelled" %}
@@ -514,6 +533,7 @@
             <label>{% translate "Task" %}<input class="field-control" name="title" value="{{ item.title }}" maxlength="120" required></label>
             <label>{% translate "Points" %}<input class="field-control" name="reward" type="number" min="1" max="99999" maxlength="5" inputmode="numeric" value="{{ item.reward }}" required></label>
             <label>{% translate "Icon" %}<input class="field-control emoji-input" name="icon" value="{{ item.icon|icon_symbol }}" list="emoji-options" maxlength="8" required></label>
+            {% for field in item.mission_fields %}{% if field.name != "icon" %}<p>{{ field.label_tag }} {{ field }}</p>{% endif %}{% endfor %}
             <div class="form-actions catalog-edit-actions">
               <button class="button button-primary" type="submit">{% translate "Save" %}</button>
               <button class="button button-secondary" type="button" data-cancel-edit>{% translate "Cancel" %}</button>
@@ -686,6 +706,13 @@
           <p>{{ family_preferences_form.coin_balance_limit.label_tag }} {{ family_preferences_form.coin_balance_limit }}</p>
           <p>{{ family_preferences_form.daily_penalty_limit.label_tag }} {{ family_preferences_form.daily_penalty_limit }}</p>
         </div>
+    </details>
+    <details class="settings-section parent-accordion">
+      <summary><span class="settings-summary-label">{% translate "Vacation mode" %}</span></summary>
+      <div class="settings-group">
+        <p>{{ family_preferences_form.vacation_start.label_tag }} {{ family_preferences_form.vacation_start }}</p>
+        <p>{{ family_preferences_form.vacation_end.label_tag }} {{ family_preferences_form.vacation_end }}</p>
+      </div>
     </details>
     <details class="settings-section parent-accordion">
         <summary><span class="settings-summary-copy"><span class="settings-summary-label">{% translate "Surprise cards" %}</span><small class="settings-summary-description">{% translate "Configure surprise cards and reward limits." %}</small></span></summary>

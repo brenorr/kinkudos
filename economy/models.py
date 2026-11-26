@@ -168,6 +168,8 @@ class FamilySettings(models.Model):
     default_language = models.CharField(max_length=8, blank=True, default="")
     timezone_name = models.CharField(max_length=64, blank=True, default="")
 
+    vacation_start = models.DateField(null=True, blank=True)
+    vacation_end = models.DateField(null=True, blank=True)
     daily_coin_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
     coin_balance_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
     daily_penalty_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
@@ -541,8 +543,80 @@ class CatalogBase(models.Model):
         return self.title
 
 
+class MissionKind(models.TextChoices):
+    STANDARD = "standard", _("Standard")
+    MAIN = "main", _("Main")
+    SIDE = "side", _("Side")
+    SPECIAL = "special", _("Special")
+    COOPERATIVE = "cooperative", _("Cooperative")
+
+
 class Task(CatalogBase):
     reward = models.PositiveIntegerField()
+    xp_reward = models.PositiveIntegerField(default=0)
+    requires_approval = models.BooleanField(default=True)
+    instructions = models.TextField(blank=True, max_length=1200)
+    checklist = models.JSONField(default=list, blank=True)
+    category = models.CharField(max_length=80, blank=True)
+    routine = models.CharField(max_length=80, blank=True)
+    mission_kind = models.CharField(max_length=16, choices=MissionKind.choices, default=MissionKind.STANDARD)
+    difficulty = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    suggested_at = models.TimeField(null=True, blank=True)
+    due_at = models.TimeField(null=True, blank=True)
+    timer_minutes = models.PositiveSmallIntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(120)])
+    prerequisite = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT)
+
+
+class MissionStatus(models.TextChoices):
+    AVAILABLE = "available", _("Available")
+    IN_PROGRESS = "in_progress", _("In progress")
+    PENDING_APPROVAL = "pending_approval", _("Awaiting approval")
+    IN_REVIEW = "in_review", _("Needs changes")
+    COMPLETED = "completed", _("Completed")
+    REJECTED = "rejected", _("Rejected")
+    CANCELLED = "cancelled", _("Cancelled")
+    SKIPPED = "skipped", _("Skipped")
+
+
+class MissionOccurrence(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="missions")
+    task = models.ForeignKey(Task, null=True, blank=True, on_delete=models.PROTECT)
+    local_date = models.DateField()
+    is_default_slot = models.BooleanField(default=True)
+    status = models.CharField(max_length=16, choices=MissionStatus.choices, default=MissionStatus.AVAILABLE)
+    title = models.CharField(max_length=120)
+    instructions = models.TextField(blank=True)
+    checklist = models.JSONField(default=list, blank=True)
+    checked_steps = models.JSONField(default=list, blank=True)
+    routine = models.CharField(max_length=80, blank=True)
+    xp = models.PositiveIntegerField(default=0)
+    coins = models.PositiveIntegerField()
+    requires_approval = models.BooleanField(default=True)
+    suggested_at = models.TimeField(null=True, blank=True)
+    deadline = models.DateTimeField(null=True, blank=True)
+    timer_minutes = models.PositiveSmallIntegerField(null=True, blank=True)
+    prerequisite = models.ForeignKey(Task, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    help_requested_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    create_token = models.UUIDField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["child", "task", "local_date"],
+                condition=Q(is_default_slot=True, task__isnull=False),
+                name="unique_default_mission_slot",
+            ),
+            models.UniqueConstraint(
+                fields=["child", "create_token"],
+                condition=Q(create_token__isnull=False),
+                name="unique_mission_creation_token",
+            ),
+        ]
+
+    @property
+    def credit_key(self):
+        return f"mission:{self.pk}"
 
 
 class PenaltyTemplate(CatalogBase):
@@ -563,7 +637,10 @@ class RequestStatus(models.TextChoices):
 
 class TaskClaim(models.Model):
     child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="task_claims")
-    task = models.ForeignKey(Task, on_delete=models.PROTECT, related_name="claims")
+    task = models.ForeignKey(Task, null=True, blank=True, on_delete=models.PROTECT, related_name="claims")
+    occurrence = models.OneToOneField(
+        MissionOccurrence, null=True, blank=True, on_delete=models.PROTECT, related_name="claim"
+    )
     task_title = models.CharField(max_length=120)
     reward_snapshot = models.PositiveIntegerField()
     use_coin_limits = models.BooleanField(default=True)
@@ -599,6 +676,7 @@ class TaskClaim(models.Model):
             models.UniqueConstraint(
                 fields=["child", "task"],
                 condition=Q(
+                    occurrence__isnull=True,
                     status__in=[
                         RequestStatus.PENDING,
                         RequestStatus.NEEDS_CHANGES,
@@ -631,6 +709,8 @@ class AssignedTaskBatch(models.Model):
         on_delete=models.PROTECT,
         related_name="assigned_task_batches",
     )
+    create_token = models.UUIDField(null=True, blank=True)
+    preset = models.ForeignKey("AssignmentPreset", null=True, blank=True, on_delete=models.SET_NULL)
     blocks_rewards = models.BooleanField(default=False)
     assigned_on = models.DateField(default=timezone.localdate)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -639,10 +719,21 @@ class AssignedTaskBatch(models.Model):
 
     class Meta:
         ordering: ClassVar = ["-created_at", "-pk"]
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["preset", "assigned_on"], condition=Q(preset__isnull=False),
+                name="unique_preset_batch_per_day",
+            ),
+            models.UniqueConstraint(
+                fields=["child", "create_token"], condition=Q(create_token__isnull=False),
+                name="unique_assigned_batch_token",
+            ),
+        ]
 
 
 class AssignedTaskStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
+    SUBMITTED = "submitted", _("Awaiting approval")
     COMPLETED = "completed", _("Completed")
     CANCELLED = "cancelled", _("Cancelled")
 
@@ -659,6 +750,9 @@ class AssignedTask(models.Model):
         blank=True,
         on_delete=models.PROTECT,
         related_name="assignments",
+    )
+    occurrence = models.OneToOneField(
+        MissionOccurrence, null=True, blank=True, on_delete=models.PROTECT, related_name="assignment"
     )
     title_snapshot = models.CharField(max_length=120)
     icon_snapshot = models.CharField(max_length=32, default="🧹")
@@ -703,6 +797,8 @@ class AssignmentPresetCadence(models.TextChoices):
     WEEKDAYS = "weekdays", _("Chosen weekdays")
     WEEKEND = "weekend", _("Weekend")
     WEEKLY = "weekly", _("Once a week")
+    MONTHLY = "monthly", _("Once a month")
+    EVENT = "event", _("On demand")
 
 
 class AssignmentPresetWeekendMode(models.TextChoices):
@@ -737,6 +833,7 @@ class AssignmentPreset(models.Model):
         blank=True,
     )
     weekly_weekday = models.PositiveSmallIntegerField(null=True, blank=True)
+    monthly_day = models.PositiveSmallIntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
     run_at = models.TimeField(default=_default_preset_run_at)
     last_auto_assigned_on = models.DateField(null=True, blank=True)
     created_by = models.ForeignKey(
@@ -769,6 +866,8 @@ class AssignmentPresetItem(models.Model):
     )
     custom_title = models.CharField(max_length=120, blank=True, default="")
     custom_points = models.PositiveIntegerField(null=True, blank=True)
+    custom_xp = models.PositiveIntegerField(default=0)
+    custom_requires_approval = models.BooleanField(default=True)
     note = models.CharField(max_length=200, blank=True, default="")
     sort_order = models.PositiveIntegerField(default=0)
 

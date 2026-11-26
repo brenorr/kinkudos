@@ -56,6 +56,8 @@ from economy.models import (
     GoalStatus,
     LedgerEntry,
     LedgerKind,
+    MissionOccurrence,
+    MissionStatus,
     PenaltyTemplate,
     Proposal,
     ProposalType,
@@ -453,7 +455,7 @@ def parent_dashboard(request):
         )
         for batch in child.assignment_batches:
             batch.has_pending_items = any(
-                item.status == AssignedTaskStatus.PENDING
+                item.status in (AssignedTaskStatus.PENDING, AssignedTaskStatus.SUBMITTED)
                 for item in batch.items.all()
             )
     history_children = list(accessible_children_qs(request).order_by("name"))
@@ -630,6 +632,13 @@ def parent_dashboard(request):
             "decided_by"
         )
     }
+    occurrence_claims = {
+        claim.occurrence_id: claim
+        for claim in TaskClaim.objects.filter(occurrence_id__in=[
+            entry.source_id for entry in ledger_page.object_list
+            if entry.history_type == "ledger" and entry.source_type == "occurrence"
+        ]).select_related("decided_by")
+    }
     assigned_task_source_ids = [
         entry.source_id
         for entry in ledger_page.object_list
@@ -652,11 +661,14 @@ def parent_dashboard(request):
                 if entry.kind == LedgerKind.TASK and entry.source_type in ("", "task_claim")
                 else None
             )
+            if entry.source_type == "occurrence":
+                entry.task_claim = occurrence_claims.get(entry.source_id)
             entry.assigned_task = history_assigned_tasks.get(entry.source_id)
             actor = entry.actor
             actor_label = ""
-            if entry.kind == LedgerKind.TASK and entry.task_claim:
-                actor = entry.task_claim.decided_by or actor
+            if entry.kind == LedgerKind.TASK:
+                if entry.task_claim:
+                    actor = entry.task_claim.decided_by or actor
                 actor_label = _("Approved by")
             elif entry.kind == LedgerKind.REWARD and entry.reward_request:
                 actor = entry.reward_request.decided_by or actor
@@ -734,6 +746,15 @@ def parent_dashboard(request):
         .order_by("username")
     )
 
+    tasks = list(Task.objects.filter(is_deleted=False))
+    for task in tasks:
+        task.mission_fields = list(TaskForm(instance=task, auto_id=f"id_task_{task.pk}_%s"))[2:]
+    mission_help = MissionOccurrence.objects.filter(
+        child_id__in=child_ids, help_requested_at__isnull=False,
+        status__in=(MissionStatus.AVAILABLE, MissionStatus.IN_PROGRESS, MissionStatus.PENDING_APPROVAL, MissionStatus.IN_REVIEW),
+    ).filter(
+        Q(local_date=today) | Q(status__in=(MissionStatus.PENDING_APPROVAL, MissionStatus.IN_REVIEW))
+    ).select_related("child").order_by("-help_requested_at")[:20]
     context = {
             "children": children,
             "is_caregiver": is_caregiver,
@@ -742,7 +763,7 @@ def parent_dashboard(request):
             "pending_requests": pending_requests,
             "pending_count": len(pending_requests),
             "pending_revision": pending_revision,
-            "tasks": Task.objects.filter(is_deleted=False),
+            "tasks": tasks,
             "active_tasks": Task.objects.filter(is_active=True, is_deleted=False),
             "penalties": PenaltyTemplate.objects.filter(is_deleted=False),
             "active_penalties": PenaltyTemplate.objects.filter(
@@ -779,6 +800,7 @@ def parent_dashboard(request):
             ),
             "history_preserved_params": history_preserved_params,
             "history_pagination_query": history_pagination_query,
+            "mission_help": mission_help,
             "task_form": TaskForm(auto_id="id_new_task_%s"),
             "penalty_form": PenaltyForm(auto_id="id_new_penalty_%s"),
             "reward_form": RewardForm(auto_id="id_new_reward_%s"),

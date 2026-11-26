@@ -102,6 +102,19 @@ def in_family_language(notify):
 
 
 @in_family_language
+def notify_mission_help(occurrence):
+    _send(
+        {
+            "title": _("A child asked for help with a mission"),
+            "body": f"{occurrence.child.name}: {occurrence.title}",
+            "url": _parent_dashboard_url(),
+            "tag": f"mission-help-{occurrence.pk}",
+        },
+        _parent_subscriptions(),
+    )
+
+
+@in_family_language
 def notify_task_claim(claim):
     _send(
         {

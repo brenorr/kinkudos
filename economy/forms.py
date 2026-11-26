@@ -161,10 +161,72 @@ class TaskForm(EmojiFormMixin, forms.ModelForm):
         error_messages={"min_value": _("Enter a positive point amount.")},
     )
 
+    checklist = forms.CharField(
+        label=_("Checklist (one step per line)"), required=False, max_length=1800,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
+    requires_approval = forms.TypedChoiceField(
+        label=_("Requires parent approval"), choices=(("1", _("Yes")), ("0", _("No"))),
+        coerce=lambda value: value == "1", required=False, empty_value=None,
+    )
+
     class Meta:
         model = Task
-        fields = ["title", "reward", "icon"]
-        labels = {"title": _("Task"), "reward": _("Points"), "icon": _("Icon")}
+        fields = [
+            "title", "reward", "xp_reward", "requires_approval", "icon", "instructions",
+            "checklist", "category", "routine", "mission_kind", "difficulty", "suggested_at",
+            "due_at", "timer_minutes", "prerequisite",
+        ]
+        labels = {
+            "title": _("Task"), "reward": _("Points"), "icon": _("Icon"),
+            "xp_reward": _("XP reward"), "instructions": _("Instructions"),
+            "category": _("Category"), "routine": _("Routine"), "mission_kind": _("Mission type"),
+            "difficulty": _("Difficulty"), "suggested_at": _("Suggested time"),
+            "due_at": _("Deadline time"), "timer_minutes": _("Focus timer (minutes)"),
+            "prerequisite": _("Prerequisite mission"),
+        }
+        widgets = {
+            "instructions": forms.Textarea(attrs={"rows": 3}),
+            "suggested_at": forms.TimeInput(format="%H:%M", attrs={"type": "time"}),
+            "due_at": forms.TimeInput(format="%H:%M", attrs={"type": "time"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        task = self.instance
+        self.initial["requires_approval"] = "1" if task.requires_approval else "0"
+        self.initial["checklist"] = "\n".join(task.checklist)
+        self.fields["prerequisite"].queryset = Task.objects.filter(is_deleted=False).exclude(pk=task.pk)
+        if self.is_bound:
+            data = self.data.copy()
+            for name in self.Meta.fields[3:]:
+                value = self.initial.get(name)
+                if name != "icon" and value is not None:
+                    data.setdefault(self.add_prefix(name), value)
+            for name in ("xp_reward", "mission_kind", "difficulty"):
+                data.setdefault(self.add_prefix(name), getattr(task, name))
+            self.data = data
+
+    def clean_requires_approval(self):
+        value = self.cleaned_data["requires_approval"]
+        return self.instance.requires_approval if value is None else value
+
+    def clean_checklist(self):
+        steps = [step.strip() for step in self.cleaned_data["checklist"].splitlines() if step.strip()]
+        if len(steps) > 15 or any(len(step) > 120 for step in steps):
+            raise forms.ValidationError(_("Use up to 15 steps of 120 characters each."))
+        return steps
+
+    def clean_prerequisite(self):
+        prerequisite = self.cleaned_data["prerequisite"]
+        current = prerequisite
+        seen = {self.instance.pk}
+        while current:
+            if current.pk in seen:
+                raise forms.ValidationError(_("This prerequisite would create a cycle."))
+            seen.add(current.pk)
+            current = current.prerequisite
+        return prerequisite
 
     def clean_reward(self):
         reward = self.cleaned_data["reward"]
@@ -329,6 +391,7 @@ CHILD_CLAIM_NOTE_MAX_LENGTH = 200
 
 
 class AssignTasksForm(forms.Form):
+    operation_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
     task_ids = forms.ModelMultipleChoiceField(
         label=_("Tasks"),
         queryset=Task.objects.none(),
@@ -345,6 +408,11 @@ class AssignTasksForm(forms.Form):
         min_value=1,
         max_value=MAX_POINT_AMOUNT,
         required=False,
+    )
+    custom_xp = forms.IntegerField(label=_("XP reward"), min_value=0, max_value=MAX_POINT_AMOUNT, required=False)
+    custom_requires_approval = forms.TypedChoiceField(
+        label=_("Requires parent approval"), choices=(("1", _("Yes")), ("0", _("No"))),
+        coerce=lambda value: value == "1", required=False, empty_value=True,
     )
     custom_note = forms.CharField(
         label=_("Note"),
@@ -428,6 +496,7 @@ class SaveAssignmentPresetForm(AssignTasksForm):
         required=False,
         empty_value=None,
     )
+    monthly_day = forms.IntegerField(label=_("Day of the month"), min_value=1, max_value=31, required=False)
     run_at = forms.TimeField(
         label=_("Send at"),
         required=False,
@@ -449,6 +518,8 @@ class SaveAssignmentPresetForm(AssignTasksForm):
                 raise forms.ValidationError(_("Choose a weekday for the weekly set."))
         else:
             cleaned["weekly_weekday"] = None
+        if cadence == AssignmentPresetCadence.MONTHLY and not cleaned.get("monthly_day"):
+            raise forms.ValidationError(_("Choose a day of the month between 1 and 31."))
         if cadence != AssignmentPresetCadence.WEEKEND:
             cleaned["weekend_mode"] = AssignmentPresetWeekendMode.BOTH
         elif not cleaned.get("weekend_mode"):
@@ -690,6 +761,16 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
     default_language = forms.ChoiceField(label=_("Default language"), required=False)
     timezone_name = forms.ChoiceField(label=_("Time zone"), required=False)
 
+    vacation_start = forms.DateField(label=_("Vacation start"), required=False, widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}))
+    vacation_end = forms.DateField(label=_("Vacation end"), required=False, widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}))
+
+    def clean(self):
+        cleaned = super().clean()
+        start, end = cleaned.get("vacation_start"), cleaned.get("vacation_end")
+        if bool(start) != bool(end) or (start and end and start > end):
+            raise forms.ValidationError(_("Choose a valid start and end for vacation mode."))
+        return cleaned
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["default_language"].choices = [("", _("Use installation default")), *settings.LANGUAGES]
@@ -701,7 +782,7 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
             data = self.data.copy()
             for field in (
                 "default_language", "timezone_name", "daily_coin_limit",
-                "coin_balance_limit", "daily_penalty_limit",
+                "coin_balance_limit", "daily_penalty_limit", "vacation_start", "vacation_end",
             ):
                 key = self.add_prefix(field)
                 if key not in data:
@@ -719,6 +800,8 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
         model = FamilySettings
         fields = [
             "family_name",
+            "vacation_start",
+            "vacation_end",
             "default_language",
             "timezone_name",
             "daily_coin_limit",
