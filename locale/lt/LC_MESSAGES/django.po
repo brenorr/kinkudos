@@ -2605,6 +2605,9 @@ msgstr "Pranešti apie „KinKudos“ programos klaidą „GitHub“"
 msgid "Report a bug"
 msgstr "Pranešti klaidą"
 
+msgid "Reporter"
+msgstr "Pranešėjas"
+
 msgid "Repository"
 msgstr "Saugykla"
 
@@ -2691,6 +2694,9 @@ msgstr "Grąžinta iš tikslo"
 
 msgid "Revealed"
 msgstr "Atidengtas"
+
+msgid "Review"
+msgstr "Peržiūrėti"
 
 msgid "Review feedback submitted by family members."
 msgstr "Peržiūrėkite šeimos narių pateiktus atsiliepimus."
@@ -3732,6 +3738,9 @@ msgstr "Naudoti turimus"
 
 msgid "Use available points"
 msgstr "Naudoti turimus taškus"
+
+msgid "Use installation default"
+msgstr "Naudoti diegimo numatytąją reikšmę"
 
 msgid "Use this world"
 msgstr "Naudoti šį pasaulį"

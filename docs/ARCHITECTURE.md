@@ -465,3 +465,46 @@ Telegram integration · CSV/Excel export · multi-family hosting in one
 instance · holiday/school calendar modes for assignment presets.
 This is a scope note, not a version plan — update it when any
 item ships.
+
+## RPG evolution audit
+
+The Phase 0 baseline is commit `fa04585` on the Brazilian Portuguese fork.
+The RPG derivative can extend the existing Django views, templates, service
+layer and SQLite database. The current installation serves one household
+with several adults and children. The family setting is a singleton, and it
+does not provide tenant isolation between separate households in one instance.
+
+The canonical URL configuration is in `economy/urls.py`. It still serves
+Lithuanian aliases for existing bookmarks and clients. Django language
+selection is mounted separately under `/i18n/`, and the optional Django
+admin under `/admin/`.
+
+| Route group | Entry points and responsibilities |
+| --- | --- |
+| Application shell | Home, setup, changelog, health, PWA manifest and service worker |
+| Access | Parent session and password recovery, device pairing, child selection and PIN, caregiver invitation and session |
+| Child | Dashboard and state polling, task submission and revision, assigned-task completion, rewards, goals, proposals, gifts, profile and legacy lottery |
+| Parent and caregiver | Dashboard, approvals, assignment batches, penalty and balance actions. Caregivers have a child-scoped subset |
+| Parent administration | Catalogs, assignment presets, children, family settings, parent and caregiver accounts, devices and backups |
+| Supporting endpoints | Push subscriptions, protected media, status polling and feedback |
+
+The critical request paths for the MVP are:
+
+| Operation | Canonical paths |
+| --- | --- |
+| Submit, revise or acknowledge work | `/child/tasks/<task_id>/submit/`, `/child/task-requests/<claim_id>/resubmit/`, `/child/task-requests/<claim_id>/acknowledge/` |
+| Assign or complete work | `/parents/children/<child_id>/assign-tasks/`, `/child/assigned-tasks/<assigned_task_id>/complete/` |
+| Review or award work | `/parents/tasks/<claim_id>/<decision>/`, `/parents/children/<child_id>/award-task/` |
+| Adjust balance or apply a consequence | `/parents/children/<child_id>/balance/`, `/parents/children/<child_id>/penalty/`, `/parents/children/<child_id>/assign-penalty/`, `/parents/penalties/<penalty_id>/assign/` |
+| Preserve legacy redemptions | `/child/rewards/<reward_id>/request/`, `/child/reward-requests/<request_id>/cancel/`, `/parents/rewards/<request_id>/<decision>/` |
+| Retire scratch tickets | `/child/lottery/purchase/`, `/child/lottery/<ticket_id>/reveal/`, plus their legacy aliases |
+
+Django views and forms handle request validation and access checks, while
+`economy/services.py` owns the principal state transitions and accounting.
+The PWA sends requests to the same application and uses internal JSON
+endpoints where needed. Background management commands run scheduled
+assignments and reminders using the household timezone. Deployment is covered
+by the local Compose file and the separate production installer and templates.
+
+See [current features](CURRENT_FEATURES.md), [data model](DATABASE.md) and
+[technical debt and verification](TECHNICAL_DEBT.md).

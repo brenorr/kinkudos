@@ -9,7 +9,7 @@ from django.core.mail import send_mail
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -124,34 +124,35 @@ def submit_feedback(request):
             parent_url = request.build_absolute_uri(
                 f"{reverse('parent_dashboard')}#parent-settings"
             )
-            send_mail(
-                _(
-                    "KinKudos feedback #%(report_id)s: %(report_type)s"
+            with translation.override(family.default_language or request.LANGUAGE_CODE):
+                report_type = report.get_report_type_display()
+                reporter_role = _("Parent") if parent is not None else _("Child")
+                details = [
+                    ("ID", report.pk),
+                    (_("Type"), report_type),
+                    (_("Reporter"), f"{report.reporter_name} ({reporter_role})"),
+                    (_("Family"), report.family_name),
+                    (_("Version"), report.app_version),
+                    (_("Page"), report.page_path),
+                    (_("Language"), report.language),
+                    (_("Theme"), report.theme or "—"),
+                ]
+                send_mail(
+                    _("KinKudos feedback #%(report_id)s: %(report_type)s")
+                    % {"report_id": report.pk, "report_type": report_type},
+                    "\n".join(
+                        [
+                            *(f"{label}: {value}" for label, value in details),
+                            "",
+                            report.description,
+                            "",
+                            f"{_('Review')}: {parent_url}",
+                        ]
+                    ),
+                    email.get("from_email"),
+                    [email.get("feedback_email")],
+                    fail_silently=False,
                 )
-                % {
-                    "report_id": report.pk,
-                    "report_type": report.get_report_type_display(),
-                },
-                "\n".join(
-                    [
-                        f"ID: {report.pk}",
-                        f"Type: {report.get_report_type_display()}",
-                        f"Reporter: {report.reporter_name} ({report.reporter_role})",
-                        f"Family: {report.family_name}",
-                        f"Version: {report.app_version}",
-                        f"Page: {report.page_path}",
-                        f"Language: {report.language}",
-                        f"Theme: {report.theme or '-'}",
-                        "",
-                        report.description,
-                        "",
-                        f"Review: {parent_url}",
-                    ]
-                ),
-                email.get("from_email"),
-                [email.get("feedback_email")],
-                fail_silently=False,
-            )
             report.email_notified_at = timezone.now()
             report.email_error = ""
             report.save(update_fields=["email_notified_at", "email_error"])

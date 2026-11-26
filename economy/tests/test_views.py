@@ -12,7 +12,7 @@ from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from PIL import Image
 
 from economy.forms import PenaltyForm, RewardForm, TaskForm
@@ -1457,7 +1457,8 @@ class AccessAndWorkflowTests(TestCase):
         )
         self.assertContains(response, "Vaiko profilis „Marius“ sukurtas")
         child = ChildProfile.objects.get(name="Marius")
-        self.assertEqual(child.address_name, "Mariau")
+        with translation.override("lt"):
+            self.assertEqual(child.address_name, "Mariau")
         self.assertEqual(child.min_balance, -50)
         self.assertFalse(child.theme_selected)
         self.assertEqual(child.theme, "neutral")

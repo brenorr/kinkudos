@@ -1,5 +1,6 @@
 import getpass
 import secrets
+from zoneinfo import available_timezones
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -18,7 +19,10 @@ class Command(BaseCommand):
     help = "Interactively creates the first parent account and child profiles."
 
     def add_arguments(self, parser):
-        parser.add_argument("--language", choices=dict(settings.LANGUAGES), default="en")
+        parser.add_argument("--language", choices=dict(settings.LANGUAGES), default=settings.SETUP_LANGUAGE)
+        parser.add_argument(
+            "--timezone", choices=sorted(available_timezones()), default=settings.SETUP_TIME_ZONE, metavar="ZONE"
+        )
         parser.add_argument("--parent-username", default="parents")
 
     def prompt_password(self, label, validator=None):
@@ -53,6 +57,8 @@ class Command(BaseCommand):
             if not family_name:
                 raise CommandError(_("The family name or nickname is required."))
             family.family_name = family_name
+            family.default_language = options["language"]
+            family.timezone_name = options["timezone"]
             family.currency_name = "Points"
             family.default_min_balance = -100
             recovery_code = secrets.token_urlsafe(24)

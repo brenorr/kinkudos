@@ -95,6 +95,32 @@ class ParentSettingsTests(TestCase):
         self.assertEqual(family.lottery_ticket_cost, 25)
         self.assertEqual(family.lottery_weekly_limit, 4)
 
+    def test_family_locale_changes_and_legacy_posts_preserve_it(self):
+        self.client.force_login(self.admin)
+        url = reverse("parent_update_family_preferences")
+        preferences = {
+            "family_name": "Aurora",
+            "photo_bonus_points": 0,
+            "birthday_points": 0,
+            "lottery_ticket_cost": 25,
+            "lottery_weekly_limit": 4,
+            "evidence_retention_days": 30,
+            "feedback_screenshot_retention_days": 90,
+        }
+        response = self.client.post(
+            url, {**preferences, "default_language": "pt-br", "timezone_name": "America/Sao_Paulo"}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.client.post(url, {**preferences, "family_name": "Aurora II"})
+        self.client.post(url, {**preferences, "timezone_name": "Invalid/Zone"})
+        family = FamilySettings.load()
+        self.assertEqual(family.family_name, "Aurora II")
+        self.assertEqual(family.default_language, "pt-br")
+        self.assertEqual(family.timezone_name, "America/Sao_Paulo")
+        dashboard = self.client.get(reverse("parent_dashboard"))
+        self.assertContains(dashboard, '<html lang="pt-br">', html=False)
+        self.assertContains(dashboard, '<option value="America/Sao_Paulo" selected>')
+
     def test_family_settings_use_clear_labels_and_group_dividers(self):
         self.client.force_login(self.admin)
 
@@ -285,7 +311,7 @@ class ParentSettingsTests(TestCase):
 
         response = self.client.get(reverse("parent_dashboard"))
 
-        self.assertContains(response, 'class="settings-row"', count=7, html=False)
+        self.assertContains(response, 'class="settings-row"', count=9, html=False)
         self.assertContains(response, 'class="settings-row checkbox-field"', count=1)
         self.assertContains(response, "Weekly card limit")
         self.assertContains(

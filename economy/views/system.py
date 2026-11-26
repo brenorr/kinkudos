@@ -9,6 +9,7 @@ from django.contrib.auth import (
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import translation
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 
@@ -129,18 +130,21 @@ def setup(request):
                 if user is not None:
                     login(request, user)
                     request.session.set_expiry(settings.PARENT_SESSION_SECONDS)
-                response = render(
-                    request,
-                    "economy/setup_complete.html",
-                    {"recovery_code": result.recovery_code},
-                )
+                language = form.cleaned_data["default_language"]
+                with translation.override(language):
+                    response = render(
+                        request,
+                        "economy/setup_complete.html",
+                        {"recovery_code": result.recovery_code},
+                    )
+                request.LANGUAGE_CODE = language
                 response.set_cookie(
                     settings.LANGUAGE_COOKIE_NAME,
-                    form.cleaned_data["default_language"],
+                    language,
                 )
                 return response
     else:
-        form = InitialSetupForm(initial={"default_language": settings.LANGUAGE_CODE})
+        form = InitialSetupForm(initial={"default_language": request.LANGUAGE_CODE})
     return render(request, "economy/setup.html", {"form": form})
 
 def manifest(request):

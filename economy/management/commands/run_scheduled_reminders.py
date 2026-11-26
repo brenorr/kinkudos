@@ -2,7 +2,7 @@ import logging
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from economy.lottery import send_due_lottery_reminders
 from economy.models import FamilySettings
@@ -19,9 +19,12 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        timezone.activate(FamilySettings.load().timezone_name or settings.TIME_ZONE)
+        family = FamilySettings.load()
         failures = []
-        try:
+        with (
+            timezone.override(family.timezone_name or settings.TIME_ZONE),
+            translation.override(family.default_language or settings.LANGUAGE_CODE),
+        ):
             lottery_sent = self._run_step(
                 "lottery reminders",
                 send_due_lottery_reminders,
@@ -49,8 +52,6 @@ class Command(BaseCommand):
                 raise SystemExit(
                     f"Scheduled reminder step(s) failed: {details}"
                 )
-        finally:
-            timezone.deactivate()
 
     def _run_step(self, label, callback, failures):
         try:

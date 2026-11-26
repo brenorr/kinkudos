@@ -1,8 +1,9 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from economy.models import (
     FamilySettings,
@@ -22,23 +23,28 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        birthday_awards = award_birthdays()
-        for award in birthday_awards:
-            notify_birthday_award(award)
+        family = FamilySettings.load()
+        with (
+            timezone.override(family.timezone_name or settings.TIME_ZONE),
+            translation.override(family.default_language or settings.LANGUAGE_CODE),
+        ):
+            birthday_awards = award_birthdays()
+            for award in birthday_awards:
+                notify_birthday_award(award)
+            changed_themes = randomize_daily_themes()
         self.stdout.write(
             self.style.SUCCESS(
                 f"Awarded {len(birthday_awards)} birthday gift(s)."
             )
         )
 
-        changed_themes = randomize_daily_themes()
         self.stdout.write(
             self.style.SUCCESS(
                 f"Randomized themes for {len(changed_themes)} child profile(s)."
             )
         )
 
-        retention_days = FamilySettings.load().evidence_retention_days
+        retention_days = family.evidence_retention_days
         if retention_days == FamilySettings.EvidenceRetention.FOREVER:
             self.stdout.write("Task evidence retention is unlimited; nothing to purge.")
         else:
@@ -83,7 +89,7 @@ class Command(BaseCommand):
             )
 
         feedback_retention_days = (
-            FamilySettings.load().feedback_screenshot_retention_days
+            family.feedback_screenshot_retention_days
         )
         if feedback_retention_days == FamilySettings.EvidenceRetention.FOREVER:
             self.stdout.write("Feedback screenshot retention is unlimited.")

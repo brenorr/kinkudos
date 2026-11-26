@@ -1,14 +1,16 @@
 import json
 import logging
 import threading
+from functools import wraps
 
 from django.conf import settings
 from django.db import close_old_connections, transaction
 from django.urls import reverse
+from django.utils import translation
 from django.utils.translation import gettext as _
 from pywebpush import WebPushException, webpush
 
-from .models import PushSubscription
+from .models import FamilySettings, PushSubscription
 from .templatetags.economy_tags import currency_unit, theme_text
 
 logger = logging.getLogger(__name__)
@@ -89,6 +91,17 @@ def _send(payload, subscriptions):
     transaction.on_commit(deliver)
 
 
+def in_family_language(notify):
+    @wraps(notify)
+    def send(*args, **kwargs):
+        language = FamilySettings.load().default_language or translation.get_language()
+        with translation.override(language):
+            return notify(*args, **kwargs)
+
+    return send
+
+
+@in_family_language
 def notify_task_claim(claim):
     _send(
         {
@@ -101,6 +114,7 @@ def notify_task_claim(claim):
     )
 
 
+@in_family_language
 def notify_reward_request(reward_request):
     _send(
         {
@@ -113,6 +127,7 @@ def notify_reward_request(reward_request):
     )
 
 
+@in_family_language
 def notify_proposal(proposal):
     _send(
         {
@@ -125,6 +140,7 @@ def notify_proposal(proposal):
     )
 
 
+@in_family_language
 def notify_birth_date_change(change):
     _send(
         {
@@ -137,6 +153,7 @@ def notify_birth_date_change(change):
     )
 
 
+@in_family_language
 def notify_assigned_tasks(batch):
     _send(
         {
@@ -149,6 +166,7 @@ def notify_assigned_tasks(batch):
     )
 
 
+@in_family_language
 def notify_assigned_tasks_nudge(batch):
     _send(
         {
@@ -161,6 +179,7 @@ def notify_assigned_tasks_nudge(batch):
     )
 
 
+@in_family_language
 def notify_assigned_task_completed(assigned_task):
     child = assigned_task.batch.child
     _send(
@@ -177,6 +196,7 @@ def notify_assigned_task_completed(assigned_task):
     )
 
 
+@in_family_language
 def notify_task_revision(claim):
     body = claim.task_title
     if claim.revision_note:
@@ -192,6 +212,7 @@ def notify_task_revision(claim):
     )
 
 
+@in_family_language
 def notify_task_decision(claim, *, approved):
     if approved:
         title = _("Your task was approved")
@@ -217,6 +238,7 @@ def notify_task_decision(claim, *, approved):
     )
 
 
+@in_family_language
 def notify_reward_decision(reward_request, *, approved):
     if approved:
         title = _("Your reward was approved")
@@ -239,6 +261,7 @@ def notify_reward_decision(reward_request, *, approved):
     )
 
 
+@in_family_language
 def notify_proposal_decision(proposal, *, approved):
     if approved:
         title = _("Your suggestion was approved")
@@ -261,6 +284,7 @@ def notify_proposal_decision(proposal, *, approved):
     )
 
 
+@in_family_language
 def notify_birth_date_decision(change, *, approved):
     _send(
         {
@@ -275,6 +299,7 @@ def notify_birth_date_decision(change, *, approved):
     )
 
 
+@in_family_language
 def notify_gift_received(gift):
     _send(
         {
@@ -290,6 +315,7 @@ def notify_gift_received(gift):
     )
 
 
+@in_family_language
 def notify_birthday_award(award):
     _send(
         {
@@ -304,9 +330,8 @@ def notify_birthday_award(award):
     )
 
 
+@in_family_language
 def notify_lottery_reminder(child):
-    from .models import FamilySettings
-
     ticket_cost = FamilySettings.load().lottery_ticket_cost
     _send(
         {

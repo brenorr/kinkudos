@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
@@ -94,8 +94,9 @@ def parent_create_caregiver_invite(request):
     )
     invite_path = reverse("caregiver_invite_redeem")
     invite_url = f"{request.build_absolute_uri(invite_path)}#{raw_token}"
-    family_name = FamilySettings.load().header_name
-    share_title, share_text = caregiver_share_message(family_name=family_name)
+    family = FamilySettings.load()
+    with translation.override(family.default_language or request.LANGUAGE_CODE):
+        share_title, share_text = caregiver_share_message(family_name=family.header_name)
     email_sent = False
     email_address = (form.cleaned_data.get("email") or "").strip()
     if email_address and smtp_config().get("enabled"):

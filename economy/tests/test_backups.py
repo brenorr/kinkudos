@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -5,7 +6,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from economy.backups import backup_status
-from economy.models import BackupAuditEvent
+from economy.models import BackupAuditEvent, FamilySettings
 
 
 @override_settings(LANGUAGE_CODE="en")
@@ -57,6 +58,20 @@ class BackupSettingsTests(TestCase):
         self.assertContains(dashboard, "Backups")
         self.assertNotContains(dashboard, "Edit settings")
         self.assertNotContains(dashboard, "Back up now")
+
+    @patch("economy.views.parent_settings.backup_status")
+    def test_status_timestamps_use_family_timezone_and_request_locale(self, status):
+        family = FamilySettings.load()
+        family.timezone_name = "America/Sao_Paulo"
+        family.default_language = "pt-br"
+        family.save(update_fields=["timezone_name", "default_language"])
+        instant = datetime(2026, 8, 10, 2, 59, tzinfo=timezone.utc)
+        status.return_value = {"last_success": instant, "last_check": instant}
+        self.client.force_login(self.admin)
+
+        payload = self._status_response().json()
+        self.assertEqual(payload["last_success_display"], "09/08/2026 23:59")
+        self.assertEqual(payload["last_check_display"], "09/08/2026 23:59")
 
     @patch("economy.views.parent_settings.backup_status")
     def test_unconfigured_backup_uses_neutral_values_and_negative_status(self, status):

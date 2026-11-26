@@ -1,6 +1,7 @@
 from zoneinfo import ZoneInfo, available_timezones
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm, UserCreationForm
 from django.core.exceptions import ValidationError
@@ -683,8 +684,23 @@ class FeedbackStatusForm(StyledFormMixin, forms.Form):
 
 
 class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
+    default_language = forms.ChoiceField(label=_("Default language"), required=False)
+    timezone_name = forms.ChoiceField(label=_("Time zone"), required=False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["default_language"].choices = [("", _("Use installation default")), *settings.LANGUAGES]
+        self.fields["timezone_name"].choices = [
+            ("", _("Use installation default")),
+            *((zone, zone) for zone in sorted(available_timezones())),
+        ]
+        if self.is_bound:
+            data = self.data.copy()
+            for field in ("default_language", "timezone_name"):
+                key = self.add_prefix(field)
+                if key not in data:
+                    data[key] = getattr(self.instance, field)
+            self.data = data
         self.fields["lottery_ticket_cost"].widget.attrs.update(
             {"min": 1, "max": 10000}
         )
@@ -696,6 +712,8 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
         model = FamilySettings
         fields = [
             "family_name",
+            "default_language",
+            "timezone_name",
             "photo_bonus_points",
             "birthday_points",
             "lottery_enabled",
@@ -957,7 +975,7 @@ class InitialSetupForm(ParentAccountForm):
         super().__init__(*args, **kwargs)
         zones = sorted(available_timezones())
         self.fields["timezone_name"].choices = [(zone, zone) for zone in zones]
-        self.fields["timezone_name"].initial = "Europe/Vilnius"
+        self.fields["timezone_name"].initial = settings.SETUP_TIME_ZONE
 
     def clean_family_name(self):
         value = self.cleaned_data["family_name"].strip()

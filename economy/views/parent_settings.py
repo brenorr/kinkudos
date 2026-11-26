@@ -8,6 +8,8 @@ from django.contrib.auth import (
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.formats import date_format
+from django.utils.timezone import template_localtime
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
@@ -51,7 +53,7 @@ def _backup_status_payload(status):
     last_success = status.get("last_success")
     last_check = status.get("last_check")
     if last_success:
-        last_success_display = last_success.strftime("%Y-%m-%d %H:%M")
+        last_success_display = date_format(template_localtime(last_success), "SHORT_DATETIME_FORMAT")
     elif status.get("configured"):
         last_success_display = str(_("Backups not completed"))
     else:
@@ -69,7 +71,8 @@ def _backup_status_payload(status):
         "summary_class": summary_class,
         "last_success_display": last_success_display,
         "last_check_display": (
-            last_check.strftime("%Y-%m-%d %H:%M") if last_check else "—"
+            date_format(template_localtime(last_check), "SHORT_DATETIME_FORMAT")
+            if last_check else "—"
         ),
         "can_run": bool(
             status.get("available") and status.get("configured")

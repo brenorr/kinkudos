@@ -5,7 +5,7 @@ import secrets
 from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from .auth import current_child
 from .models import AttemptCounter, FamilySettings
@@ -94,13 +94,16 @@ class DefaultLanguageMiddleware:
         requested = request.GET.get("lang")
         if requested not in dict(settings.LANGUAGES):
             requested = None
-        if requested:
-            request.COOKIES[settings.LANGUAGE_COOKIE_NAME] = requested
-        elif settings.LANGUAGE_COOKIE_NAME not in request.COOKIES:
-            language = FamilySettings.load().default_language
-            if language:
-                request.COOKIES[settings.LANGUAGE_COOKIE_NAME] = language
-        response = self.get_response(request)
+        with translation.override(translation.get_language()):
+            if requested:
+                request.COOKIES[settings.LANGUAGE_COOKIE_NAME] = requested
+            elif settings.LANGUAGE_COOKIE_NAME not in request.COOKIES:
+                language = FamilySettings.load().default_language
+                if not language and request.path_info == "/setup/":
+                    language = settings.SETUP_LANGUAGE
+                if language:
+                    request.COOKIES[settings.LANGUAGE_COOKIE_NAME] = language
+            response = self.get_response(request)
         if requested:
             # Same cookie attributes as Django's set_language view.
             response.set_cookie(
@@ -122,11 +125,8 @@ class FamilyTimezoneMiddleware:
 
     def __call__(self, request):
         zone = FamilySettings.load().timezone_name or settings.TIME_ZONE
-        timezone.activate(zone)
-        try:
+        with timezone.override(zone):
             return self.get_response(request)
-        finally:
-            timezone.deactivate()
 
 
 class TrustedProxyMiddleware:

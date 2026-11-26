@@ -12,7 +12,7 @@ from economy.models import AttemptCounter, FamilySettings
 SETUP_TOKEN = "setup-test-token-with-enough-entropy-32"
 
 
-@override_settings(SETUP_TOKEN=SETUP_TOKEN)
+@override_settings(SETUP_TOKEN=SETUP_TOKEN, SETUP_LANGUAGE="en")
 class BrowserSetupTests(TestCase):
     def payload(self, **overrides):
         data = {
@@ -111,7 +111,7 @@ class BrowserSetupTests(TestCase):
         )
 
     def test_setup_creates_the_first_admin_and_family(self):
-        response = self.client.post(reverse("setup"), self.payload())
+        response = self.client.post(reverse("setup"), self.payload(default_language="en"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Setup complete")
         self.assertContains(response, 'data-copy-from="recovery-code-value"', html=False)
@@ -122,10 +122,17 @@ class BrowserSetupTests(TestCase):
         self.assertTrue(parent.is_staff)
         family = FamilySettings.load()
         self.assertEqual(family.family_name, "Aurora")
-        self.assertEqual(family.default_language, "lt")
+        self.assertEqual(family.default_language, "en")
         self.assertEqual(family.timezone_name, "Europe/Vilnius")
         self.assertIsNotNone(family.setup_completed_at)
         self.assertTrue(family.recovery_code_hash)
+
+    @override_settings(SETUP_LANGUAGE="pt-br", SETUP_TIME_ZONE="America/Sao_Paulo")
+    def test_new_setup_starts_in_brazilian_portuguese_with_sao_paulo_selected(self):
+        response = self.client.get(reverse("setup"))
+        self.assertContains(response, '<html lang="pt-br">', html=False)
+        self.assertContains(response, '<option value="America/Sao_Paulo" selected>')
+        self.assertContains(response, '<option value="pt-br" selected>')
 
     def test_setup_accepts_brazilian_portuguese_as_the_family_default(self):
         response = self.client.post(

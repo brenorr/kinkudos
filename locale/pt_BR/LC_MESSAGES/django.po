@@ -11,7 +11,7 @@ msgid "%(family)s – guest access"
 msgstr "%(family)s – acesso aos convidados"
 
 msgid "%(family_display_name)s – password reset"
-msgstr "%(family_display_name)s – reset de senha"
+msgstr "%(family_display_name)s – redefinição de senha"
 
 msgid "%(name)s 4-digit PIN: "
 msgstr "PIN de 4 dígitos %(name)s: "
@@ -1652,7 +1652,7 @@ msgid "Idea"
 msgstr "Ideia"
 
 msgid "If the address belongs to an active parent account, the reset email has been sent. Check your spam folder too."
-msgstr "Se o endereço pertence a uma conta de responsável ativa, o email de reset foi enviado. Verifique sua pasta de spam também."
+msgstr "Se o endereço pertence a uma conta de responsável ativa, o e-mail de redefinição foi enviado. Verifique sua pasta de spam também."
 
 msgid "If you did not make this request, ignore this email; your password will not be changed."
 msgstr "Se você não fez esta solicitação, ignore este e-mail; sua senha não será alterada."
@@ -2608,6 +2608,9 @@ msgstr "Reportar um erro de software KinKudos no GitHub"
 msgid "Report a bug"
 msgstr "Reportar um erro"
 
+msgid "Reporter"
+msgstr "Enviado por"
+
 msgid "Repository"
 msgstr "Repositório"
 
@@ -2621,7 +2624,7 @@ msgid "Request from arsenal"
 msgstr "Pedido do arsenal"
 
 msgid "Requested birthday change: %(current)s → %(requested)s."
-msgstr "Pedido de mudança de aniversário: %(current)s → %(requested)s."
+msgstr "Alteração solicitada da data de nascimento: %(current)s → %(requested)s."
 
 msgid "Required before changing backup credentials."
 msgstr "Necessário antes de mudar credenciais de backup."
@@ -2694,6 +2697,9 @@ msgstr "Retornado da meta"
 
 msgid "Revealed"
 msgstr "Revogado"
+
+msgid "Review"
+msgstr "Revisar"
 
 msgid "Review feedback submitted by family members."
 msgstr "Rever comentários apresentados por familiares."
@@ -3735,6 +3741,9 @@ msgstr "Utilização disponível"
 
 msgid "Use available points"
 msgstr "Usar os pontos disponíveis"
+
+msgid "Use installation default"
+msgstr "Usar o padrão da instalação"
 
 msgid "Use this world"
 msgstr "Use este mundo"

@@ -36,7 +36,7 @@
                 <small>{% if pending_item.completion.goal.mode == "saved" %}{% translate "Saved separately" %}{% else %}{% translate "Uses available points" %}{% endif %}</small>
               {% else %}
                 <h3>{% translate "Birthday change" %}</h3>
-                <p class="amount"><del>{{ pending_item.change.previous_birth_date|date:"Y-m-d"|default:"–" }}</del> <span aria-hidden="true">→</span> <strong>{{ pending_item.change.requested_birth_date|date:"Y-m-d"|default:"–" }}</strong></p>
+                <p class="amount"><del>{{ pending_item.change.previous_birth_date|date:"SHORT_DATE_FORMAT"|default:"–" }}</del> <span aria-hidden="true">→</span> <strong>{{ pending_item.change.requested_birth_date|date:"SHORT_DATE_FORMAT"|default:"–" }}</strong></p>
               {% endif %}
             </div>
             <div class="pending-request-actions">

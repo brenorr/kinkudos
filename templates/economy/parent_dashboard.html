@@ -389,7 +389,7 @@
         {% for batch in child.assignment_batches %}
           <section class="assigned-task-batch">
             <div class="list-row assigned-task-batch-header">
-              <span class="assigned-task-batch-copy"><strong>{{ batch.assigned_on|date:"Y-m-d" }}</strong> · {{ batch.assigned_by|user_display_name }}{% if batch.blocks_rewards %} · {% translate "Purchases blocked" %}{% endif %}</span>
+              <span class="assigned-task-batch-copy"><strong>{{ batch.assigned_on|date:"SHORT_DATE_FORMAT" }}</strong> · {{ batch.assigned_by|user_display_name }}{% if batch.blocks_rewards %} · {% translate "Purchases blocked" %}{% endif %}</span>
               {% if batch.has_pending_items %}
                 <form class="assigned-task-cancel" method="post" action="{% url 'parent_cancel_assigned_task_batch' batch.pk %}">{% csrf_token %}<button class="decision-icon-button decision-reject compact-decision-button" type="submit" aria-label="{% translate "Cancel remaining" %}" title="{% translate "Cancel remaining" %}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-xmark"></use></svg></button></form>
               {% else %}
@@ -652,6 +652,14 @@
             {{ family_preferences_form.family_name }}
             <small class="helptext">{{ family_preferences_form.family_name.help_text }}</small>
           </p>
+          <p class="settings-row">
+            {{ family_preferences_form.default_language.label_tag }}
+            {{ family_preferences_form.default_language }}
+          </p>
+          <p class="settings-row">
+            {{ family_preferences_form.timezone_name.label_tag }}
+            {{ family_preferences_form.timezone_name }}
+          </p>
         </div>
       </details>
     <details class="settings-section parent-accordion">
@@ -742,7 +750,7 @@
             <span class="device-copy">
               <strong>{{ device.display_name }}{% if current_device.pk == device.pk %} <small>({% translate "this device" %})</small>{% endif %}</strong>
               <small>{{ device.device_summary }} · {% translate "ID" %} {{ device.device_code }}</small>
-              <small>{% translate "Last used" %}: {{ device.last_seen_at|date:"Y-m-d H:i" }}</small>
+              <small>{% translate "Last used" %}: {{ device.last_seen_at|date:"SHORT_DATETIME_FORMAT" }}</small>
             </span>
           </div>
           <div class="catalog-actions">
@@ -892,7 +900,7 @@
             <span class="profile-mini">{{ guest.label|first|upper }}</span>
             <span class="account-name">
               <strong>{{ guest.label }}</strong>
-              <small>{% for child in guest.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %} · {% translate "Until" %} {{ guest.access_until|date:"Y-m-d" }}</small>
+              <small>{% for child in guest.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %} · {% translate "Until" %} {{ guest.access_until|date:"SHORT_DATE_FORMAT" }}</small>
               {% if guest.is_locked %}<small class="danger">{% translate "PIN locked" %}</small>{% endif %}
             </span>
           </div>
@@ -929,7 +937,7 @@
           <div class="account-summary">
             <span class="account-name">
               <strong>{{ invite.label }}</strong>
-              <small>{% for child in invite.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %} · {% translate "Link expires" %} {{ invite.expires_at|date:"Y-m-d H:i" }}</small>
+              <small>{% for child in invite.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %} · {% translate "Link expires" %} {{ invite.expires_at|date:"SHORT_DATETIME_FORMAT" }}</small>
             </span>
           </div>
           <div class="catalog-actions">
@@ -1003,7 +1011,7 @@
               {% endif %}
               <strong>#{{ report.pk }} · {{ report.reporter_name }}</strong>
             </div>
-            <time datetime="{{ report.created_at|date:'c' }}">{{ report.created_at|date:"Y-m-d H:i" }}</time>
+            <time datetime="{{ report.created_at|date:'c' }}">{{ report.created_at|date:"SHORT_DATETIME_FORMAT" }}</time>
           </summary>
           <div class="feedback-card-body">
             <p>{{ report.description|linebreaksbr }}</p>
@@ -1189,7 +1197,7 @@
     {% if backup_audit_events %}
       <details class="backup-audit">
         <summary>{% translate "Recent backup actions" %}</summary>
-        <ul>{% for event in backup_audit_events %}<li>{{ event.created_at|date:"Y-m-d H:i" }} · {{ event.get_action_display }}{% if event.actor %} · {{ event.actor|user_display_name }}{% endif %}</li>{% endfor %}</ul>
+        <ul>{% for event in backup_audit_events %}<li>{{ event.created_at|date:"SHORT_DATETIME_FORMAT" }} · {{ event.get_action_display }}{% if event.actor %} · {{ event.actor|user_display_name }}{% endif %}</li>{% endfor %}</ul>
       </details>
     {% endif %}
   </article>
@@ -1223,7 +1231,7 @@
         {% if entry.history_type == "task_decision" %}
           <div>
             <strong>{{ entry.child.name }} · {{ entry.task_title }}</strong>
-            <small>{{ entry.decided_at|date:"Y-m-d H:i" }} · {% translate "Task" %}</small>
+            <small>{{ entry.decided_at|date:"SHORT_DATETIME_FORMAT" }} · {% translate "Task" %}</small>
             {% if entry.decided_by %}<small class="history-actor">{% translate "Rejected by" %}: {{ entry.decided_by|user_display_name }}</small>{% endif %}
             {% if entry.rejection_reason %}<small class="history-rejection-reason">{% translate "Reason" %}: {{ entry.rejection_reason }}</small>{% endif %}
           </div>
@@ -1252,7 +1260,7 @@
         {% elif entry.history_type == "reward_decision" %}
           <div>
             <strong>{{ entry.child.name }} · {{ entry.reward_title }}</strong>
-            <small>{{ entry.decided_at|date:"Y-m-d H:i" }} · {% translate "Reward request" %}</small>
+            <small>{{ entry.decided_at|date:"SHORT_DATETIME_FORMAT" }} · {% translate "Reward request" %}</small>
             {% if entry.decided_by %}<small class="history-actor">{% translate "Rejected by" %}: {{ entry.decided_by|user_display_name }}</small>{% endif %}
             <small class="history-rejection-reason">{% translate "Reason" %}: {{ entry.rejection_reason }}</small>
           </div>
@@ -1264,15 +1272,15 @@
             {% include "economy/includes/history_kind_icon.html" %}
           </span>
         {% elif entry.history_type == "goal_event" %}
-          <div><strong>{{ entry.goal.child.name }} · {{ entry.description }}</strong><small>{{ entry.created_at|date:"Y-m-d H:i" }} · {% translate "Goal" %}</small>{% if entry.actor and entry.history_actor_label %}<small class="history-actor">{{ entry.history_actor_label }}: {{ entry.actor|user_display_name }}</small>{% endif %}</div>
+          <div><strong>{{ entry.goal.child.name }} · {{ entry.description }}</strong><small>{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }} · {% translate "Goal" %}</small>{% if entry.actor and entry.history_actor_label %}<small class="history-actor">{{ entry.history_actor_label }}: {{ entry.actor|user_display_name }}</small>{% endif %}</div>
           <span class="history-row-actions"><span class="history-decision history-decision-informational" title="{% translate 'Informational' %}" aria-label="{% translate 'Informational' %}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-info"></use></svg><span class="history-decision-label">{% translate "Informational" %}</span></span>{% if entry.amount %}<span class="amount">{{ entry.amount }} {% translate "Points" %}</span>{% endif %}{% include "economy/includes/history_kind_icon.html" %}</span>
         {% elif entry.history_type == "proposal_decision" %}
-          <div><strong>{{ entry.child.name }} · {{ entry.title }}</strong><small>{{ entry.decided_at|date:"Y-m-d H:i" }} · {{ entry.get_proposal_type_display }}</small>{% if entry.decided_by %}<small class="history-actor">{{ entry.history_actor_label }}: {{ entry.decided_by|user_display_name }}</small>{% endif %}</div>
+          <div><strong>{{ entry.child.name }} · {{ entry.title }}</strong><small>{{ entry.decided_at|date:"SHORT_DATETIME_FORMAT" }} · {{ entry.get_proposal_type_display }}</small>{% if entry.decided_by %}<small class="history-actor">{{ entry.history_actor_label }}: {{ entry.decided_by|user_display_name }}</small>{% endif %}</div>
           <span class="history-row-actions"><span class="history-decision {% if entry.status == "approved" %}history-decision-approved{% else %}history-decision-rejected{% endif %}"><svg class="action-icon" aria-hidden="true"><use href="#icon-{% if entry.status == "approved" %}circle-check{% else %}circle-xmark{% endif %}"></use></svg>{% if entry.status == "approved" %}{% translate "Approved" %}{% else %}{% translate "Rejected" %}{% endif %}</span>{% include "economy/includes/history_kind_icon.html" %}</span>
         {% else %}
           <div>
             <strong>{{ entry.child.name }} · {{ entry.description }}</strong>
-            <small>{{ entry.created_at|date:"Y-m-d H:i" }} · {% if entry.kind == "lottery" %}{% translate "Surprise card" %}{% else %}{{ entry.get_kind_display }}{% endif %}</small>
+            <small>{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }} · {% if entry.kind == "lottery" %}{% translate "Surprise card" %}{% else %}{{ entry.get_kind_display }}{% endif %}</small>
             {% if entry.history_actor and entry.history_actor_label %}<small class="history-actor">{{ entry.history_actor_label }}: {{ entry.history_actor|user_display_name }}</small>{% endif %}
           </div>
           <span class="history-row-actions">

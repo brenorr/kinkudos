@@ -121,6 +121,8 @@ LANGUAGES = [
 ]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Europe/Vilnius"
+SETUP_LANGUAGE = os.environ.get("KINKUDOS_DEFAULT_LANGUAGE", "pt-br")
+SETUP_TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 

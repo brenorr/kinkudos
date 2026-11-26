@@ -270,7 +270,7 @@
           <span class="ledger-icon">{{ entry.task.icon|icon_symbol }}</span>
           <div>
             <strong>{{ entry.task_title }}</strong>
-            <small>{{ entry.decided_at|date:"m-d H:i" }} · {% translate "Task" %}</small>
+            <small>{{ entry.decided_at|date:"SHORT_DATETIME_FORMAT" }} · {% translate "Task" %}</small>
             {% if entry.decided_by %}<small class="history-actor">{% translate "Rejected by" %}: {{ entry.decided_by|user_display_name }}</small>{% endif %}
             {% if entry.rejection_reason %}<small class="history-rejection-reason">{% translate "Reason" %}: {{ entry.rejection_reason }}</small>{% endif %}
           </div>
@@ -284,7 +284,7 @@
           <span class="ledger-icon">{{ entry.reward.icon|icon_symbol }}</span>
           <div>
             <strong>{{ entry.reward_title }}</strong>
-            <small>{{ entry.decided_at|date:"m-d H:i" }} · {% translate "Reward request" %}</small>
+            <small>{{ entry.decided_at|date:"SHORT_DATETIME_FORMAT" }} · {% translate "Reward request" %}</small>
             {% if entry.decided_by %}<small class="history-actor">{% translate "Rejected by" %}: {{ entry.decided_by|user_display_name }}</small>{% endif %}
             {% if entry.rejection_reason %}<small class="history-rejection-reason">{% translate "Reason" %}: {{ entry.rejection_reason }}</small>{% endif %}
           </div>
@@ -296,7 +296,7 @@
           </span>
         {% elif entry.history_type == "goal_event" %}
           <span class="ledger-icon"><svg class="action-icon" aria-hidden="true"><use href="#icon-bullseye"></use></svg></span>
-          <div><strong>{{ entry.description }}</strong><small>{{ entry.created_at|date:"m-d H:i" }} · {% translate "Goal" %}</small></div>
+          <div><strong>{{ entry.description }}</strong><small>{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }} · {% translate "Goal" %}</small></div>
         {% else %}
           <span class="ledger-icon">
             {% if entry.task_claim %}
@@ -313,7 +313,7 @@
           </span>
           <div>
             <strong>{{ entry.description }}</strong>
-            <small>{{ entry.created_at|date:"m-d H:i" }}</small>
+            <small>{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }}</small>
             {% if entry.task_claim and entry.task_claim.decided_by %}
               <small class="history-actor">{% translate "Approved by" %}: {{ entry.task_claim.decided_by|user_display_name }}</small>
             {% elif entry.reward_request and entry.reward_request.decided_by %}
@@ -419,7 +419,7 @@
           <div class="birthday-change-pending">
             <span class="status-pill">{% translate "Awaiting parent approval" %}</span>
             <p>
-              {% blocktranslate with current=pending_birth_date_request.previous_birth_date|date:"Y-m-d"|default:"–" requested=pending_birth_date_request.requested_birth_date|date:"Y-m-d"|default:"–" %}
+              {% blocktranslate trimmed with current=pending_birth_date_request.previous_birth_date|date:"SHORT_DATE_FORMAT"|default:"–" requested=pending_birth_date_request.requested_birth_date|date:"SHORT_DATE_FORMAT"|default:"–" %}
                 Requested birthday change: {{ current }} → {{ requested }}.
               {% endblocktranslate %}
             </p>

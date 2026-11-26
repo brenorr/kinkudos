@@ -19,6 +19,7 @@ from economy.models import (
     BirthDateChangeRequest,
     ChildProfile,
     DeviceToken,
+    FamilySettings,
     PointGift,
     Proposal,
     ProposalType,
@@ -143,6 +144,19 @@ class ChildDecisionPushTests(SyncPushDeliveryMixin, TestCase):
             f"{reverse('child_dashboard')}#paskirti-darbai",
         )
         self.assertEqual(webpush.call_args.kwargs["timeout"], 10)
+
+    @patch("economy.push.webpush")
+    def test_assignment_push_uses_family_language_over_request_language(self, webpush):
+        family = FamilySettings.load()
+        family.default_language = "pt-br"
+        family.save(update_fields=["default_language"])
+        batch = AssignedTaskBatch.objects.create(child=self.child, assigned_by=self.parent)
+
+        with override("en"):
+            notify_assigned_tasks(batch)
+
+        payload = json.loads(webpush.call_args.kwargs["data"])
+        self.assertEqual(payload["title"], "Tarefas de seus responsáveis")
 
     @patch("economy.push.webpush")
     def test_assigned_task_completion_notifies_parents(self, webpush):
