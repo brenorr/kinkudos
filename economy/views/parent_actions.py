@@ -21,6 +21,7 @@ from economy.auth import (
     parent_account_required,
     parent_required,
 )
+from economy.consequences import apply_episode_debit
 from economy.forms import (
     AdjustmentForm,
     ApplyPenaltyForm,
@@ -30,6 +31,7 @@ from economy.forms import (
     AwardTasksForm,
     ChildAccountForm,
     ChildEditForm,
+    EpisodeInputForm,
     GoalAmountForm,
     MinBalanceForm,
     ParentAccountForm,
@@ -631,40 +633,39 @@ def parent_reverse_ledger_entry(request, entry_id):
         messages.error(request, exc.messages[0])
     else:
         messages.success(request, _("Transaction reversed."))
+    if request.POST.get("from_consequences") == "1" and entry.source_type == "consequence_episode":
+        return redirect("parent_child_consequences", child_id=entry.child_id)
     return redirect(f"{reverse('parent_dashboard')}#parent-history")
+
+
+def _apply_consequence(request, child, form, *, fixed_penalty_id=None):
+    target = (
+        redirect("parent_child_consequences", child_id=child.pk)
+        if request.POST.get("from_consequences") == "1" else redirect("parent_dashboard")
+    )
+    if not form.is_valid():
+        messages.error(request, next(iter(form.errors.values()))[0])
+        return target
+    data = form.cleaned_data
+    penalty_ids = [fixed_penalty_id or data["penalty_id"]] if fixed_penalty_id or "penalty_id" in data else data["penalty_ids"]
+    try:
+        debit = apply_episode_debit(
+            child=child, actor=request.user, penalty_ids=penalty_ids, reason=data["reason"],
+            episode_id=data["episode_id"], token=data["operation_token"], category=data["category"],
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(request, _("Coin consequence recorded: %(amount)s coins.") % {"amount": -debit.delta})
+    return target
 
 
 @parent_required
 @require_POST
 def parent_apply_penalty(request, child_id):
     child = get_accessible_child_or_404(request, child_id)
-    form = ApplyPenaltyForm(request.POST)
-    if form.is_valid():
-        penalty = get_object_or_404(
-            PenaltyTemplate,
-            pk=form.cleaned_data["penalty_id"],
-            is_active=True,
-        )
-        token = form.cleaned_data["operation_token"]
-        try:
-            post_ledger_entry(
-                child=child,
-                delta=penalty.amount,
-                kind=LedgerKind.PENALTY,
-                description=f"{penalty.title}: {form.cleaned_data['reason']}",
-                actor=request.user,
-                source_id=penalty.pk,
-                source_type="penalty_template",
-                reason=form.cleaned_data["reason"][:200],
-                operation_key=f"penalty:{child.pk}:{request.user.pk}:{token}:{penalty.pk}" if token else None,
-            )
-        except ValidationError as exc:
-            messages.error(request, exc.messages[0])
-        else:
-            messages.success(request, _("Penalty assigned."))
-    else:
-        messages.error(request, _("A reason is required."))
-    return redirect("parent_dashboard")
+    return _apply_consequence(request, child, ApplyPenaltyForm(request.POST))
+
 
 @parent_required
 @require_POST
@@ -884,69 +885,15 @@ def parent_cancel_assigned_task_batch(request, batch_id):
 @require_POST
 def parent_assign_child_penalty(request, child_id):
     child = get_accessible_child_or_404(request, child_id)
-    form = AssignPenaltiesForm(request.POST)
-    if not form.is_valid():
-        messages.error(request, _("Choose at least one active penalty."))
-        return redirect("parent_dashboard")
+    return _apply_consequence(request, child, AssignPenaltiesForm(request.POST))
 
-    penalties = list(form.cleaned_data["penalty_ids"])
-    reason = form.cleaned_data["reason"].strip()
-    token = form.cleaned_data["operation_token"]
-    try:
-        with transaction.atomic():
-            for penalty in penalties:
-                description = penalty.title if not reason else f"{penalty.title}: {reason}"
-                post_ledger_entry(
-                    child=child,
-                    delta=penalty.amount,
-                    kind=LedgerKind.PENALTY,
-                    description=description,
-                    actor=request.user,
-                    source_id=penalty.pk,
-                    source_type="penalty_template",
-                    reason=reason[:200],
-                    operation_key=f"penalty:{child.pk}:{request.user.pk}:{token}:{penalty.pk}" if token else None,
-                )
-    except ValidationError as exc:
-        messages.error(request, exc.messages[0])
-        return redirect("parent_dashboard")
-    total = sum(penalty.amount for penalty in penalties)
-    messages.success(
-        request,
-        _("%(name)s received %(count)s penalty/penalties (total %(total)s).")
-        % {"name": child.name, "count": len(penalties), "total": total},
-    )
-    return redirect("parent_dashboard")
 
 @parent_required
 @require_POST
 def parent_assign_penalty(request, penalty_id):
-    penalty = get_object_or_404(PenaltyTemplate, pk=penalty_id, is_active=True)
     child = get_accessible_child_or_404(request, request.POST.get("child_id"))
-    reason = request.POST.get("reason", "").strip()
-    if not reason:
-        messages.error(request, _("A reason is required."))
-        return redirect("parent_dashboard")
-    try:
-        post_ledger_entry(
-            child=child,
-            delta=penalty.amount,
-            kind=LedgerKind.PENALTY,
-            description=f"{penalty.title}: {reason}",
-            actor=request.user,
-            source_id=penalty.pk,
-            source_type="penalty_template",
-            reason=reason[:200],
-        )
-    except ValidationError as exc:
-        messages.error(request, exc.messages[0])
-        return redirect("parent_dashboard")
-    messages.success(
-        request,
-        _("Penalty “%(penalty)s” assigned to %(name)s.")
-        % {"penalty": penalty.title, "name": child.name},
-    )
-    return redirect("parent_dashboard")
+    return _apply_consequence(request, child, EpisodeInputForm(request.POST), fixed_penalty_id=penalty_id)
+
 
 @parent_required
 @require_POST

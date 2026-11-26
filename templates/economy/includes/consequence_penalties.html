@@ -1,0 +1,17 @@
+{% load economy_tags i18n l10n %}
+<fieldset class="choice-fieldset" data-consequence-choices>
+  <legend>{% translate "Choose penalties" %}</legend>
+  <div class="choice-list">
+    {% for penalty in penalty_options %}
+      <label class="choice-option">
+        <input type="checkbox" name="penalty_ids" value="{{ penalty.pk }}" data-amount="{{ penalty.amount|unlocalize }}">
+        <span class="choice-icon">{{ penalty.icon|icon_symbol }}</span>
+        <span class="choice-title">{{ penalty.title }}</span>
+        <strong class="choice-value choice-value-negative">{{ penalty.amount }} {{ penalty.amount|currency_unit:"neutral" }}</strong>
+      </label>
+    {% empty %}
+      <p class="empty-state">{% translate "There are no active penalties." %}</p>
+    {% endfor %}
+  </div>
+  <p>{% translate "Total debit" %} <output aria-live="polite">0</output> {% translate "Points" %}</p>
+</fieldset>

@@ -133,7 +133,7 @@ def child_dashboard(request):
     )
     for goal in goals:
         goal.has_pending_completion = goal.pk in pending_goal_ids
-    ledger_entries = list(child.ledger_entries.select_related("actor").all()[:5])
+    ledger_entries = list(child.ledger_entries.select_related("actor", "reverses").all()[:5])
     task_claims_by_id = {
         claim.pk: claim
         for claim in child.task_claims.filter(
@@ -174,6 +174,12 @@ def child_dashboard(request):
     for entry in ledger_entries:
         entry.history_type = "ledger"
         entry.history_timestamp = entry.created_at
+        entry.child_description = entry.description
+        if entry.source_type == "consequence_episode":
+            entry.child_description = _("Coin consequence")
+        elif entry.reverses and entry.reverses.source_type == "consequence_episode":
+            entry.child_description = _("Coin consequence reversed")
+
         entry.task_claim = (
             task_claims_by_id.get(entry.source_id)
             if entry.kind == LedgerKind.TASK and entry.source_type in ("", "task_claim")
@@ -254,6 +260,10 @@ def child_dashboard(request):
         request,
         "economy/child_dashboard.html",
         {
+            "guardian_messages": child.guardian_messages.select_related("author")[:5],
+            "shared_next_steps": child.consequence_episodes.filter(
+                ~Q(child_note="") | Q(repair__share_with_child=True)
+            ).select_related("repair")[:5],
             "experience_total": child.occurrence_credits.aggregate(total=Sum("xp", default=0))["total"],
             "child": child,
             "greeting_name": greeting_name,
@@ -966,6 +976,10 @@ def _child_state_payload(child):
             "missions": list(child.missions.filter(local_date=timezone.localdate()).order_by("pk").values_list(
                 "pk", "status", "checked_steps", "help_requested_at",
             )),
+            "guardian_messages": _relation_watermark(child.guardian_messages.all(), "created_at"),
+            "shared_next_steps": list(child.consequence_episodes.filter(
+                ~Q(child_note="") | Q(repair__share_with_child=True)
+            ).order_by("-created_at", "-pk").values_list("pk", "repair__id", "repair__completed_at")[:5]),
             "task_catalog": list(
                 Task.objects.filter(is_active=True, is_deleted=False)
                 .order_by("sort_order", "title", "pk")

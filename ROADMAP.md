@@ -292,17 +292,19 @@ Estados adicionais:
 
 Aprimorar o sistema existente de penalidades, evitando uma experiência predominantemente punitiva.
 
-- [ ] Criar categorias configuráveis de comportamento.
-- [ ] Exigir justificativa.
-- [ ] Permitir advertência sem perda de moedas.
-- [ ] Permitir penalidade limitada em moedas.
-- [ ] Permitir registrar uma ação de reparação.
-- [ ] Permitir estornar penalidades.
-- [ ] Registrar o responsável pela decisão.
-- [ ] Impedir penalidades automáticas.
-- [ ] Impedir penalidades duplicadas pelo mesmo episódio.
-- [ ] Impedir perda de XP, níveis e equipamentos adquiridos.
-- [ ] Permitir mensagens positivas dos guardiões.
+O [plano técnico de consequências e reforço positivo](docs/CONSEQUENCES_PLAN.md) detalha o registro por episódio, o uso dos limites de moedas e a proteção do XP.
+
+- [x] Criar categorias configuráveis de comportamento.
+- [x] Exigir justificativa.
+- [x] Permitir advertência sem perda de moedas.
+- [x] Permitir penalidade limitada em moedas.
+- [x] Permitir registrar uma ação de reparação.
+- [x] Permitir estornar penalidades.
+- [x] Registrar o responsável pela decisão.
+- [x] Impedir penalidades automáticas.
+- [x] Impedir mais de um débito manual por episódio, inclusive após estorno.
+- [x] Impedir perda de XP, níveis e equipamentos adquiridos.
+- [x] Permitir mensagens positivas dos guardiões.
 
 ## Categorias iniciais
 

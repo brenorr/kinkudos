@@ -31,6 +31,13 @@ execução. Pedidos e itens novos a referenciam. Lotes automáticos têm
 unicidade por preset e data. O crédito permanece em `OccurrenceCredit`,
 com a chave derivada do ID da ocorrência.
 
+A migração `0039_consequence_episodes` adiciona `BehaviorCategory`,
+`ConsequenceEpisode`, `RepairAction` e `GuardianMessage`. O episódio tem
+um identificador de criação único por criança e um vínculo opcional com
+um único débito do extrato. O estorno é obtido pelo vínculo de reversão
+do próprio débito. Advertências, reparações e mensagens não dependem do
+extrato nem de `OccurrenceCredit`.
+
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

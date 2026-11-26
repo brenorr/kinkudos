@@ -43,6 +43,7 @@ from economy.models import (
     AssignedTask,
     AssignedTaskStatus,
     BackupAuditEvent,
+    BehaviorCategory,
     BirthDateChangeRequest,
     ChildProfile,
     DeviceToken,
@@ -348,6 +349,8 @@ def parent_dashboard(request):
     is_caregiver = caregiver is not None
     children = list(accessible_children_qs(request))
     child_ids = [child.pk for child in children]
+    for child in children:
+        child.open_consequence_episodes = list(child.consequence_episodes.filter(debit__isnull=True)[:10])
     today = timezone.localdate()
     history_date = request.GET.get("history_date", "any").strip()
     history_custom_start = request.GET.get("history_start", "").strip()
@@ -765,6 +768,7 @@ def parent_dashboard(request):
             "pending_revision": pending_revision,
             "tasks": tasks,
             "active_tasks": Task.objects.filter(is_active=True, is_deleted=False),
+            "consequence_categories": BehaviorCategory.objects.filter(is_active=True),
             "penalties": PenaltyTemplate.objects.filter(is_deleted=False),
             "active_penalties": PenaltyTemplate.objects.filter(
                 is_active=True,

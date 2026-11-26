@@ -19,6 +19,22 @@
   <div class="balance-orb" aria-label="{% translate "Coin balance" %}"><strong>{{ child.balance }}</strong><span>{{ child.balance|currency_unit:child.theme }}</span></div>
 </section>
 
+{% if guardian_messages %}
+  <section class="notice-block notice-info">
+    <h2>{% translate "Encouragement from your guardians" %}</h2>
+    <ul>{% for message in guardian_messages %}<li>{{ message.text }} · {{ message.author|user_display_name }}</li>{% endfor %}</ul>
+  </section>
+{% endif %}
+{% if shared_next_steps %}
+  <section class="notice-block notice-info">
+    <h2>{% translate "Agreed next steps" %}</h2>
+    <ul>{% for episode in shared_next_steps %}
+      {% if episode.child_note %}<li>{{ episode.child_note }}</li>{% endif %}
+      {% if episode.repair.share_with_child %}<li>{{ episode.repair.text }}{% if episode.repair.completed_at %} · {% translate "Completed" %}{% endif %}</li>{% endif %}
+    {% endfor %}</ul>
+  </section>
+{% endif %}
+
 {% if waiting_for_parents %}
 <section class="waiting-parents-strip" aria-label="{{ child.theme|theme_text:'waiting_parents_eyebrow' }}">
   <p class="eyebrow">{{ child.theme|theme_text:"waiting_parents_eyebrow" }}</p>
@@ -337,7 +353,7 @@
             {% endif %}
           </span>
           <div>
-            <strong>{{ entry.description }}</strong>
+            <strong>{{ entry.child_description }}</strong>
             <small>{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }}</small>
             {% if entry.task_claim and entry.task_claim.decided_by %}
               <small class="history-actor">{% translate "Approved by" %}: {{ entry.task_claim.decided_by|user_display_name }}</small>

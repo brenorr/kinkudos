@@ -59,6 +59,7 @@ from .views import (
     parent_cancel_assigned_task,
     parent_cancel_assigned_task_batch,
     parent_cancel_caregiver_invite,
+    parent_child_consequences,
     parent_close_goal,
     parent_configure_backup,
     parent_configure_smtp,
@@ -411,6 +412,11 @@ urlpatterns = [
         "parents/children/<int:child_id>/penalty/",
         parent_apply_penalty,
         name="parent_apply_penalty",
+    ),
+    path(
+        "parents/children/<int:child_id>/consequences/",
+        parent_child_consequences,
+        name="parent_child_consequences",
     ),
     path(
         "parents/children/<int:child_id>/award-task/",

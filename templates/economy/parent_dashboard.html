@@ -233,6 +233,10 @@
           <svg class="action-icon" aria-hidden="true"><use href="#icon-coins"></use></svg>
           <span>{% translate "Adjust points" %}</span>
         </button>
+        <a class="child-more-action" href="{% url 'parent_child_consequences' child.pk %}">
+          <svg class="action-icon" aria-hidden="true"><use href="#icon-hand-holding-heart"></use></svg>
+          <span>{% translate "Consequences and encouragement" %}</span>
+        </a>
         <button class="child-more-action" type="button" data-open-dialog="child-penalty-{{ child.pk }}">
           <svg class="action-icon" aria-hidden="true"><use href="#icon-circle-minus"></use></svg>
           <span>{% translate "Assign penalty" %}</span>
@@ -448,26 +452,26 @@
   <dialog id="child-penalty-{{ child.pk }}" class="action-dialog">
     <button class="dialog-close" type="button" data-close-dialog aria-label="{% translate "Close" %}" title="{% translate "Close" %}"><svg class="action-icon"><use href="#icon-xmark"></use></svg></button>
     <h2>{% translate "Assign penalty" %}</h2><p class="dialog-context">{{ child.name }}</p>
+    <p>{% translate "Describe what happened. Emotions and involuntary difficulties are not grounds for a penalty." %}</p>
+    <p><a class="button button-secondary" href="{% url 'parent_child_consequences' child.pk %}">{% translate "Consequences and encouragement" %}</a></p>
     <form method="post" action="{% url 'parent_assign_child_penalty' child.pk %}" class="stack-form">
       {% csrf_token %}
       <input type="hidden" name="operation_token" value="{% new_operation_token %}">
-      <fieldset class="choice-fieldset">
-        <legend>{% translate "Choose penalties" %}:</legend>
-        <div class="choice-list">
-          {% for penalty in active_penalties %}
-            <label class="choice-option">
-              <input type="checkbox" name="penalty_ids" value="{{ penalty.pk }}">
-              <span class="choice-icon">{{ penalty.icon|icon_symbol }}</span>
-              <span class="choice-title">{{ penalty.title }}</span>
-              <strong class="choice-value choice-value-negative">{{ penalty.amount }} {{ penalty.amount|currency_unit:"neutral" }}</strong>
-            </label>
-          {% empty %}
-            <p class="empty-state">{% translate "There are no active penalties." %}</p>
-          {% endfor %}
-        </div>
-      </fieldset>
-      <label>{% translate "Shared reason (optional)" %}:<input class="field-control" name="reason" maxlength="240"></label>
-      <button class="button button-primary" type="submit"{% if not active_penalties %} disabled{% endif %}>{% translate "Assign selected penalties" %}</button>
+      {% include "economy/includes/consequence_penalties.html" with penalty_options=active_penalties %}
+      <label>{% translate "Episode" %}
+        <select class="field-control" name="episode_id">
+          <option value="">{% translate "New episode" %}</option>
+          {% for episode in child.open_consequence_episodes %}<option value="{{ episode.pk }}">{{ episode.category_label }} · {{ episode.reason|truncatechars:70 }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>{% translate "Category" %}
+        <select class="field-control" name="category">
+          <option value="">{% translate "Other behavior" %}</option>
+          {% for category in consequence_categories %}<option value="{{ category.pk }}">{{ category }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>{% translate "Reason" %}<input class="field-control" name="reason" maxlength="240" required></label>
+      <button class="button button-primary" type="submit"{% if not active_penalties %} disabled{% endif %}>{% translate "Record one coin debit" %}</button>
     </form>
   </dialog>
   <dialog id="credit-{{ child.pk }}" class="action-dialog">
@@ -1319,6 +1323,7 @@
             <strong>{{ entry.child.name }} · {{ entry.description }}</strong>
             <small>{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }} · {% if entry.kind == "lottery" %}{% translate "Surprise card" %}{% else %}{{ entry.get_kind_display }}{% endif %}</small>
             {% if entry.history_actor and entry.history_actor_label %}<small class="history-actor">{{ entry.history_actor_label }}: {{ entry.history_actor|user_display_name }}</small>{% endif %}
+            {% if entry.source_type == "consequence_episode" %}<a href="{% url 'parent_child_consequences' entry.child_id %}?episode={{ entry.source_id }}">{% translate "Open episode" %}</a>{% endif %}
             {% if entry.limit_reason %}<small>{% blocktranslate with requested=entry.requested_delta %}Configured credit: {{ requested }} coins{% endblocktranslate %}</small>{% endif %}
             {% if request.user.is_staff and not is_caregiver and entry.can_reverse %}
               <button type="button" class="button button-secondary" data-open-dialog="reverse-ledger-{{ entry.pk }}">{% translate "Reverse transaction" %}</button>

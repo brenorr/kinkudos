@@ -1996,3 +1996,15 @@ document.querySelectorAll("[data-mission-timer]").forEach(timer => {
 
   paint();
 });
+
+document.querySelectorAll("[data-consequence-choices]").forEach(group => {
+  const total = group.querySelector("output");
+  const formatter = new Intl.NumberFormat(document.documentElement.lang || undefined);
+  const update = () => {
+    const debit = Array.from(group.querySelectorAll("input[data-amount]:checked"))
+      .reduce((amount, input) => amount - Number(input.dataset.amount), 0);
+    total.value = formatter.format(debit);
+  };
+  group.addEventListener("change", update);
+  update();
+});

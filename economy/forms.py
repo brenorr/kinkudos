@@ -14,6 +14,7 @@ from pillow_heif import register_heif_opener
 from .models import (
     AssignmentPresetCadence,
     AssignmentPresetWeekendMode,
+    BehaviorCategory,
     BirthDateChangeRequest,
     ChildProfile,
     FamilySettings,
@@ -364,10 +365,43 @@ class AdjustmentForm(StyledFormMixin, forms.Form):
         return amount
 
 
-class ApplyPenaltyForm(StyledFormMixin, forms.Form):
+class EpisodeInputForm(StyledFormMixin, forms.Form):
     operation_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
-    penalty_id = forms.IntegerField(widget=forms.HiddenInput)
+    episode_id = forms.IntegerField(min_value=1, required=False)
+    category = forms.ModelChoiceField(queryset=BehaviorCategory.objects.filter(is_active=True), required=False)
     reason = forms.CharField(label=_("Reason"), max_length=240)
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get("episode_id") and not cleaned.get("operation_token"):
+            raise forms.ValidationError(_("Reload the dashboard before recording a new episode."))
+        return cleaned
+
+
+class ApplyPenaltyForm(EpisodeInputForm):
+    penalty_id = forms.IntegerField(min_value=1, widget=forms.HiddenInput)
+
+
+class RecordEpisodeForm(EpisodeInputForm):
+    child_note = forms.CharField(label=_("Next step for the child"), max_length=240, required=False)
+
+
+class RepairActionForm(StyledFormMixin, forms.Form):
+    episode_id = forms.IntegerField(min_value=1)
+    text = forms.CharField(label=_("Agreed repair"), max_length=240)
+    share_with_child = forms.BooleanField(label=_("Show this step to the child"), required=False)
+
+
+class GuardianMessageForm(StyledFormMixin, forms.Form):
+    operation_token = forms.UUIDField(widget=forms.HiddenInput)
+    text = forms.CharField(label=_("Encouragement"), max_length=240)
+
+
+class BehaviorCategoryForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = BehaviorCategory
+        fields = ["name", "is_active"]
+        labels = {"name": _("Category"), "is_active": _("Active")}
 
 
 class AwardTasksForm(forms.Form):
@@ -534,26 +568,17 @@ class SaveAssignmentPresetForm(AssignTasksForm):
         return cleaned
 
 
-class AssignPenaltiesForm(forms.Form):
-    operation_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
-    penalty_ids = forms.ModelMultipleChoiceField(
-        label=_("Penalties"),
-        queryset=PenaltyTemplate.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
+class AssignPenaltiesForm(EpisodeInputForm):
+    penalty_ids = forms.TypedMultipleChoiceField(
+        label=_("Penalties"), coerce=int,
         error_messages={"required": _("Choose at least one penalty.")},
-    )
-    reason = forms.CharField(
-        label=_("Shared reason"),
-        max_length=240,
-        required=False,
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["penalty_ids"].queryset = PenaltyTemplate.objects.filter(
-            is_active=True,
-            is_deleted=False,
-        )
+        self.fields["penalty_ids"].choices = [
+            (pk, title) for pk, title in PenaltyTemplate.objects.values_list("pk", "title")
+        ]
 
 
 class RejectForm(StyledFormMixin, forms.Form):

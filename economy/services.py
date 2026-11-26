@@ -115,24 +115,26 @@ def post_ledger_entry(
             return previous
 
     family = FamilySettings.load()
+    if kind == LedgerKind.PENALTY:
+        # A concurrent settings request may have changed the policy since middleware ran.
+        family.refresh_from_db(fields=["daily_penalty_limit", "timezone_name"])
     day = timezone.localdate(timezone=ZoneInfo(family.timezone_name or settings.TIME_ZONE))
     requested_delta = delta
     limit_reason = ""
     if delta > 0 and use_coin_limits and kind in COIN_EARNING_KINDS:
         delta, limit_reason = _coin_credit(locked_child, delta, family, day)
-    if kind == LedgerKind.PENALTY and delta < 0 and family.daily_penalty_limit is not None:
-        deducted = LedgerEntry.objects.filter(
-            child=child, local_date=day, kind=LedgerKind.PENALTY, delta__lt=0
-        ).aggregate(total=Sum("delta", default=0))["total"]
-        available = max(
-            0,
-            min(family.daily_penalty_limit + deducted, locked_child.balance - locked_child.min_balance),
-        )
+    if kind == LedgerKind.PENALTY and delta < 0:
+        available = max(0, locked_child.balance - locked_child.min_balance)
+        if family.daily_penalty_limit is not None:
+            deducted = LedgerEntry.objects.filter(
+                child=child, local_date=day, kind=LedgerKind.PENALTY, delta__lt=0
+            ).aggregate(total=Sum("delta", default=0))["total"]
+            available = min(available, max(0, family.daily_penalty_limit + deducted))
         if -delta > available:
             raise ValidationError(_("The maximum penalty still available is %(amount)s coins.")
                                   % {"amount": available})
     new_balance = locked_child.balance + delta
-    enforce_floor = enforce_limit or kind in (LedgerKind.PENALTY, LedgerKind.ADJUSTMENT)
+    enforce_floor = enforce_limit or kind == LedgerKind.ADJUSTMENT
     if delta < 0 and enforce_floor and new_balance < locked_child.min_balance:
         raise ValidationError(
             _("This operation would exceed the allowed %(limit)s point limit.")

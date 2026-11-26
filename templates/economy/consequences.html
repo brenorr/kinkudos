@@ -1,0 +1,122 @@
+{% extends "economy/base.html" %}
+{% load economy_tags i18n %}
+{% block title %}{% translate "Consequences and encouragement" %} · {{ child.name }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <a class="button button-secondary" href="{% url 'parent_dashboard' %}">{% translate "Back to dashboard" %}</a>
+  <h1>{% translate "Consequences and encouragement" %}</h1>
+  <p>{{ child.name }}</p>
+  {% if not is_caregiver %}
+    <details class="settings-section parent-accordion">
+      <summary>{% translate "Send encouragement" %}</summary>
+      <form method="post" class="stack-form settings-group">
+        {% csrf_token %}
+        <input type="hidden" name="operation_token" value="{% new_operation_token %}">
+        <label>{% translate "Encouragement" %}<textarea class="field-control" name="text" rows="2" maxlength="240" required></textarea></label>
+        <p>{% translate "Recognize effort, a strategy, cooperation, or asking for help." %}</p>
+        <button class="button button-primary" name="action" value="encouragement">{% translate "Send encouragement" %}</button>
+      </form>
+      {% if encouragements %}<ul>{% for item in encouragements %}<li>{{ item.text }} · {{ item.author|user_display_name }}</li>{% endfor %}</ul>{% endif %}
+    </details>
+  {% endif %}
+  <details class="settings-section parent-accordion">
+    <summary>{% translate "Record an episode" %}</summary>
+    <form method="post" class="stack-form settings-group">
+      {% csrf_token %}
+      <input type="hidden" name="operation_token" value="{% new_operation_token %}">
+      <p>{% translate "Describe what happened. Emotions and involuntary difficulties are not grounds for a penalty." %}</p>
+      <label>{% translate "Category" %}
+        <select class="field-control" name="category" required>
+          {% for category in categories %}<option value="{{ category.pk }}">{{ category }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>{% translate "Reason" %}<textarea class="field-control" name="reason" maxlength="240" rows="2" required></textarea></label>
+      <label>{% translate "Next step for the child" %}<input class="field-control" name="child_note" maxlength="240"></label>
+      <button class="button button-secondary" name="action" value="record">{% translate "Record an episode" %}</button>
+      <button class="button button-primary" name="action" value="warning">{% translate "Record a warning without a debit" %}</button>
+    </form>
+  </details>
+
+  <div class="content-section">
+    <h2>{% translate "Episodes" %}</h2>
+    {% for episode in episodes %}
+      <details class="settings-section parent-accordion"{% if request.GET.episode %} open{% endif %}>
+        <summary>{{ episode.category_label }} · {{ episode.created_at|date:"SHORT_DATETIME_FORMAT" }} · {{ episode.status }}</summary>
+        <div class="settings-group">
+          <p>{{ episode.reason }}</p>
+          <p>{% translate "Recorded by" %} {{ episode.created_by|user_display_name }}</p>
+          {% if episode.warned_at %}<p>{% translate "Warning recorded by" %} {{ episode.warning_by|user_display_name }} · {{ episode.warned_at|date:"SHORT_DATETIME_FORMAT" }}</p>{% endif %}
+          {% if episode.child_note %}<p>{% translate "Next step for the child" %} {{ episode.child_note }}</p>{% endif %}
+          {% if episode.debit %}
+            <p>{{ episode.debit.delta }} {{ episode.debit.delta|currency_unit:"neutral" }} · {{ episode.debit.actor|user_display_name }} · {{ episode.debit.reason }}</p>
+            <ul>{% for item in episode.template_snapshot %}<li>{{ item.title }} · {{ item.delta }}</li>{% endfor %}</ul>
+            {% if episode.debit.reversal %}
+              <p>{% translate "Reversed by" %} {{ episode.debit.reversal.actor|user_display_name }} · {{ episode.debit.reversal.reason }}</p>
+            {% elif request.user.is_staff and not is_caregiver %}
+              <form method="post" action="{% url 'parent_reverse_ledger_entry' episode.debit_id %}" class="stack-form">
+                {% csrf_token %}
+                <input type="hidden" name="from_consequences" value="1">
+                <label>{% translate "Reason" %}<input class="field-control" name="reason" maxlength="200" required></label>
+                <button class="button button-secondary">{% translate "Reverse transaction" %}</button>
+              </form>
+            {% endif %}
+          {% elif penalties %}
+            <form method="post" action="{% url 'parent_assign_child_penalty' child.pk %}" class="stack-form">
+              {% csrf_token %}
+              <input type="hidden" name="from_consequences" value="1">
+              <input type="hidden" name="episode_id" value="{{ episode.pk }}">
+              {% include "economy/includes/consequence_penalties.html" with penalty_options=penalties %}
+              <label>{% translate "Reason for the debit" %}<input class="field-control" name="reason" maxlength="240" required></label>
+              <button class="button button-secondary">{% translate "Record one coin debit" %}</button>
+            </form>
+          {% endif %}
+          {% if episode.repair %}
+            <p>{% translate "Agreed repair" %} {{ episode.repair.text }}</p>
+            <p>{% translate "Proposed by" %} {{ episode.repair.proposed_by|user_display_name }}</p>
+            {% if episode.repair.completed_at %}
+              <p>{% translate "Completed" %} · {{ episode.repair.completed_by|user_display_name }} · {{ episode.repair.completed_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+            {% else %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="episode_id" value="{{ episode.pk }}">
+                <button class="button button-secondary" name="action" value="complete_repair">{% translate "Mark repair complete" %}</button>
+              </form>
+            {% endif %}
+          {% else %}
+            <form method="post" class="stack-form">
+              {% csrf_token %}
+              <input type="hidden" name="episode_id" value="{{ episode.pk }}">
+              <label>{% translate "Agreed repair" %}<input class="field-control" name="text" maxlength="240" required></label>
+              <label class="checkbox-field"><input type="checkbox" name="share_with_child" value="1">{% translate "Show this step to the child" %}</label>
+              <button class="button button-secondary" name="action" value="repair">{% translate "Record repair action" %}</button>
+            </form>
+          {% endif %}
+        </div>
+      </details>
+    {% empty %}<p>{% translate "No episodes recorded." %}</p>{% endfor %}
+  </div>
+
+  {% if not is_caregiver %}
+    <details class="settings-section parent-accordion">
+      <summary>{% translate "Behavior categories" %}</summary>
+      <div class="settings-group">
+        {% for category in category_items %}
+          <form method="post" class="stack-form">
+            {% csrf_token %}
+            <input type="hidden" name="category_id" value="{{ category.pk }}">
+            <label>{% translate "Category" %}<input class="field-control" name="name" value="{{ category.name }}" maxlength="80" required></label>
+            <label class="checkbox-field"><input type="checkbox" name="is_active" value="1"{% if category.is_active %} checked{% endif %}>{% translate "Active" %}</label>
+            <button class="button button-secondary" name="action" value="category">{% translate "Save" %}</button>
+          </form>
+        {% endfor %}
+        <form method="post" class="stack-form">
+          {% csrf_token %}
+          <input type="hidden" name="is_active" value="1">
+          <label>{% translate "New category" %}<input class="field-control" name="name" maxlength="80" required></label>
+          <button class="button button-secondary" name="action" value="category">{% translate "Add new" %}</button>
+        </form>
+      </div>
+    </details>
+  {% endif %}
+</section>
+{% endblock %}

@@ -39,6 +39,7 @@ from economy.views.child import (
     child_theme_onboarding,
     task_evidence,
 )
+from economy.views.consequences import parent_child_consequences
 from economy.views.devices import (
     pair_device_via_link,
     parent_generate_pairing_link,
@@ -181,6 +182,7 @@ __all__ = [
     "parent_cancel_assigned_task",
     "parent_cancel_assigned_task_batch",
     "parent_cancel_caregiver_invite",
+    "parent_child_consequences",
     "parent_close_goal",
     "parent_configure_backup",
     "parent_configure_smtp",

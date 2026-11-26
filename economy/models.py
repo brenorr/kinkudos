@@ -1175,7 +1175,7 @@ class LedgerEntry(models.Model):
     balance_before = models.IntegerField(null=True, blank=True)
     requested_delta = models.IntegerField(null=True, blank=True)
     limit_reason = models.CharField(max_length=16, blank=True)
-    reason = models.CharField(max_length=200, blank=True)
+    reason = models.CharField(max_length=240, blank=True)
     reverses = models.OneToOneField(
         "self", null=True, blank=True, on_delete=models.PROTECT, related_name="reversal"
     )
@@ -1205,6 +1205,78 @@ class LedgerEntry(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValidationError(_("Point transactions cannot be deleted."))
+
+
+class BehaviorCategory(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    is_active = models.BooleanField(default=True)
+    default_code = models.CharField(max_length=24, null=True, blank=True, unique=True)
+
+    class Meta:
+        ordering = ["name", "pk"]
+
+    def __str__(self):
+        return str(_(self.name))
+
+
+class ConsequenceEpisode(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="consequence_episodes")
+    category = models.ForeignKey(BehaviorCategory, on_delete=models.PROTECT)
+    category_name = models.CharField(max_length=80)
+    reason = models.CharField(max_length=240)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+    create_token = models.UUIDField()
+    warning_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+    )
+    warned_at = models.DateTimeField(null=True, blank=True)
+    child_note = models.CharField(max_length=240, blank=True)
+    debit = models.OneToOneField(LedgerEntry, on_delete=models.PROTECT, null=True, blank=True,
+                                 related_name="consequence_episode")
+    template_snapshot = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["child", "create_token"], name="unique_episode_token_per_child"),
+        ]
+
+    @property
+    def status(self):
+        if self.debit_id:
+            return _("Reversed") if hasattr(self.debit, "reversal") else _("Coin debit recorded")
+        return _("Warning") if self.warned_at else _("Episode recorded")
+
+    @property
+    def category_label(self):
+        return _(self.category_name)
+
+
+class RepairAction(models.Model):
+    episode = models.OneToOneField(ConsequenceEpisode, on_delete=models.PROTECT, related_name="repair")
+    text = models.CharField(max_length=240)
+    share_with_child = models.BooleanField(default=False)
+    proposed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    proposed_at = models.DateTimeField(auto_now_add=True)
+    completed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+    )
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+
+class GuardianMessage(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="guardian_messages")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    text = models.CharField(max_length=240)
+    created_at = models.DateTimeField(auto_now_add=True)
+    operation_token = models.UUIDField()
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["child", "operation_token"], name="unique_guardian_message_token"),
+        ]
 
 
 class OccurrenceCredit(models.Model):

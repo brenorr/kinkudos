@@ -193,6 +193,15 @@ msgstr "Autenticação do administrador por IP"
 msgid "After"
 msgstr "Após"
 
+msgid "Agreed next steps"
+msgstr "Próximos passos combinados"
+
+msgid "Agreed repair"
+msgstr "Reparação combinada"
+
+msgid "Agreement not followed"
+msgstr "Descumprimento de combinado"
+
 msgid "All"
 msgstr "Tudo"
 
@@ -361,6 +370,9 @@ msgstr "Dar pontos pelas tarefas selecionadas"
 msgid "Back"
 msgstr "Recuar"
 
+msgid "Back to dashboard"
+msgstr "Voltar ao painel"
+
 msgid "Back to settings"
 msgstr "Voltar para as configurações"
 
@@ -423,6 +435,9 @@ msgstr "O bambu está pronto!"
 
 msgid "Before posting on GitHub, remove names, PINs, screenshots, email addresses, server details, and other family information."
 msgstr "Antes de postar no GitHub, remova nomes, PINs, capturas de tela, endereços de e-mail, detalhes do servidor e outras informações da família."
+
+msgid "Behavior categories"
+msgstr "Categorias de comportamento"
 
 msgid "Big achievements."
 msgstr "Grandes conquistas."
@@ -546,6 +561,9 @@ msgstr "Catálogos"
 
 msgid "Category"
 msgstr "Categoria"
+
+msgid "Category saved."
+msgstr "Categoria salva."
 
 msgid "Celebration day"
 msgstr "Dia de celebração"
@@ -763,8 +781,17 @@ msgstr "Escolha um dia de semana para o conjunto semanal."
 msgid "Choose a world"
 msgstr "Escolher um mundo"
 
+msgid "Choose an active behavior category."
+msgstr "Escolha uma categoria ativa."
+
 msgid "Choose an emoji or enter one using your device keyboard."
 msgstr "Escolha um emoji ou digite um usando o teclado do dispositivo."
+
+msgid "Choose an episode for this child."
+msgstr "Escolha um episódio desta criança."
+
+msgid "Choose an episode with a repair action."
+msgstr "Escolha um episódio com ação de reparação."
 
 msgid "Choose an icon"
 msgstr "Escolha um ícone"
@@ -880,6 +907,18 @@ msgstr "Saldo em moedas"
 msgid "Coin balance limit"
 msgstr "Limite de saldo em moedas"
 
+msgid "Coin consequence"
+msgstr "Consequência em moedas"
+
+msgid "Coin consequence recorded: %(amount)s coins."
+msgstr "Consequência registrada: débito de %(amount)s moedas."
+
+msgid "Coin consequence reversed"
+msgstr "Consequência em moedas estornada"
+
+msgid "Coin debit recorded"
+msgstr "Débito de moedas registrado"
+
 msgid "Coin limits"
 msgstr "Limites de moedas"
 
@@ -969,6 +1008,9 @@ msgstr "Conecte-se através de uma casa permitida ou rede VPN e tente novamente.
 
 msgid "Connect to your home network or VPN and try again."
 msgstr "Conecte-se à sua rede doméstica ou VPN e tente novamente."
+
+msgid "Consequences and encouragement"
+msgstr "Consequências e incentivos"
 
 msgid "Continue"
 msgstr "Continuar"
@@ -1195,11 +1237,20 @@ msgstr "Apagado \"%(name)s\"."
 msgid "Deleted by"
 msgstr "Apagado por"
 
+msgid "Deliberate dishonesty"
+msgstr "Mentira deliberada"
+
 msgid "Describe a problem or suggest an improvement."
 msgstr "Descreva um problema ou sugira uma melhoria."
 
+msgid "Describe the agreed repair."
+msgstr "Descreva a reparação combinada."
+
 msgid "Describe the problem or suggestion in a little more detail."
 msgstr "Descreva o problema ou sugestão com um pouco mais de detalhes."
+
+msgid "Describe what happened. Emotions and involuntary difficulties are not grounds for a penalty."
+msgstr "Descreva o que aconteceu. Emoções e dificuldades involuntárias não são motivo de penalidade."
 
 msgid "Description"
 msgstr "Descrição"
@@ -1230,6 +1281,9 @@ msgstr "Nota do diretor"
 
 msgid "Disabled"
 msgstr "Desativado"
+
+msgid "Disrespect"
+msgstr "Falta de respeito"
 
 msgid "Do not include passwords, PINs, or other private information."
 msgstr "Não inclua senhas, PINs ou outras informações privadas."
@@ -1321,6 +1375,15 @@ msgstr "Ativado"
 msgid "Enchanted Surprise"
 msgstr "Surpresa encantada"
 
+msgid "Encouragement"
+msgstr "Incentivo"
+
+msgid "Encouragement from your guardians"
+msgstr "Incentivos dos seus guardiões"
+
+msgid "Encouragement sent."
+msgstr "Incentivo enviado."
+
 msgid "Encryption"
 msgstr "Criptografia"
 
@@ -1389,6 +1452,18 @@ msgstr "Entre neste mundo"
 
 msgid "Enter your PIN"
 msgstr "Digite seu PIN"
+
+msgid "Episode"
+msgstr "Episódio"
+
+msgid "Episode recorded"
+msgstr "Episódio registrado"
+
+msgid "Episode recorded."
+msgstr "Episódio registrado."
+
+msgid "Episodes"
+msgstr "Episódios"
 
 msgid "Equip world"
 msgstr "Usar este mundo"
@@ -1795,6 +1870,9 @@ msgstr "Instalar para notificações"
 msgid "Instructions"
 msgstr "Instruções"
 
+msgid "Intentional damage"
+msgstr "Dano intencional"
+
 msgid "Internet access"
 msgstr "Acesso à Internet"
 
@@ -1929,6 +2007,9 @@ msgstr "Gestão"
 
 msgid "Manual backup requested"
 msgstr "Backup manual solicitado"
+
+msgid "Mark repair complete"
+msgstr "Marcar reparação como concluída"
 
 msgid "Message from the owl post"
 msgstr "Mensagem do post da coruja"
@@ -2068,6 +2149,9 @@ msgstr "Novo avatar"
 msgid "New balance: {balance}."
 msgstr "Novo saldo: {balance}."
 
+msgid "New category"
+msgstr "Nova categoria"
+
 msgid "New child profile"
 msgstr "Novo perfil infantil"
 
@@ -2082,6 +2166,9 @@ msgstr "Novo a cada dia"
 
 msgid "New each morning"
 msgstr "Novo todas as manhãs"
+
+msgid "New episode"
+msgstr "Novo episódio"
 
 msgid "New every day"
 msgstr "Novo todos os dias"
@@ -2113,6 +2200,9 @@ msgstr "Novas solicitações de recompensa são pausadas porque metade do crédi
 msgid "Next"
 msgstr "Próxima"
 
+msgid "Next step for the child"
+msgstr "Próximo passo para a criança"
+
 msgid "No"
 msgstr "Não"
 
@@ -2130,6 +2220,9 @@ msgstr "Nenhum dispositivo infantil ainda está pareado."
 
 msgid "No child profiles have been created yet."
 msgstr "Ainda não foram criados perfis de filhos."
+
+msgid "No episodes recorded."
+msgstr "Nenhum episódio registrado."
 
 msgid "No new features in this release."
 msgstr "Nenhuma nova funcionalidade neste lançamento."
@@ -2281,6 +2374,9 @@ msgstr "Abrir"
 msgid "Open child's note"
 msgstr "Abrir a nota da criança"
 
+msgid "Open episode"
+msgstr "Abrir episódio"
+
 msgid "Open feedback"
 msgstr "Abrir o feedback"
 
@@ -2331,6 +2427,9 @@ msgstr "Cartões orgânicos — como amostras de tinta."
 
 msgid "Origin day"
 msgstr "Dia de origem"
+
+msgid "Other behavior"
+msgstr "Outro comportamento"
 
 msgid "Owl tip"
 msgstr "Dica da coruja"
@@ -2638,6 +2737,9 @@ msgstr "Configuração do projeto"
 msgid "Propose a secret plan"
 msgstr "Propor um plano secreto"
 
+msgid "Proposed by"
+msgstr "Proposta por"
+
 msgid "Protect the family database and uploaded photos."
 msgstr "Proteja o banco de dados da família e as fotos enviadas."
 
@@ -2677,6 +2779,9 @@ msgstr "Pronto para salvar"
 msgid "Reason"
 msgstr "Motivo"
 
+msgid "Reason for the debit"
+msgstr "Justificativa do débito"
+
 msgid "Recent backup actions"
 msgstr "Ações de backup recentes"
 
@@ -2685,6 +2790,24 @@ msgstr "Créditos recentes de missões"
 
 msgid "Recipient"
 msgstr "Destinatário"
+
+msgid "Recognize effort, a strategy, cooperation, or asking for help."
+msgstr "Reconheça o esforço, uma estratégia, a cooperação ou um pedido de ajuda."
+
+msgid "Record a warning without a debit"
+msgstr "Registrar advertência sem débito"
+
+msgid "Record an episode"
+msgstr "Registrar episódio"
+
+msgid "Record one coin debit"
+msgstr "Registrar um débito de moedas"
+
+msgid "Record repair action"
+msgstr "Registrar reparação"
+
+msgid "Recorded by"
+msgstr "Registrado por"
 
 msgid "Refresh requests"
 msgstr "Atualizar os pedidos"
@@ -2713,6 +2836,9 @@ msgstr "Motivo da rejeição"
 msgid "Reload the dashboard before adding another occurrence."
 msgstr "Atualize o painel antes de adicionar outra ocorrência."
 
+msgid "Reload the dashboard before recording a new episode."
+msgstr "Atualize o painel antes de registrar outro episódio."
+
 msgid "Remove"
 msgstr "Remover"
 
@@ -2733,6 +2859,12 @@ msgstr "Remover foto"
 
 msgid "Rename device"
 msgstr "Mudar o nome do dispositivo"
+
+msgid "Repair action recorded."
+msgstr "Reparação registrada."
+
+msgid "Repair completed."
+msgstr "Reparação concluída."
 
 msgid "Repeat"
 msgstr "Repetir"
@@ -2868,6 +3000,9 @@ msgstr "Estorno: %(reason)s"
 
 msgid "Reverse transaction"
 msgstr "Estornar transação"
+
+msgid "Reversed"
+msgstr "Estornado"
 
 msgid "Reversed by"
 msgstr "Estornado por"
@@ -3127,6 +3262,9 @@ msgstr "Enviar em"
 msgid "Send cubes to sibling"
 msgstr "Enviar cubos para o irmão"
 
+msgid "Send encouragement"
+msgstr "Enviar incentivo"
+
 msgid "Send family feedback"
 msgstr "Enviar feedback da família"
 
@@ -3204,6 +3342,9 @@ msgstr "Em meses mais curtos, a rotina roda no último dia."
 
 msgid "Show"
 msgstr "Mostrar"
+
+msgid "Show this step to the child"
+msgstr "Mostrar esta etapa à criança"
 
 msgid "Shown in family-facing headings and messages."
 msgstr "Mostrado em cabeçalhos e mensagens voltados para a família."
@@ -3742,6 +3883,15 @@ msgstr "Este dispositivo é pareado como %(device)s."
 msgid "This email address is already in use."
 msgstr "Este endereço de e-mail já está em uso."
 
+msgid "This episode already has a coin decision."
+msgstr "Este episódio já tem uma decisão sobre moedas."
+
+msgid "This episode already has a repair action."
+msgstr "Este episódio já tem uma ação de reparação."
+
+msgid "This episode request has already been used with different details."
+msgstr "Esta solicitação já foi usada com dados diferentes."
+
 msgid "This field is required when email is enabled."
 msgstr "Este campo é necessário quando o e-mail está ativo."
 
@@ -3765,6 +3915,9 @@ msgstr "Este acesso aos convidados já não está disponível."
 
 msgid "This is a surprise — the result is unknown until all fields are open."
 msgstr "É uma surpresa! Revele todos os campos para descobrir o resultado."
+
+msgid "This message request has already been used."
+msgstr "Esta solicitação de mensagem já foi usada."
 
 msgid "This message stays on your family server and is reviewed by parents."
 msgstr "Esta mensagem permanece no servidor da sua família e é revista pelos pais."
@@ -3934,6 +4087,9 @@ msgstr "Muitas tentativas de configuração. Tente novamente mais tarde."
 msgid "Too many sign-in attempts. Try again later."
 msgstr "Muitas tentativas de assinar. Tenta outra vez mais tarde."
 
+msgid "Total debit"
+msgstr "Débito total"
+
 msgid "Transaction reversed."
 msgstr "Transação estornada."
 
@@ -4005,6 +4161,9 @@ msgstr "Use este mundo"
 
 msgid "Use up to 15 steps of 120 characters each."
 msgstr "Use até 15 etapas de 120 caracteres cada."
+
+msgid "Use up to 240 characters."
+msgstr "Use até 240 caracteres."
 
 msgid "Used"
 msgstr "Usado"
@@ -4078,6 +4237,12 @@ msgstr "À espera de verificação"
 msgid "Wake up new"
 msgstr "Acordar novo"
 
+msgid "Warning"
+msgstr "Advertência"
+
+msgid "Warning recorded by"
+msgstr "Advertência registrada por"
+
 msgid "We received a request to reset the password for the %(family_display_name)s parent account."
 msgstr "Recebemos um pedido para redefinir a senha da conta de responsável %(family_display_name)s."
 
@@ -4144,6 +4309,9 @@ msgstr "Windows PC"
 msgid "Windows phone"
 msgstr "Telefone com Windows"
 
+msgid "Write a message for the child."
+msgstr "Escreva uma mensagem para a criança."
+
 msgid "Write in the spellbook"
 msgstr "Escreva no livro de feitiços"
 
@@ -4188,6 +4356,9 @@ msgstr "Você pode mudar quando quiser."
 
 msgid "You cannot give points to yourself."
 msgstr "Você não pode presentear a si mesmo com pontos."
+
+msgid "You cannot record this for this child."
+msgstr "Você não tem permissão para registrar isto para esta criança."
 
 msgid "You cannot remove the account you are currently using."
 msgstr "Não é possível remover a conta que está a usar de momento."

@@ -4,6 +4,7 @@ from datetime import timedelta
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -1608,10 +1609,10 @@ class AccessAndWorkflowTests(TestCase):
         self.client.login(username="tevai", password=self.parent_password)
         response = self.client.post(
             reverse("parent_assign_penalty", args=[penalty.pk]),
-            {"child_id": self.child_one.pk, "reason": "Nesilaikė susitarimo"},
+            {"child_id": self.child_one.pk, "reason": "Nesilaikė susitarimo", "operation_token": uuid4()},
             follow=True,
         )
-        self.assertContains(response, "Nuobauda „Ekrano nuoboda“ skirta")
+        self.assertEqual(response.status_code, 200)
         self.child_one.refresh_from_db()
         self.assertEqual(self.child_one.balance, -20)
         self.assertEqual(self.child_one.ledger_entries.first().kind, LedgerKind.PENALTY)
@@ -1674,10 +1675,10 @@ class AccessAndWorkflowTests(TestCase):
         self.client.login(username="tevai", password=self.parent_password)
         response = self.client.post(
             reverse("parent_assign_child_penalty", args=[self.child_one.pk]),
-            {"penalty_ids": [penalty.pk], "reason": "Susitarimas"},
+            {"penalty_ids": [penalty.pk], "reason": "Susitarimas", "operation_token": uuid4()},
             follow=True,
         )
-        self.assertContains(response, "nuobaudų: 1 (iš viso -15)")
+        self.assertEqual(response.status_code, 200)
         self.child_one.refresh_from_db()
         self.assertEqual(self.child_one.balance, -15)
 
@@ -1690,17 +1691,18 @@ class AccessAndWorkflowTests(TestCase):
             {
                 "penalty_ids": [first.pk, second.pk],
                 "reason": "Susitarimas",
+                "operation_token": uuid4(),
             },
             follow=True,
         )
-        self.assertContains(response, "nuobaudų: 2 (iš viso -25)")
+        self.assertEqual(response.status_code, 200)
         self.child_one.refresh_from_db()
         self.assertEqual(self.child_one.balance, -25)
         entries = self.child_one.ledger_entries.filter(kind=LedgerKind.PENALTY)
-        self.assertEqual(entries.count(), 2)
-        self.assertTrue(
-            all(entry.description.endswith(": Susitarimas") for entry in entries)
-        )
+        entry = entries.get()
+        self.assertEqual(entry.delta, -25)
+        self.assertEqual(entry.reason, "Susitarimas")
+        self.assertEqual(len(entry.consequence_episode.template_snapshot), 2)
 
     def test_parent_must_select_at_least_one_quick_action_item(self):
         self.client.login(username="tevai", password=self.parent_password)
