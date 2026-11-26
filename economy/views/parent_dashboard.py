@@ -35,6 +35,7 @@ from economy.forms import (
     RewardForm,
     SmtpSettingsForm,
     TaskForm,
+    XPCurveForm,
 )
 from economy.lottery import (
     lottery_state,
@@ -57,6 +58,7 @@ from economy.models import (
     GoalStatus,
     LedgerEntry,
     LedgerKind,
+    LevelUnlock,
     MissionOccurrence,
     MissionStatus,
     PenaltyTemplate,
@@ -810,6 +812,8 @@ def parent_dashboard(request):
             "reward_form": RewardForm(auto_id="id_new_reward_%s"),
             "parent_account_form": ParentAccountForm(auto_id="id_new_parent_%s"),
             "child_account_form": ChildAccountForm(auto_id="id_new_child_%s"),
+            "xp_curve_form": XPCurveForm(initial={"factor": FamilySettings.load().xp_curve_factor}),
+            "level_unlocks": LevelUnlock.objects.all() if not is_caregiver else (),
             "family_preferences_form": FamilyPreferencesForm(
                 instance=FamilySettings.load(),
                 auto_id="id_family_preferences_%s",

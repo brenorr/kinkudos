@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from django.core.signals import request_finished, request_started
 from django.db.backends.signals import connection_created
+from django.db.models.signals import post_save
 
 
 def configure_sqlite(sender, connection, **kwargs):
@@ -31,6 +32,10 @@ class EconomyConfig(AppConfig):
     name = "economy"
 
     def ready(self):
+        from economy.models import ChildProfile
+        from economy.progression import grant_initial_unlocks
+
+        post_save.connect(grant_initial_unlocks, sender=ChildProfile, dispatch_uid="economy.grant_initial_unlocks")
         connection_created.connect(
             configure_sqlite,
             dispatch_uid="economy.configure_sqlite",

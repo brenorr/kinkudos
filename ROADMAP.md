@@ -331,15 +331,17 @@ As categorias não devem ser utilizadas para classificar a personalidade da cria
 
 **Prioridade: P1**
 
+O [plano técnico da progressão RPG](docs/PROGRESSION_PLAN.md) descreve o cálculo com XP acumulado, as concessões por nível e a atualização de perfis existentes.
+
 ## 5.1 Níveis
 
-- [ ] Implementar progressão baseada em XP acumulado.
-- [ ] Configurar curva de experiência.
-- [ ] Exibir progresso até o próximo nível.
-- [ ] Notificar subida de nível.
-- [ ] Desbloquear títulos.
-- [ ] Desbloquear itens cosméticos.
-- [ ] Permitir evolução indefinida.
+- [x] Implementar progressão baseada em XP acumulado.
+- [x] Configurar curva de experiência.
+- [x] Exibir progresso até o próximo nível.
+- [x] Notificar subida de nível.
+- [x] Desbloquear títulos.
+- [x] Desbloquear itens cosméticos.
+- [x] Permitir evolução indefinida.
 
 Curva inicial sugerida:
 
@@ -357,12 +359,12 @@ Curva inicial sugerida:
 
 ## 5.2 Classes
 
-- [ ] Maga.
-- [ ] Guerreira.
-- [ ] Druida.
-- [ ] Alquimista.
-- [ ] Exploradora.
-- [ ] Arqueira.
+- [x] Maga.
+- [x] Guerreira.
+- [x] Druida.
+- [x] Alquimista.
+- [x] Exploradora.
+- [x] Arqueira.
 
 Classes possuem finalidade exclusivamente cosmética e narrativa.
 

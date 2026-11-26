@@ -537,6 +537,7 @@
             <label>{% translate "Task" %}<input class="field-control" name="title" value="{{ item.title }}" maxlength="120" required></label>
             <label>{% translate "Points" %}<input class="field-control" name="reward" type="number" min="1" max="99999" maxlength="5" inputmode="numeric" value="{{ item.reward }}" required></label>
             <label>{% translate "Icon" %}<input class="field-control emoji-input" name="icon" value="{{ item.icon|icon_symbol }}" list="emoji-options" maxlength="8" required></label>
+            <input type="hidden" name="practice_skills_present" value="1">
             {% for field in item.mission_fields %}{% if field.name != "icon" %}<p>{{ field.label_tag }} {{ field }}</p>{% endif %}{% endfor %}
             <div class="form-actions catalog-edit-actions">
               <button class="button button-primary" type="submit">{% translate "Save" %}</button>
@@ -554,7 +555,7 @@
       {% endif %}
       <div class="catalog-create">
         <div class="catalog-divider"><span>{% translate "Add new" %}</span></div>
-        <form method="post" action="{% url 'parent_create_catalog' 'task' %}" class="stack-form">{% csrf_token %}{{ task_form.as_p }}<button class="button button-primary" type="submit">{% translate "Create task" %}</button></form>
+        <form method="post" action="{% url 'parent_create_catalog' 'task' %}" class="stack-form">{% csrf_token %}<input type="hidden" name="practice_skills_present" value="1">{{ task_form.as_p }}<button class="button button-primary" type="submit">{% translate "Create task" %}</button></form>
       </div>
     </section>
 
@@ -1105,6 +1106,30 @@
     {% endif %}
   </section>
   </details>
+    </div>
+  </section>
+
+  <section class="settings-block" aria-labelledby="progression-settings-heading">
+    <h3 id="progression-settings-heading" class="settings-block-heading">{% translate "Character progression" %}</h3>
+    <div class="settings-group">
+      <form method="post" action="{% url 'parent_update_xp_curve' %}" class="stack-form">
+        {% csrf_token %}
+        <p>{{ xp_curve_form.factor.label_tag }} {{ xp_curve_form.factor }}</p>
+        <small>{% translate "The curve can be changed while every profile stays at level 1." %}</small>
+        <button class="button button-secondary" type="submit">{% translate "Save XP curve" %}</button>
+      </form>
+      <h4>{% translate "Level unlock catalog" %}</h4>
+      {% for unlock in level_unlocks %}
+        <form method="post" action="{% url 'parent_set_unlock_active' unlock.pk %}" class="list-row">
+          {% csrf_token %}
+          <span>{{ unlock }} · {% blocktranslate with level=unlock.minimum_level %}Level {{ level }}{% endblocktranslate %}</span>
+          {% if unlock.is_active %}
+            <button class="button button-secondary" name="active" value="0">{% translate "Archive unlock" %}</button>
+          {% else %}
+            <button class="button button-secondary" name="active" value="1">{% translate "Restore unlock" %}</button>
+          {% endif %}
+        </form>
+      {% endfor %}
     </div>
   </section>
 

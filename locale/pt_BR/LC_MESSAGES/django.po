@@ -7,6 +7,9 @@ msgstr "%(amount)s pontos estão disponíveis para recompensas novamente."
 msgid "%(amount)s saved points will be returned to %(child_name)s’s available balance before this goal is removed."
 msgstr "%(amount)s pontos guardados serão devolvidos ao saldo disponível de %(child_name)s antes que esta meta seja removido."
 
+msgid "%(current)s of %(target)s XP in this level"
+msgstr "%(current)s de %(target)s XP neste nível"
+
 msgid "%(family)s – guest access"
 msgstr "%(family)s – acesso aos convidados"
 
@@ -30,6 +33,9 @@ msgstr "%(name)s está com o acesso desbloqueado."
 
 msgid "%(name)s's avatar"
 msgstr "Avatar do %(name)s"
+
+msgid "%(remaining)s XP to the next level"
+msgstr "Faltam %(remaining)s XP para o próximo nível"
 
 msgid "%(task)s: +%(amount)s"
 msgstr "%(task)s: +%(amount)s"
@@ -190,6 +196,12 @@ msgstr "Ajuste"
 msgid "Admin login by IP"
 msgstr "Autenticação do administrador por IP"
 
+msgid "Adventurer"
+msgstr "Aventureiro"
+
+msgid "Adventurer cape"
+msgstr "Capa de aventura"
+
 msgid "After"
 msgstr "Após"
 
@@ -201,6 +213,9 @@ msgstr "Reparação combinada"
 
 msgid "Agreement not followed"
 msgstr "Descumprimento de combinado"
+
+msgid "Alchemist"
+msgstr "Alquimista"
 
 msgid "All"
 msgstr "Tudo"
@@ -274,6 +289,9 @@ msgstr "ID da chave do aplicativo"
 msgid "Apply"
 msgstr "Aplicar"
 
+msgid "Apprentice"
+msgstr "Aprendiz"
+
 msgid "Approve"
 msgstr "Aprovar"
 
@@ -288,6 +306,12 @@ msgstr "Aprovado por"
 
 msgid "Approving this will replace the current goal."
 msgstr "Aprovar isso substituirá a meta atual."
+
+msgid "Archer"
+msgstr "Arqueira"
+
+msgid "Archive unlock"
+msgstr "Arquivar desbloqueio"
 
 msgid "Art Studio"
 msgstr "Estúdio Art"
@@ -541,6 +565,9 @@ msgstr "Cartões"
 msgid "Cards left this week: %(remaining)s of %(limit)s."
 msgstr "Cartões restantes nesta semana: %(remaining)s de %(limit)s."
 
+msgid "Care"
+msgstr "Cuidado"
+
 msgid "Caregiver PIN by IP"
 msgstr "PIN do cuidador por IP"
 
@@ -594,6 +621,15 @@ msgstr "Changelog"
 
 msgid "Changelog pages"
 msgstr "Páginas do Changelog"
+
+msgid "Character class"
+msgstr "Classe do personagem"
+
+msgid "Character class saved."
+msgstr "Classe do personagem salva."
+
+msgid "Character progression"
+msgstr "Progressão do personagem"
 
 msgid "Check the PIN fields."
 msgstr "Verifique os campos PIN."
@@ -745,6 +781,9 @@ msgstr "As crianças podem sugerir metas na área delas. As metas aprovadas apar
 msgid "Choose Save separately before adding points."
 msgstr "Escolha Salvar separadamente antes de adicionar pontos."
 
+msgid "Choose a class"
+msgstr "Escolha uma classe"
+
 msgid "Choose a day of the month between 1 and 31."
 msgstr "Escolha um dia do mês entre 1 e 31."
 
@@ -762,6 +801,9 @@ msgstr "Escolha um modo de economia para esta meta."
 
 msgid "Choose a task"
 msgstr "Escolha uma tarefa"
+
+msgid "Choose a valid character class."
+msgstr "Escolha uma classe válida."
 
 msgid "Choose a valid feedback status."
 msgstr "Escolha um status de feedback válido."
@@ -1027,6 +1069,9 @@ msgstr "Gerencie pontos, saldos e a atribuição de tarefas."
 msgid "Control which devices can access child profiles."
 msgstr "Controle quais dispositivos podem acessar perfis de crianças."
 
+msgid "Cooperation"
+msgstr "Cooperação"
+
 msgid "Cooperative"
 msgstr "Cooperativa"
 
@@ -1041,6 +1086,9 @@ msgstr "Copiar link"
 
 msgid "Copying"
 msgstr "Copiar"
+
+msgid "Cosmetic item"
+msgstr "Item cosmético"
 
 msgid "Cost"
 msgstr "Custo"
@@ -1113,6 +1161,9 @@ msgstr "Diário Criativo"
 
 msgid "Creative Projects"
 msgstr "Projetos Criativos"
+
+msgid "Creativity"
+msgstr "Criatividade"
 
 msgid "Credit"
 msgstr "Crédito"
@@ -1300,6 +1351,9 @@ msgstr "Pronto"
 msgid "Dream Enchantments"
 msgstr "Encantadores de Sonhos"
 
+msgid "Druid"
+msgstr "Druida"
+
 msgid "Each child receives this many points once a year on their birthday. Use 0 to disable birthday gifts."
 msgstr "Cada criança recebe tantos pontos uma vez por ano em seu aniversário. Use 0 para desativar presentes de aniversário."
 
@@ -1396,6 +1450,9 @@ msgstr "Indique o nome de um dispositivo."
 msgid "Enter a name for this saved set."
 msgstr "Digite um nome para este conjunto salvo."
 
+msgid "Enter a positive XP curve factor."
+msgstr "Informe um fator de XP positivo."
+
 msgid "Enter a positive or negative point amount and its purpose."
 msgstr "Introduza uma quantidade de ponto positiva ou negativa e a sua finalidade."
 
@@ -1483,8 +1540,17 @@ msgstr "Galeões de troca"
 msgid "Existing accounts"
 msgstr "Contas existentes"
 
+msgid "Experiments with mixtures and invents tools."
+msgstr "Experimenta misturas e inventa ferramentas."
+
 msgid "Expired"
 msgstr "Expirado"
+
+msgid "Explorer"
+msgstr "Exploradora"
+
+msgid "Explores mysteries and solves puzzles with magic."
+msgstr "Explora mistérios e resolve enigmas com magia."
 
 msgid "Extra missions"
 msgstr "Missões extras"
@@ -1557,6 +1623,9 @@ msgstr "Quantidade final do símbolo"
 
 msgid "Find a task"
 msgstr "Procurar uma tarefa"
+
+msgid "Finds clues in nature and cares for living things."
+msgstr "Encontra pistas na natureza e cuida dos seres vivos."
 
 msgid "Finish every project before the studio closes at midnight."
 msgstr "Termine todos os projetos antes que o estúdio feche à meia-noite."
@@ -1711,6 +1780,9 @@ msgstr "Metas"
 msgid "Got it"
 msgstr "Entendido."
 
+msgid "Guardian"
+msgstr "Guardião"
+
 msgid "Guest access"
 msgstr "Acesso de convidados"
 
@@ -1852,6 +1924,9 @@ msgstr "PIN incorreto."
 msgid "Incorrect changes can stop future backups. Continue only if you understand the storage credentials and have saved the repository password outside this server."
 msgstr "Alterações incorretas podem parar backups futuros. Continue somente se você entender as credenciais de armazenamento e tiver salvo a senha do repositório fora deste servidor."
 
+msgid "Independence"
+msgstr "Autonomia"
+
 msgid "Informational"
 msgstr "Informacional"
 
@@ -1930,6 +2005,9 @@ msgstr "Idioma"
 msgid "Last"
 msgstr "Último"
 
+msgid "Last advance: level %(previous)s to %(current)s"
+msgstr "Último avanço: nível %(previous)s para %(current)s"
+
 msgid "Last integrity check"
 msgstr "Última verificação de integridade"
 
@@ -1939,6 +2017,9 @@ msgstr "Último backup bem-sucedido"
 msgid "Last used"
 msgstr "Última utilização"
 
+msgid "Learning"
+msgstr "Aprendizado"
+
 msgid "Leave a limit blank to disable it."
 msgstr "Deixe um limite em branco para desativá-lo."
 
@@ -1947,6 +2028,12 @@ msgstr "Deixe em branco para manter o PIN atual."
 
 msgid "Leave blank to keep the current password."
 msgstr "Deixe em branco para manter a senha atual."
+
+msgid "Level %(level)s"
+msgstr "Nível %(level)s"
+
+msgid "Level unlock catalog"
+msgstr "Catálogo de desbloqueios por nível"
 
 msgid "Link expires"
 msgstr "O link expira"
@@ -1971,6 +2058,9 @@ msgstr "Login"
 
 msgid "Mac"
 msgstr "Mac"
+
+msgid "Mage"
+msgstr "Maga"
 
 msgid "Magic Academy"
 msgstr "Academia Mágica"
@@ -2007,6 +2097,9 @@ msgstr "Gestão"
 
 msgid "Manual backup requested"
 msgstr "Backup manual solicitado"
+
+msgid "Maps new paths and discovers hidden places."
+msgstr "Mapeia novos caminhos e descobre lugares escondidos."
 
 msgid "Mark repair complete"
 msgstr "Marcar reparação como concluída"
@@ -2197,6 +2290,9 @@ msgstr "Novas solicitações de recompensa são pausadas após metade do limite 
 msgid "New reward requests are paused because half of the available credit has been used. Earn more points to unlock them."
 msgstr "Novas solicitações de recompensa são pausadas porque metade do crédito disponível foi usado. Ganhe mais pontos para destravá-los."
 
+msgid "New unlocks: %(unlocks)s"
+msgstr "Novos desbloqueios: %(unlocks)s"
+
 msgid "Next"
 msgstr "Próxima"
 
@@ -2298,6 +2394,9 @@ msgstr "Notificações não disponíveis"
 
 msgid "Number of child profiles [1]: "
 msgstr "Número de perfis de filhos [1]: "
+
+msgid "Observes carefully and helps the group from afar."
+msgstr "Observa com atenção e ajuda o grupo à distância."
 
 msgid "Old PIN"
 msgstr "Antigo PIN"
@@ -2424,6 +2523,9 @@ msgstr "Ordem"
 
 msgid "Organic cards — like paint swatches."
 msgstr "Cartões orgânicos — como amostras de tinta."
+
+msgid "Organization"
+msgstr "Organização"
 
 msgid "Origin day"
 msgstr "Dia de origem"
@@ -2743,6 +2845,9 @@ msgstr "Proposta por"
 msgid "Protect the family database and uploaded photos."
 msgstr "Proteja o banco de dados da família e as fotos enviadas."
 
+msgid "Protects the group on its adventures."
+msgstr "Protege o grupo durante as aventuras."
+
 msgid "Provider"
 msgstr "Fornecedor"
 
@@ -2941,6 +3046,9 @@ msgstr "Redefinir senha"
 msgid "Resolved"
 msgstr "Resolvido"
 
+msgid "Restore unlock"
+msgstr "Restaurar desbloqueio"
+
 msgid "Restored"
 msgstr "Restaurado"
 
@@ -3100,6 +3208,9 @@ msgstr "Salvar"
 msgid "Save PIN"
 msgstr "Salvar o PIN"
 
+msgid "Save XP curve"
+msgstr "Salvar curva de XP"
+
 msgid "Save account"
 msgstr "Salvar conta"
 
@@ -3117,6 +3228,9 @@ msgstr "Salvar o aniversário"
 
 msgid "Save checklist"
 msgstr "Salvar etapas"
+
+msgid "Save class"
+msgstr "Salvar classe"
 
 msgid "Save code"
 msgstr "Salvar código"
@@ -3361,6 +3475,9 @@ msgstr "Sinal recebido! As provas da missão foram entregues ao QG."
 msgid "Silver Mystery Canvas"
 msgstr "Tela Misteriosa de Prata"
 
+msgid "Skills practiced"
+msgstr "Habilidades praticadas"
+
 msgid "Skip mission"
 msgstr "Pular missão"
 
@@ -3595,6 +3712,9 @@ msgstr "O parâmetro de avaliação Web Push é inválido."
 msgid "The Web Push key is invalid."
 msgstr "A chave Web Push é inválida."
 
+msgid "The XP curve is locked once a profile reaches level 2."
+msgstr "A curva de XP fica bloqueada quando um perfil chega ao nível 2."
+
 msgid "The activity history is empty."
 msgstr "O histórico de atividade está vazio."
 
@@ -3639,6 +3759,9 @@ msgstr "O PIN atual está incorreto."
 
 msgid "The current parent password is incorrect."
 msgstr "A senha do pai atual está incorreta."
+
+msgid "The curve can be changed while every profile stays at level 1."
+msgstr "A curva pode mudar enquanto todos os perfis permanecem no nível 1."
 
 msgid "The family name is required."
 msgstr "O nome da família é obrigatório."
@@ -4129,8 +4252,14 @@ msgstr "Dispositivo desconhecido"
 msgid "Unlock"
 msgstr "Desbloquear"
 
+msgid "Unlock catalog updated."
+msgstr "Catálogo de desbloqueios atualizado."
+
 msgid "Unlock profile"
 msgstr "Desbloquear o perfil"
+
+msgid "Unlocked titles and items"
+msgstr "Títulos e itens desbloqueados"
 
 msgid "Until"
 msgstr "Até"
@@ -4243,6 +4372,9 @@ msgstr "Advertência"
 msgid "Warning recorded by"
 msgstr "Advertência registrada por"
 
+msgid "Warrior"
+msgstr "Guerreira"
+
 msgid "We received a request to reset the password for the %(family_display_name)s parent account."
 msgstr "Recebemos um pedido para redefinir a senha da conta de responsável %(family_display_name)s."
 
@@ -4318,6 +4450,12 @@ msgstr "Escreva no livro de feitiços"
 msgid "XP"
 msgstr "XP"
 
+msgid "XP curve factor"
+msgstr "Fator da curva de XP"
+
+msgid "XP curve saved."
+msgstr "Curva de XP salva."
+
 msgid "XP reward"
 msgstr "Recompensa em XP"
 
@@ -4383,6 +4521,9 @@ msgstr "Você pode adicionar um comentário que a criança verá."
 
 msgid "You need %(cost)s earned %(unit)s"
 msgstr "Você precisa %(cost)s ganhou %(unit)s"
+
+msgid "You reached level %(level)s!"
+msgstr "Você chegou ao nível %(level)s!"
 
 msgid "You received %(amount)s for your birthday"
 msgstr "Recebeste %(amount)s nseu aniversário."

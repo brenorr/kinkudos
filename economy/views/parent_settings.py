@@ -5,8 +5,10 @@ from django.contrib import messages
 from django.contrib.auth import (
     authenticate,
 )
-from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.timezone import template_localtime
@@ -22,13 +24,16 @@ from economy.forms import (
     FamilyPreferencesForm,
     NetworkAccessForm,
     SmtpSettingsForm,
+    XPCurveForm,
 )
 from economy.models import (
     BackupAuditEvent,
     FamilySettings,
+    LevelUnlock,
     SecurityAuditEvent,
 )
 from economy.net import client_ip
+from economy.progression import reconcile_unlocks, set_curve_factor
 
 logger = logging.getLogger("economy.views")
 
@@ -105,11 +110,46 @@ def parent_update_family_preferences(request):
     family = FamilySettings.load()
     form = FamilyPreferencesForm(request.POST, instance=family)
     if form.is_valid():
-        form.save()
+        if form.changed_data:
+            form.save(commit=False).save(update_fields=form.changed_data)
         messages.success(request, _("Family settings saved."))
     else:
         messages.error(request, _("Check the family settings."))
     return redirect(f"{reverse('parent_dashboard')}#parent-settings")
+
+@parent_account_required
+@require_POST
+def parent_update_xp_curve(request):
+    form = XPCurveForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, _("Enter a positive XP curve factor."))
+    else:
+        try:
+            set_curve_factor(form.cleaned_data["factor"])
+        except ValidationError as exc:
+            messages.error(request, exc.messages[0])
+        else:
+            messages.success(request, _("XP curve saved."))
+    return redirect(f"{reverse('parent_dashboard')}#parent-settings")
+
+
+@parent_account_required
+@require_POST
+@transaction.atomic
+def parent_set_unlock_active(request, unlock_id):
+    state = request.POST.get("active")
+    if state not in {"0", "1"}:
+        raise Http404
+    unlock = get_object_or_404(LevelUnlock, pk=unlock_id)
+    active = state == "1"
+    if active != unlock.is_active:
+        unlock.is_active = active
+        unlock.save(update_fields=["is_active"])
+        if active:
+            reconcile_unlocks()
+    messages.success(request, _("Unlock catalog updated."))
+    return redirect(f"{reverse('parent_dashboard')}#parent-settings")
+
 
 @parent_account_required
 @require_POST

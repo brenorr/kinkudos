@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST, require_safe
 
-from economy import missions
+from economy import missions, progression
 from economy.auth import (
     child_object_or_404,
     child_required,
@@ -27,6 +27,7 @@ from economy.forms import (
     AvatarForm,
     BirthDateForm,
     ChangePinForm,
+    CharacterClassForm,
     FirstThemeForm,
     GoalAmountForm,
     PointGiftForm,
@@ -54,6 +55,7 @@ from economy.models import (
     GoalCompletionRequest,
     GoalStatus,
     LedgerKind,
+    LevelAdvance,
     LotteryTicket,
     MissionOccurrence,
     MissionStatus,
@@ -256,6 +258,9 @@ def child_dashboard(request):
     ).values_list("task_id", flat=True))
     recent_mission_credits = child.occurrence_credits.select_related("coin_entry")[:5]
     waiting_for_parents = _waiting_for_parents_items(child)
+    progress = progression.calculate_progress(
+        progression.xp_total(child), FamilySettings.load().xp_curve_factor,
+    )
     return render(
         request,
         "economy/child_dashboard.html",
@@ -264,7 +269,13 @@ def child_dashboard(request):
             "shared_next_steps": child.consequence_episodes.filter(
                 ~Q(child_note="") | Q(repair__share_with_child=True)
             ).select_related("repair")[:5],
-            "experience_total": child.occurrence_credits.aggregate(total=Sum("xp", default=0))["total"],
+            "experience_total": progress.total_xp,
+            "progress": progress,
+            "last_level_advance": LevelAdvance.objects.filter(credit__child=child).order_by("-created_at", "-pk").first(),
+            "unlock_grants": child.unlock_grants.select_related("unlock").order_by("required_level", "unlock__code"),
+            "practiced_skills": progression.practiced_skills(child),
+            "character_style": progression.CHARACTER_STYLES.get(child.character_class),
+            "character_class_form": CharacterClassForm(initial={"character_class": child.character_class}),
             "child": child,
             "greeting_name": greeting_name,
             "tasks": Task.objects.filter(is_active=True, is_deleted=False).exclude(
@@ -772,6 +783,19 @@ def child_request_goal_completion(request, goal_id):
 
 @child_required
 @require_POST
+def child_set_character_class(request):
+    form = CharacterClassForm(request.POST)
+    if form.is_valid():
+        request.child.character_class = form.cleaned_data["character_class"]
+        request.child.save(update_fields=["character_class"])
+        messages.success(request, _("Character class saved."))
+    else:
+        messages.error(request, _("Choose a valid character class."))
+    return redirect(f"{reverse('child_dashboard')}#progression")
+
+
+@child_required
+@require_POST
 def child_set_theme(request):
     form = ThemeForm(request.POST)
     if form.is_valid():
@@ -976,6 +1000,11 @@ def _child_state_payload(child):
             "missions": list(child.missions.filter(local_date=timezone.localdate()).order_by("pk").values_list(
                 "pk", "status", "checked_steps", "help_requested_at",
             )),
+            "progression": {
+                "curve_factor": FamilySettings.load().xp_curve_factor,
+                "character_class": child.character_class,
+                "unlocks": list(child.unlock_grants.order_by("pk").values_list("pk", "unlock__name")),
+            },
             "guardian_messages": _relation_watermark(child.guardian_messages.all(), "created_at"),
             "shared_next_steps": list(child.consequence_episodes.filter(
                 ~Q(child_note="") | Q(repair__share_with_child=True)

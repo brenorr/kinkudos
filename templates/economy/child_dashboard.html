@@ -1,5 +1,5 @@
 {% extends "economy/base.html" %}
-{% load economy_tags i18n %}
+{% load economy_tags i18n l10n %}
 {% block title %}{{ child.name }} – {{ project_name }}{% endblock %}
 {% block body_class %}theme-{{ child.theme }} child-area{% endblock %}
 {% block child_state_signature %}{{ child_state_signature }}{% endblock %}
@@ -15,7 +15,7 @@
 {% endblock %}
 {% block content %}
 <section class="child-hero{% if child.avatar %} has-avatar{% endif %}">
-  <div class="child-identity">{% if child.avatar %}<img class="hero-avatar" src="{% url 'child_avatar' child.pk %}" alt="">{% endif %}<div class="child-greeting">{% if greeting_name %}<h1>{% blocktranslate with name=greeting_name %}Hello, {{ name }}!{% endblocktranslate %}</h1>{% else %}<h1>{% translate "Hello!" %}</h1>{% endif %}<p class="child-greeting-supporting">{% translate "Ready for today's tasks?" %}</p><p class="child-greeting-supporting">{{ experience_total }} {% translate "XP" %}</p></div></div>
+  <div class="child-identity">{% if child.avatar %}<img class="hero-avatar" src="{% url 'child_avatar' child.pk %}" alt="">{% endif %}<div class="child-greeting">{% if greeting_name %}<h1>{% blocktranslate with name=greeting_name %}Hello, {{ name }}!{% endblocktranslate %}</h1>{% else %}<h1>{% translate "Hello!" %}</h1>{% endif %}<p class="child-greeting-supporting">{% translate "Ready for today's tasks?" %}</p><p class="child-greeting-supporting"><a href="#progression">{% blocktranslate with level=progress.level %}Level {{ level }}{% endblocktranslate %}</a> · {{ experience_total }} {% translate "XP" %}</p></div></div>
   <div class="balance-orb" aria-label="{% translate "Coin balance" %}"><strong>{{ child.balance }}</strong><span>{{ child.balance|currency_unit:child.theme }}</span></div>
 </section>
 
@@ -372,6 +372,35 @@
     {% empty %}
       <p class="empty-state">{% translate "Point history is empty." %}</p>
     {% endfor %}
+  </div>
+</section>
+
+<section id="progression" class="content-section">
+  <div class="section-heading"><h2>{% translate "Character progression" %}</h2></div>
+  <div class="panel">
+    {% if character_style %}
+      <p><span aria-hidden="true">{{ character_style.0 }}</span> <strong>{{ child.get_character_class_display }}</strong> · {{ character_style.1 }}</p>
+    {% endif %}
+    <p><strong>{% blocktranslate with level=progress.level %}Level {{ level }}{% endblocktranslate %}</strong> · {{ progress.total_xp }} XP</p>
+    <label for="xp-level-progress">{% blocktranslate with current=progress.level_xp target=progress.level_target %}{{ current }} of {{ target }} XP in this level{% endblocktranslate %}</label>
+    <progress id="xp-level-progress" class="xp-level-progress" value="{{ progress.level_xp|unlocalize }}" max="{{ progress.level_target|unlocalize }}"></progress>
+    <p>{% blocktranslate with remaining=progress.remaining_xp %}{{ remaining }} XP to the next level{% endblocktranslate %}</p>
+    {% if last_level_advance %}
+      <small>{% blocktranslate with previous=last_level_advance.previous_level current=last_level_advance.current_level %}Last advance: level {{ previous }} to {{ current }}{% endblocktranslate %}</small>
+    {% endif %}
+    {% if unlock_grants %}
+      <h3>{% translate "Unlocked titles and items" %}</h3>
+      <ul>{% for grant in unlock_grants %}<li>{{ grant.unlock }} · {{ grant.unlock.get_kind_display }} · {% blocktranslate with level=grant.required_level %}Level {{ level }}{% endblocktranslate %}</li>{% endfor %}</ul>
+    {% endif %}
+    {% if practiced_skills %}
+      <h3>{% translate "Skills practiced" %}</h3>
+      <ul>{% for skill, total in practiced_skills %}<li>{{ skill }} · {{ total }}</li>{% endfor %}</ul>
+    {% endif %}
+    <form method="post" action="{% url 'child_set_character_class' %}" class="stack-form">
+      {% csrf_token %}
+      <p>{{ character_class_form.character_class.label_tag }} {{ character_class_form.character_class }}</p>
+      <button class="button button-secondary" type="submit">{% translate "Save class" %}</button>
+    </form>
   </div>
 </section>
 

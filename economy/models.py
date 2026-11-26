@@ -170,6 +170,7 @@ class FamilySettings(models.Model):
 
     vacation_start = models.DateField(null=True, blank=True)
     vacation_end = models.DateField(null=True, blank=True)
+    xp_curve_factor = models.PositiveIntegerField(default=100, validators=[MinValueValidator(1)])
     daily_coin_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
     coin_balance_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
     daily_penalty_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
@@ -450,6 +451,15 @@ class SecurityAuditEvent(models.Model):
         ordering = ["-created_at", "-pk"]
 
 
+class CharacterClass(models.TextChoices):
+    MAGE = "mage", _("Mage")
+    WARRIOR = "warrior", _("Warrior")
+    DRUID = "druid", _("Druid")
+    ALCHEMIST = "alchemist", _("Alchemist")
+    EXPLORER = "explorer", _("Explorer")
+    ARCHER = "archer", _("Archer")
+
+
 class ChildProfile(models.Model):
     name = models.CharField(max_length=80, unique=True)
     vocative_name = models.CharField(max_length=80, blank=True)
@@ -461,6 +471,7 @@ class ChildProfile(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     birth_date_initialized = models.BooleanField(default=False)
     pin_hash = models.CharField(max_length=255)
+    character_class = models.CharField(max_length=16, choices=CharacterClass.choices, blank=True)
     balance = models.IntegerField(default=0)
     min_balance = models.IntegerField(default=-100)
     lottery_enabled = models.BooleanField(default=True)
@@ -551,11 +562,21 @@ class MissionKind(models.TextChoices):
     COOPERATIVE = "cooperative", _("Cooperative")
 
 
+class PracticeSkill(models.TextChoices):
+    ORGANIZATION = "organization", _("Organization")
+    LEARNING = "learning", _("Learning")
+    INDEPENDENCE = "independence", _("Independence")
+    COOPERATION = "cooperation", _("Cooperation")
+    CREATIVITY = "creativity", _("Creativity")
+    CARE = "care", _("Care")
+
+
 class Task(CatalogBase):
     reward = models.PositiveIntegerField()
     xp_reward = models.PositiveIntegerField(default=0)
     requires_approval = models.BooleanField(default=True)
     instructions = models.TextField(blank=True, max_length=1200)
+    practice_skills = models.JSONField(default=list, blank=True)
     checklist = models.JSONField(default=list, blank=True)
     category = models.CharField(max_length=80, blank=True)
     routine = models.CharField(max_length=80, blank=True)
@@ -586,6 +607,7 @@ class MissionOccurrence(models.Model):
     status = models.CharField(max_length=16, choices=MissionStatus.choices, default=MissionStatus.AVAILABLE)
     title = models.CharField(max_length=120)
     instructions = models.TextField(blank=True)
+    practice_skills = models.JSONField(default=list, blank=True)
     checklist = models.JSONField(default=list, blank=True)
     checked_steps = models.JSONField(default=list, blank=True)
     routine = models.CharField(max_length=80, blank=True)
@@ -1293,6 +1315,53 @@ class OccurrenceCredit(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-pk"]
+
+
+class UnlockKind(models.TextChoices):
+    TITLE = "title", _("Title")
+    COSMETIC = "cosmetic", _("Cosmetic item")
+
+
+class LevelUnlock(models.Model):
+    code = models.SlugField(max_length=48, unique=True)
+    kind = models.CharField(max_length=12, choices=UnlockKind.choices)
+    name = models.CharField(max_length=100)
+    minimum_level = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["minimum_level", "code"]
+
+    def __str__(self):
+        return str(_(self.name))
+
+
+class LevelAdvance(models.Model):
+    credit = models.OneToOneField(OccurrenceCredit, on_delete=models.PROTECT, related_name="level_advance")
+    previous_level = models.PositiveBigIntegerField()
+    current_level = models.PositiveBigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class UnlockGrant(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="unlock_grants")
+    unlock = models.ForeignKey(LevelUnlock, on_delete=models.PROTECT, related_name="grants")
+    required_level = models.PositiveIntegerField()
+    event = models.ForeignKey(
+        LevelAdvance, on_delete=models.PROTECT, null=True, blank=True, related_name="grants",
+    )
+    granted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["child", "unlock"], name="unique_level_unlock_per_child")]
+
+
+class SkillPractice(models.Model):
+    credit = models.ForeignKey(OccurrenceCredit, on_delete=models.PROTECT, related_name="skill_practices")
+    skill = models.CharField(max_length=16, choices=PracticeSkill.choices)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["credit", "skill"], name="unique_skill_per_occurrence_credit")]
 
 
 class LotteryTicketStatus(models.TextChoices):

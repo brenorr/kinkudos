@@ -38,6 +38,12 @@ um único débito do extrato. O estorno é obtido pelo vínculo de reversão
 do próprio débito. Advertências, reparações e mensagens não dependem do
 extrato nem de `OccurrenceCredit`.
 
+A migração `0040_rpg_progression` adiciona o catálogo `LevelUnlock`,
+a concessão única por perfil em `UnlockGrant` e o evento `LevelAdvance`,
+vinculado ao primeiro crédito que atingiu o nível. `SkillPractice`
+registra uma prática por habilidade e crédito. O nível é derivado do
+XP de `OccurrenceCredit`, com fator configurável por família.
+
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

@@ -12,7 +12,7 @@ from django.db.models import Exists, Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from . import missions
+from . import missions, progression
 from .models import (
     AssignedTask,
     AssignedTaskBatch,
@@ -34,6 +34,7 @@ from .models import (
     MissionStatus,
     OccurrenceCredit,
     PointGift,
+    PracticeSkill,
     Proposal,
     ProposalType,
     PushSubscription,
@@ -163,9 +164,9 @@ def post_ledger_entry(
 
 
 @transaction.atomic
-def credit_occurrence(*, child, occurrence_key, xp, coins, description, actor=None, source_id=None):
+def credit_occurrence(*, child, occurrence_key, xp, coins, description, actor=None, source_id=None, skills=()):
     """Record a finalized occurrence in the caller's state-transition transaction."""
-    if not occurrence_key or len(occurrence_key) > 120 or xp < 0 or coins < 0:
+    if not occurrence_key or len(occurrence_key) > 120 or xp < 0 or coins < 0 or set(skills) - set(PracticeSkill.values):
         raise ValidationError(_("Invalid occurrence credit."))
     ChildProfile.objects.select_for_update().get(pk=child.pk, is_active=True)
     existing = OccurrenceCredit.objects.select_related("coin_entry").filter(
@@ -182,9 +183,11 @@ def credit_occurrence(*, child, occurrence_key, xp, coins, description, actor=No
         child=child, delta=coins, kind=LedgerKind.TASK, description=description,
         actor=actor, source_id=source_id, source_type="occurrence", operation_key=f"occurrence:{occurrence_key}",
     )
-    return OccurrenceCredit.objects.create(
+    credit = OccurrenceCredit.objects.create(
         child=child, occurrence_key=occurrence_key, xp=xp, coin_entry=entry, actor=actor,
     )
+    progression.record_credit_progression(credit, skills)
+    return credit
 
 
 @transaction.atomic

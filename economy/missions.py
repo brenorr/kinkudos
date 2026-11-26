@@ -65,6 +65,7 @@ def resolve_catalog_occurrence(child, task, *, day=None, extra_token=None):
         title=task.title,
         instructions=task.instructions,
         checklist=task.checklist,
+        practice_skills=task.practice_skills,
         routine=task.routine,
         xp=task.xp_reward,
         coins=task.reward,
@@ -110,6 +111,7 @@ def finalize(occurrence, *, allowed, actor=None, bonus=0):
     result = credit_occurrence(
         child=occurrence.child, occurrence_key=occurrence.credit_key, xp=occurrence.xp,
         coins=occurrence.coins + bonus, description=occurrence.title, actor=actor, source_id=occurrence.pk,
+        skills=occurrence.practice_skills,
     )
     AssignedTask.objects.filter(occurrence=occurrence).update(
         status=AssignedTaskStatus.COMPLETED, completed_at=completed_at, ledger_entry=result.coin_entry,

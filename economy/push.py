@@ -10,7 +10,7 @@ from django.utils import translation
 from django.utils.translation import gettext as _
 from pywebpush import WebPushException, webpush
 
-from .models import FamilySettings, PushSubscription
+from .models import FamilySettings, LevelAdvance, PushSubscription
 from .templatetags.economy_tags import currency_unit, theme_text
 
 logger = logging.getLogger(__name__)
@@ -99,6 +99,22 @@ def in_family_language(notify):
             return notify(*args, **kwargs)
 
     return send
+
+
+@in_family_language
+def notify_level_advance(advance_id):
+    advance = LevelAdvance.objects.select_related("credit__child").get(pk=advance_id)
+    unlocks = [
+        str(grant.unlock)
+        for grant in advance.grants.select_related("unlock").order_by("required_level", "unlock__code")
+    ]
+    title = _("You reached level %(level)s!") % {"level": advance.current_level}
+    body = _("New unlocks: %(unlocks)s") % {"unlocks": ", ".join(unlocks)} if unlocks else ""
+    _send(
+        {"title": title, "body": body, "url": _child_dashboard_url("progression"),
+         "tag": f"level-advance-{advance.pk}"},
+        _child_subscriptions(advance.credit.child),
+    )
 
 
 @in_family_language

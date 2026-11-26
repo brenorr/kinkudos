@@ -16,12 +16,14 @@ from .models import (
     AssignmentPresetWeekendMode,
     BehaviorCategory,
     BirthDateChangeRequest,
+    CharacterClass,
     ChildProfile,
     FamilySettings,
     FeedbackReport,
     FeedbackStatus,
     GoalMode,
     PenaltyTemplate,
+    PracticeSkill,
     Proposal,
     ProposalType,
     RequestStatus,
@@ -162,6 +164,10 @@ class TaskForm(EmojiFormMixin, forms.ModelForm):
         error_messages={"min_value": _("Enter a positive point amount.")},
     )
 
+    practice_skills = forms.MultipleChoiceField(
+        label=_("Skills practiced"), choices=PracticeSkill.choices, required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
     checklist = forms.CharField(
         label=_("Checklist (one step per line)"), required=False, max_length=1800,
         widget=forms.Textarea(attrs={"rows": 4}),
@@ -175,7 +181,7 @@ class TaskForm(EmojiFormMixin, forms.ModelForm):
         model = Task
         fields = [
             "title", "reward", "xp_reward", "requires_approval", "icon", "instructions",
-            "checklist", "category", "routine", "mission_kind", "difficulty", "suggested_at",
+            "checklist", "practice_skills", "category", "routine", "mission_kind", "difficulty", "suggested_at",
             "due_at", "timer_minutes", "prerequisite",
         ]
         labels = {
@@ -202,10 +208,16 @@ class TaskForm(EmojiFormMixin, forms.ModelForm):
             data = self.data.copy()
             for name in self.Meta.fields[3:]:
                 value = self.initial.get(name)
-                if name != "icon" and value is not None:
+                if name not in ("icon", "practice_skills") and value is not None:
                     data.setdefault(self.add_prefix(name), value)
             for name in ("xp_reward", "mission_kind", "difficulty"):
                 data.setdefault(self.add_prefix(name), getattr(task, name))
+            skills_key = self.add_prefix("practice_skills")
+            if skills_key not in data and self.add_prefix("practice_skills_present") not in data:
+                if hasattr(data, "setlist"):
+                    data.setlist(skills_key, task.practice_skills)
+                else:
+                    data[skills_key] = task.practice_skills
             self.data = data
 
     def clean_requires_approval(self):
@@ -620,6 +632,19 @@ class ThemeForm(StyledFormMixin, forms.Form):
         label=_("Change my theme randomly every day"),
         help_text=_("A different theme will be selected automatically once a day."),
         required=False,
+    )
+
+
+class CharacterClassForm(StyledFormMixin, forms.Form):
+    character_class = forms.ChoiceField(
+        label=_("Character class"), choices=[("", _("Choose a class")), *CharacterClass.choices],
+        required=False,
+    )
+
+
+class XPCurveForm(StyledFormMixin, forms.Form):
+    factor = forms.IntegerField(
+        label=_("XP curve factor"), min_value=1, max_value=1_000_000,
     )
 
 
