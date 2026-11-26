@@ -56,12 +56,17 @@ def complete_setup(*, username, email, password, family_name, language, timezone
             family.family_name = family_name
             family.default_language = language
             family.timezone_name = timezone_name
+            family.set_initial_economy()
             family.recovery_code_hash = make_password(recovery_code)
             family.save(
                 update_fields=[
                     "family_name",
                     "default_language",
                     "timezone_name",
+                    "default_min_balance",
+                    "daily_coin_limit",
+                    "coin_balance_limit",
+                    "daily_penalty_limit",
                     "recovery_code_hash",
                 ]
             )

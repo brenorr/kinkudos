@@ -60,7 +60,8 @@ class Command(BaseCommand):
             family.default_language = options["language"]
             family.timezone_name = options["timezone"]
             family.currency_name = "Points"
-            family.default_min_balance = -100
+            if family.setup_completed_at is None and not User.objects.exists() and not ChildProfile.objects.exists():
+                family.set_initial_economy()
             recovery_code = secrets.token_urlsafe(24)
             family.recovery_code_hash = make_password(recovery_code)
             family.save()

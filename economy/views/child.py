@@ -165,7 +165,7 @@ def child_dashboard(request):
         entry.history_timestamp = entry.created_at
         entry.task_claim = (
             task_claims_by_id.get(entry.source_id)
-            if entry.kind == LedgerKind.TASK
+            if entry.kind == LedgerKind.TASK and entry.source_type in ("", "task_claim")
             else None
         )
         entry.reward_request = (
@@ -233,6 +233,7 @@ def child_dashboard(request):
         request,
         "economy/child_dashboard.html",
         {
+            "experience_total": child.occurrence_credits.aggregate(total=Sum("xp", default=0))["total"],
             "child": child,
             "greeting_name": greeting_name,
             "tasks": Task.objects.filter(is_active=True, is_deleted=False),
@@ -897,11 +898,13 @@ def child_give_points(request):
             sender=request.child,
             recipient=form.cleaned_data["recipient"],
             amount=form.cleaned_data["amount"],
+            operation_token=form.cleaned_data["operation_token"],
         )
     except ValidationError as exc:
         messages.error(request, exc.messages[0])
     else:
-        notify_gift_received(gift)
+        if not getattr(gift, "was_replayed", False):
+            notify_gift_received(gift)
         messages.success(request, _("Your point gift was sent."))
     return redirect("child_dashboard")
 
@@ -1045,13 +1048,14 @@ def child_complete_assigned_task(request, assigned_task_id):
     )
     completed = False
     try:
-        complete_assigned_task(
+        entry = complete_assigned_task(
             assigned_task=assigned_task,
             child=request.child,
         )
         messages.success(
             request,
-            _("Assigned task completed. You received your points."),
+            _("Assigned task completed. %(amount)s coins credited.") % {"amount": entry.delta}
+            if entry.limit_reason else _("Assigned task completed. You received your points."),
             extra_tags="task-success",
         )
         completed = True

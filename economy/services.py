@@ -1,6 +1,9 @@
 import random
 from datetime import timedelta
+from uuid import uuid4
+from zoneinfo import ZoneInfo
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -25,6 +28,7 @@ from .models import (
     GoalStatus,
     LedgerEntry,
     LedgerKind,
+    OccurrenceCredit,
     PointGift,
     Proposal,
     ProposalType,
@@ -42,6 +46,7 @@ from .models import (
 )
 
 ASSIGNMENT_PRESET_LIMIT = 5
+COIN_EARNING_KINDS = (LedgerKind.TASK, LedgerKind.ASSIGNED_TASK, LedgerKind.BIRTHDAY)
 
 
 def deactivate_parent_account(account):
@@ -69,11 +74,62 @@ def deactivate_parent_account(account):
     return deactivated
 
 
+def _coin_credit(child, requested, family, day):
+    amount = requested
+    limit_reason = ""
+    if family.daily_coin_limit is not None:
+        earned = LedgerEntry.objects.filter(
+            child=child, local_date=day, kind__in=COIN_EARNING_KINDS, delta__gt=0
+        ).aggregate(total=Sum("delta", default=0))["total"]
+        available = max(0, family.daily_coin_limit - earned)
+        if available < amount:
+            amount, limit_reason = available, "daily_earnings"
+    if family.coin_balance_limit is not None:
+        available = max(0, family.coin_balance_limit - child.balance)
+        if available < amount:
+            amount, limit_reason = available, "balance"
+    return amount, limit_reason
+
+
 @transaction.atomic
-def post_ledger_entry(*, child, delta, kind, description, actor=None, source_id=None, enforce_limit=False):
+def post_ledger_entry(
+    *, child, delta, kind, description, actor=None, source_id=None,
+    source_type="", operation_key=None, enforce_limit=False, use_coin_limits=True,
+    reason="", reverses=None,
+):
     locked_child = ChildProfile.objects.select_for_update().get(pk=child.pk)
+    if operation_key:
+        previous = LedgerEntry.objects.filter(operation_key=operation_key).first()
+        if previous is not None:
+            if (
+                previous.child_id != child.pk or previous.kind != kind
+                or previous.requested_delta != delta or previous.source_id != source_id
+                or previous.source_type != (source_type or kind)
+                or previous.actor_id != getattr(actor, "pk", None) or previous.reason != reason
+            ):
+                raise ValidationError(_("This operation key was already used for another transaction."))
+            return previous
+
+    family = FamilySettings.load()
+    day = timezone.localdate(timezone=ZoneInfo(family.timezone_name or settings.TIME_ZONE))
+    requested_delta = delta
+    limit_reason = ""
+    if delta > 0 and use_coin_limits and kind in COIN_EARNING_KINDS:
+        delta, limit_reason = _coin_credit(locked_child, delta, family, day)
+    if kind == LedgerKind.PENALTY and delta < 0 and family.daily_penalty_limit is not None:
+        deducted = LedgerEntry.objects.filter(
+            child=child, local_date=day, kind=LedgerKind.PENALTY, delta__lt=0
+        ).aggregate(total=Sum("delta", default=0))["total"]
+        available = max(
+            0,
+            min(family.daily_penalty_limit + deducted, locked_child.balance - locked_child.min_balance),
+        )
+        if -delta > available:
+            raise ValidationError(_("The maximum penalty still available is %(amount)s coins.")
+                                  % {"amount": available})
     new_balance = locked_child.balance + delta
-    if enforce_limit and new_balance < locked_child.min_balance:
+    enforce_floor = enforce_limit or kind in (LedgerKind.PENALTY, LedgerKind.ADJUSTMENT)
+    if delta < 0 and enforce_floor and new_balance < locked_child.min_balance:
         raise ValidationError(
             _("This operation would exceed the allowed %(limit)s point limit.")
             % {"limit": locked_child.min_balance}
@@ -81,11 +137,19 @@ def post_ledger_entry(*, child, delta, kind, description, actor=None, source_id=
     entry = LedgerEntry.objects.create(
         child=locked_child,
         delta=delta,
+        balance_before=locked_child.balance,
         balance_after=new_balance,
         kind=kind,
         description=description,
         actor=actor,
         source_id=source_id,
+        source_type=source_type or kind,
+        operation_key=operation_key or uuid4().hex,
+        local_date=day,
+        requested_delta=requested_delta,
+        limit_reason=limit_reason,
+        reason=reason,
+        reverses=reverses,
     )
     locked_child.balance = new_balance
     locked_child.save(update_fields=["balance"])
@@ -93,7 +157,73 @@ def post_ledger_entry(*, child, delta, kind, description, actor=None, source_id=
 
 
 @transaction.atomic
-def transfer_points(*, sender, recipient, amount):
+def credit_occurrence(*, child, occurrence_key, xp, coins, description, actor=None):
+    """Record a finalized occurrence in the caller's state-transition transaction."""
+    if not occurrence_key or len(occurrence_key) > 120 or xp < 0 or coins < 0:
+        raise ValidationError(_("Invalid occurrence credit."))
+    ChildProfile.objects.select_for_update().get(pk=child.pk, is_active=True)
+    existing = OccurrenceCredit.objects.select_related("coin_entry").filter(
+        occurrence_key=occurrence_key
+    ).first()
+    if existing:
+        if (
+            existing.child_id != child.pk or existing.xp != xp
+            or existing.coin_entry.requested_delta != coins
+        ):
+            raise ValidationError(_("This operation key was already used for another transaction."))
+        return existing
+    entry = post_ledger_entry(
+        child=child, delta=coins, kind=LedgerKind.TASK, description=description,
+        actor=actor, source_type="occurrence", operation_key=f"occurrence:{occurrence_key}",
+    )
+    return OccurrenceCredit.objects.create(
+        child=child, occurrence_key=occurrence_key, xp=xp, coin_entry=entry, actor=actor,
+    )
+
+
+@transaction.atomic
+def reverse_ledger_entry(*, entry, actor, reason):
+    reason = reason.strip()
+    if not actor.is_active or not actor.is_staff:
+        raise ValidationError(_("Only a parent administrator can reverse a transaction."))
+    if not reason or len(reason) > 200:
+        raise ValidationError(_("A reason is required."))
+
+    original = LedgerEntry.objects.select_related("child", "reversal").get(pk=entry.pk)
+    if hasattr(original, "reversal"):
+        return original.reversal
+    if not original.can_reverse:
+        raise ValidationError(_("This transaction cannot be reversed."))
+
+    originals = [original]
+    if original.kind == LedgerKind.GIFT:
+        gift = PointGift.objects.filter(pk=original.source_id).first()
+        if gift is None:
+            raise ValidationError(_("The original gift could not be verified."))
+        originals = list(LedgerEntry.objects.select_related("child", "reversal").filter(
+            kind=LedgerKind.GIFT, source_id=gift.pk
+        ).order_by("child_id"))
+        expected = {(gift.sender_id, -gift.amount), (gift.recipient_id, gift.amount)}
+        if (
+            len(originals) != 2 or {(item.child_id, item.delta) for item in originals} != expected
+            or not all(item.can_reverse for item in originals)
+        ):
+            raise ValidationError(_("The original gift could not be verified."))
+
+    reversals = {
+        item.pk: post_ledger_entry(
+            child=item.child, delta=-item.delta, kind=LedgerKind.REFUND,
+            description=_("Reversal: %(reason)s") % {"reason": reason},
+            actor=actor, source_id=item.pk, source_type="ledger_entry",
+            operation_key=f"reversal:{item.pk}", reason=reason, reverses=item, enforce_limit=True,
+        )
+        for item in originals
+    }
+    return reversals[original.pk]
+
+
+@transaction.atomic
+def transfer_points(*, sender, recipient, amount, operation_token=None):
     if sender.pk == recipient.pk:
         raise ValidationError(_("You cannot give points to yourself."))
     if amount <= 0:
@@ -109,36 +239,33 @@ def transfer_points(*, sender, recipient, amount):
         raise ValidationError(_("The selected child profile is not available."))
     locked_sender = locked[sender.pk]
     locked_recipient = locked[recipient.pk]
+    operation_key = f"gift-request:{sender.pk}:{operation_token}" if operation_token else None
+    if operation_key:
+        previous = LedgerEntry.objects.filter(operation_key=operation_key).first()
+        if previous:
+            gift = PointGift.objects.filter(pk=previous.source_id, sender=sender).first()
+            if gift is None or gift.recipient_id != recipient.pk or gift.amount != amount:
+                raise ValidationError(_("This operation key was already used for another transaction."))
+            gift.was_replayed = True
+            return gift
     if locked_sender.balance <= 0 or amount > locked_sender.balance:
         raise ValidationError(_("You can give only points you have already earned."))
 
-    gift = PointGift.objects.create(
-        sender=locked_sender,
-        recipient=locked_recipient,
-        amount=amount,
-    )
-    sender_balance = locked_sender.balance - amount
-    recipient_balance = locked_recipient.balance + amount
-    LedgerEntry.objects.create(
-        child=locked_sender,
-        delta=-amount,
-        balance_after=sender_balance,
-        kind=LedgerKind.GIFT,
+    ceiling = FamilySettings.load().coin_balance_limit
+    if ceiling is not None and locked_recipient.balance + amount > ceiling:
+        raise ValidationError(_("The gift would exceed the recipient's coin balance limit."))
+    gift = PointGift.objects.create(sender=locked_sender, recipient=locked_recipient, amount=amount)
+    post_ledger_entry(
+        child=locked_sender, delta=-amount, kind=LedgerKind.GIFT,
         description=_("Gift to %(name)s") % {"name": locked_recipient.name},
-        source_id=gift.pk,
+        source_id=gift.pk, source_type="point_gift", operation_key=operation_key or f"gift:{gift.pk}:send",
+        enforce_limit=True,
     )
-    LedgerEntry.objects.create(
-        child=locked_recipient,
-        delta=amount,
-        balance_after=recipient_balance,
-        kind=LedgerKind.GIFT,
+    post_ledger_entry(
+        child=locked_recipient, delta=amount, kind=LedgerKind.GIFT,
         description=_("Gift from %(name)s") % {"name": locked_sender.name},
-        source_id=gift.pk,
+        source_id=gift.pk, source_type="point_gift", operation_key=f"gift:{gift.pk}:receive",
     )
-    locked_sender.balance = sender_balance
-    locked_recipient.balance = recipient_balance
-    locked_sender.save(update_fields=["balance"])
-    locked_recipient.save(update_fields=["balance"])
     return gift
 
 
@@ -181,9 +308,12 @@ def award_birthdays(*, current_date=None):
                     kind=LedgerKind.BIRTHDAY,
                     description=_("Birthday gift"),
                     source_id=award.pk,
+                    source_type="birthday_award",
+                    operation_key=f"birthday:{award.pk}",
                 )
                 award.ledger_entry = entry
-                award.save(update_fields=["ledger_entry"])
+                award.points = entry.delta
+                award.save(update_fields=["ledger_entry", "points"])
                 awarded.append(award)
         except IntegrityError:
             continue
@@ -263,6 +393,9 @@ def approve_task_claim(*, claim, actor):
         description=locked.task_title,
         actor=actor,
         source_id=locked.pk,
+        source_type="task_claim",
+        operation_key=f"task-claim:{locked.pk}",
+        use_coin_limits=locked.use_coin_limits,
     )
     ensure_task_completion(child=locked.child, task=locked.task)
     return entry
@@ -728,8 +861,12 @@ def complete_assigned_task(*, assigned_task, child):
         kind=LedgerKind.ASSIGNED_TASK,
         description=locked.title_snapshot,
         source_id=locked.pk,
+        source_type="assigned_task",
+        operation_key=f"assigned-task:{locked.pk}",
+        use_coin_limits=locked.use_coin_limits,
     )
     AssignedTask.objects.filter(pk=locked.pk).update(ledger_entry=entry)
+    locked.ledger_entry = entry
     if locked.task_id:
         ensure_task_completion(child=child, task=locked.task)
     from .push import notify_assigned_task_completed
@@ -920,6 +1057,7 @@ def add_saved_points(*, goal, child, amount, actor=None):
         description=_("Saved for %(title)s") % {"title": locked_goal.title},
         actor=actor,
         source_id=contribution.pk,
+        source_type="savings_contribution",
     )
     contribution.ledger_entry = entry
     contribution.save(update_fields=["ledger_entry"])
@@ -1000,6 +1138,7 @@ def approve_goal_completion(*, completion_request, actor):
             description=_("Completed goal: %(title)s") % {"title": locked_goal.title},
             actor=actor,
             source_id=locked_request.pk,
+            source_type="goal_completion_request",
         )
     elif locked_goal.mode == GoalMode.SAVED:
         saved_contributions = list(
@@ -1073,6 +1212,7 @@ def _return_active_goal_points(*, goal, actor, require_contributions=False):
             description=_("Returned from %(title)s") % {"title": goal.title},
             actor=actor,
             source_id=contribution.pk,
+            source_type="savings_contribution",
         )
         contribution.state = SavingsContributionState.RETURNED
         contribution.resolved_at = now
@@ -1241,6 +1381,8 @@ def approve_reward_request(*, request, actor):
         description=locked.reward_title,
         actor=actor,
         source_id=locked.pk,
+        source_type="reward_request",
+        operation_key=f"reward-request:{locked.pk}",
         enforce_limit=True,
     )
     return entry

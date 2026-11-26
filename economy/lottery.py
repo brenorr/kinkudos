@@ -180,6 +180,8 @@ def purchase_lottery_ticket(*, child, rng=None, current_date=None):
         kind=LedgerKind.LOTTERY,
         description=_("Surprise card"),
         source_id=ticket.pk,
+        source_type="lottery_ticket",
+        operation_key=f"lottery:{ticket.pk}:purchase",
     )
     ticket.purchase_ledger_entry = purchase_entry
     ticket.save(update_fields=["purchase_ledger_entry"])
@@ -226,6 +228,8 @@ def reveal_lottery_ticket(*, ticket, child):
         kind=LedgerKind.LOTTERY,
         description=_("Surprise card result"),
         source_id=locked_ticket.pk,
+        source_type="lottery_ticket",
+        operation_key=f"lottery:{locked_ticket.pk}:reveal",
     )
     LotteryTicket.objects.filter(pk=locked_ticket.pk).update(
         applied_delta=applied_delta,

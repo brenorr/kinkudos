@@ -47,6 +47,7 @@ from economy.models import (
     BirthDateChangeRequest,
     GoalCompletionRequest,
     GoalStatus,
+    LedgerEntry,
     LedgerKind,
     PenaltyTemplate,
     Proposal,
@@ -87,6 +88,7 @@ from economy.services import (
     reject_task_claim,
     request_task_revision,
     return_saved_points,
+    reverse_ledger_entry,
     save_assignment_preset,
     update_savings_goal,
 )
@@ -321,11 +323,14 @@ def parent_decide_task(request, claim_id, decision):
     child = None
     try:
         if decision == "approve":
-            approve_task_claim(claim=claim, actor=request.user)
+            entry = approve_task_claim(claim=claim, actor=request.user)
             claim.refresh_from_db()
             claim.child.refresh_from_db(fields=["balance"])
-            notify_task_decision(claim, approved=True)
-            message = _("Task approved.")
+            notify_task_decision(claim, approved=True, credited=entry.delta)
+            message = (
+                _("Task approved. %(amount)s coins credited.") % {"amount": entry.delta}
+                if entry.limit_reason else _("Task approved.")
+            )
             effect = "task"
             child = claim.child
         elif decision == "reject":
@@ -593,17 +598,36 @@ def parent_adjust_balance(request, child_id):
     child = get_accessible_child_or_404(request, child_id)
     form = AdjustmentForm(request.POST)
     if form.is_valid():
-        post_ledger_entry(
-            child=child,
-            delta=form.cleaned_data["amount"],
-            kind=LedgerKind.ADJUSTMENT,
-            description=form.cleaned_data["description"],
-            actor=request.user,
-        )
-        messages.success(request, _("Balance adjusted."))
+        token = form.cleaned_data["operation_token"]
+        try:
+            post_ledger_entry(
+                child=child, delta=form.cleaned_data["amount"], kind=LedgerKind.ADJUSTMENT,
+                description=form.cleaned_data["description"], actor=request.user,
+                reason=form.cleaned_data["description"][:200],
+                operation_key=f"adjust:{child.pk}:{request.user.pk}:{token}" if token else None,
+            )
+        except ValidationError as exc:
+            messages.error(request, exc.messages[0])
+        else:
+            messages.success(request, _("Balance adjusted."))
     else:
         messages.error(request, _("Check the balance adjustment."))
     return redirect("parent_dashboard")
+
+@parent_account_required
+@require_POST
+def parent_reverse_ledger_entry(request, entry_id):
+    if not request.user.is_staff:
+        raise Http404
+    entry = get_object_or_404(LedgerEntry, pk=entry_id)
+    try:
+        reverse_ledger_entry(entry=entry, actor=request.user, reason=request.POST.get("reason", ""))
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(request, _("Transaction reversed."))
+    return redirect(f"{reverse('parent_dashboard')}#parent-history")
+
 
 @parent_required
 @require_POST
@@ -616,15 +640,23 @@ def parent_apply_penalty(request, child_id):
             pk=form.cleaned_data["penalty_id"],
             is_active=True,
         )
-        post_ledger_entry(
-            child=child,
-            delta=penalty.amount,
-            kind=LedgerKind.PENALTY,
-            description=f"{penalty.title}: {form.cleaned_data['reason']}",
-            actor=request.user,
-            source_id=penalty.pk,
-        )
-        messages.success(request, _("Penalty assigned."))
+        token = form.cleaned_data["operation_token"]
+        try:
+            post_ledger_entry(
+                child=child,
+                delta=penalty.amount,
+                kind=LedgerKind.PENALTY,
+                description=f"{penalty.title}: {form.cleaned_data['reason']}",
+                actor=request.user,
+                source_id=penalty.pk,
+                source_type="penalty_template",
+                reason=form.cleaned_data["reason"][:200],
+                operation_key=f"penalty:{child.pk}:{request.user.pk}:{token}:{penalty.pk}" if token else None,
+            )
+        except ValidationError as exc:
+            messages.error(request, exc.messages[0])
+        else:
+            messages.success(request, _("Penalty assigned."))
     else:
         messages.error(request, _("A reason is required."))
     return redirect("parent_dashboard")
@@ -640,36 +672,24 @@ def parent_award_task(request, child_id):
 
     tasks = list(form.cleaned_data["task_ids"])
     today = timezone.localdate()
-    already_credited = set(
-        TaskCompletion.objects.filter(
-            child=child,
-            task__in=tasks,
-            completed_on=today,
-        ).values_list("task_id", flat=True)
-    )
-    tasks = [task for task in tasks if task.pk not in already_credited]
-    if not tasks:
-        messages.error(
-            request,
-            _("Those tasks were already credited to this child today."),
-        )
-        return redirect("parent_dashboard")
     with transaction.atomic():
+        credited_ids = set(TaskCompletion.objects.filter(
+            child=child, task__in=tasks, completed_on=today,
+        ).values_list("task_id", flat=True))
+        tasks = [task for task in tasks if task.pk not in credited_ids]
+        if not tasks:
+            messages.error(request, _("Those tasks were already credited to this child today."))
+            return redirect("parent_dashboard")
+        total = 0
         for task in tasks:
-            post_ledger_entry(
-                child=child,
-                delta=task.reward,
-                kind=LedgerKind.TASK,
-                description=task.title,
-                actor=request.user,
-                source_id=task.pk,
+            entry = post_ledger_entry(
+                child=child, delta=task.reward, kind=LedgerKind.TASK,
+                description=task.title, actor=request.user, source_id=task.pk,
+                source_type="catalog_task",
+                operation_key=f"direct-task:{child.pk}:{task.pk}:{today.isoformat()}",
             )
-            ensure_task_completion(
-                child=child,
-                task=task,
-                completed_on=today,
-            )
-    total = sum(task.reward for task in tasks)
+            ensure_task_completion(child=child, task=task, completed_on=today)
+            total += entry.delta
     messages.success(
         request,
         _("%(name)s received %(count)s task(s) (total +%(total)s).")
@@ -839,17 +859,25 @@ def parent_assign_child_penalty(request, child_id):
 
     penalties = list(form.cleaned_data["penalty_ids"])
     reason = form.cleaned_data["reason"].strip()
-    with transaction.atomic():
-        for penalty in penalties:
-            description = penalty.title if not reason else f"{penalty.title}: {reason}"
-            post_ledger_entry(
-                child=child,
-                delta=penalty.amount,
-                kind=LedgerKind.PENALTY,
-                description=description,
-                actor=request.user,
-                source_id=penalty.pk,
-            )
+    token = form.cleaned_data["operation_token"]
+    try:
+        with transaction.atomic():
+            for penalty in penalties:
+                description = penalty.title if not reason else f"{penalty.title}: {reason}"
+                post_ledger_entry(
+                    child=child,
+                    delta=penalty.amount,
+                    kind=LedgerKind.PENALTY,
+                    description=description,
+                    actor=request.user,
+                    source_id=penalty.pk,
+                    source_type="penalty_template",
+                    reason=reason[:200],
+                    operation_key=f"penalty:{child.pk}:{request.user.pk}:{token}:{penalty.pk}" if token else None,
+                )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect("parent_dashboard")
     total = sum(penalty.amount for penalty in penalties)
     messages.success(
         request,
@@ -867,14 +895,20 @@ def parent_assign_penalty(request, penalty_id):
     if not reason:
         messages.error(request, _("A reason is required."))
         return redirect("parent_dashboard")
-    post_ledger_entry(
-        child=child,
-        delta=penalty.amount,
-        kind=LedgerKind.PENALTY,
-        description=f"{penalty.title}: {reason}",
-        actor=request.user,
-        source_id=penalty.pk,
-    )
+    try:
+        post_ledger_entry(
+            child=child,
+            delta=penalty.amount,
+            kind=LedgerKind.PENALTY,
+            description=f"{penalty.title}: {reason}",
+            actor=request.user,
+            source_id=penalty.pk,
+            source_type="penalty_template",
+            reason=reason[:200],
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect("parent_dashboard")
     messages.success(
         request,
         _("Penalty “%(penalty)s” assigned to %(name)s.")

@@ -84,6 +84,7 @@ from .views import (
     parent_remove_parent_account,
     parent_rename_device,
     parent_return_goal_points,
+    parent_reverse_ledger_entry,
     parent_revoke_all_devices,
     parent_revoke_device,
     parent_run_backup,
@@ -393,6 +394,11 @@ urlpatterns = [
         "parents/children/<int:child_id>/balance/",
         parent_adjust_balance,
         name="parent_adjust_balance",
+    ),
+    path(
+        "parents/ledger/<int:entry_id>/reverse/",
+        parent_reverse_ledger_entry,
+        name="parent_reverse_ledger_entry",
     ),
     path(
         "parents/children/<int:child_id>/penalty/",

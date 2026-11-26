@@ -168,9 +168,19 @@ class FamilySettings(models.Model):
     default_language = models.CharField(max_length=8, blank=True, default="")
     timezone_name = models.CharField(max_length=64, blank=True, default="")
 
+    daily_coin_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
+    coin_balance_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
+    daily_penalty_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
+
     class Meta:
         verbose_name = _("family settings")
         verbose_name_plural = _("family settings")
+
+    def set_initial_economy(self):
+        self.default_min_balance = 0
+        self.daily_coin_limit = 50
+        self.coin_balance_limit = 500
+        self.daily_penalty_limit = 10
 
     def save(self, *args, **kwargs):
         self.pk = 1
@@ -556,6 +566,7 @@ class TaskClaim(models.Model):
     task = models.ForeignKey(Task, on_delete=models.PROTECT, related_name="claims")
     task_title = models.CharField(max_length=120)
     reward_snapshot = models.PositiveIntegerField()
+    use_coin_limits = models.BooleanField(default=True)
     status = models.CharField(max_length=20, choices=RequestStatus.choices, default=RequestStatus.PENDING)
     rejection_reason = models.TextField(blank=True)
     revision_note = models.TextField(blank=True)
@@ -652,6 +663,7 @@ class AssignedTask(models.Model):
     title_snapshot = models.CharField(max_length=120)
     icon_snapshot = models.CharField(max_length=32, default="🧹")
     reward_snapshot = models.PositiveIntegerField()
+    use_coin_limits = models.BooleanField(default=True)
     note_snapshot = models.CharField(max_length=200, blank=True, default="")
     status = models.CharField(
         max_length=16,
@@ -1041,6 +1053,7 @@ class LedgerKind(models.TextChoices):
     SAVINGS_TRANSFER = "savings_transfer", _("Saved to goal")
     SAVINGS_RETURN = "savings_return", _("Returned from goal")
     GOAL_COMPLETION = "goal_completion", _("Goal completion")
+    REFUND = "refund", _("Reversal")
 
 
 class LedgerEntry(models.Model):
@@ -1057,10 +1070,34 @@ class LedgerEntry(models.Model):
         on_delete=models.PROTECT,
         related_name="ledger_entries",
     )
+    operation_key = models.CharField(max_length=160, unique=True, null=True, blank=True)
+    source_type = models.CharField(max_length=32, blank=True)
+    local_date = models.DateField(null=True, blank=True)
+    balance_before = models.IntegerField(null=True, blank=True)
+    requested_delta = models.IntegerField(null=True, blank=True)
+    limit_reason = models.CharField(max_length=16, blank=True)
+    reason = models.CharField(max_length=200, blank=True)
+    reverses = models.OneToOneField(
+        "self", null=True, blank=True, on_delete=models.PROTECT, related_name="reversal"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["child", "local_date", "kind"], name="ledger_child_day_kind_idx")]
+
+    @property
+    def can_reverse(self):
+        return bool(
+            self.delta and self.kind in {
+                LedgerKind.TASK, LedgerKind.ASSIGNED_TASK, LedgerKind.PENALTY,
+                LedgerKind.REWARD, LedgerKind.ADJUSTMENT, LedgerKind.GIFT, LedgerKind.BIRTHDAY,
+            } and not hasattr(self, "reversal")
+        )
+
+    @property
+    def previous_balance(self):
+        return self.balance_before if self.balance_before is not None else self.balance_after - self.delta
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -1069,6 +1106,22 @@ class LedgerEntry(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValidationError(_("Point transactions cannot be deleted."))
+
+
+class OccurrenceCredit(models.Model):
+    """Settlement and XP history for a single mission occurrence."""
+
+    occurrence_key = models.CharField(max_length=120, unique=True)
+    child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="occurrence_credits")
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT
+    )
+    xp = models.PositiveIntegerField()
+    coin_entry = models.OneToOneField(LedgerEntry, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
 
 
 class LotteryTicketStatus(models.TextChoices):
@@ -1175,7 +1228,7 @@ class BirthdayAward(models.Model):
         ChildProfile, on_delete=models.PROTECT, related_name="birthday_awards"
     )
     year = models.PositiveSmallIntegerField()
-    points = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    points = models.PositiveIntegerField()
     ledger_entry = models.OneToOneField(
         LedgerEntry,
         null=True,

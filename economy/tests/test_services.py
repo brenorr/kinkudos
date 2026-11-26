@@ -219,18 +219,20 @@ class EconomyServiceTests(TestCase):
             self.child.reward_requests.filter(reward=too_expensive_reward).exists()
         )
 
-    def test_penalty_can_cross_spending_limit(self):
+    def test_penalty_cannot_cross_the_configured_floor(self):
         penalty = PenaltyTemplate.objects.create(title="Bausmė", amount=-150)
-        post_ledger_entry(
-            child=self.child,
-            delta=penalty.amount,
-            kind=LedgerKind.PENALTY,
-            description="Bausmė: paaiškinimas",
-            actor=self.parent,
-            source_id=penalty.pk,
-        )
+        with self.assertRaises(ValidationError):
+            post_ledger_entry(
+                child=self.child,
+                delta=penalty.amount,
+                kind=LedgerKind.PENALTY,
+                description="Bausmė: paaiškinimas",
+                actor=self.parent,
+                source_id=penalty.pk,
+            )
         self.child.refresh_from_db()
-        self.assertEqual(self.child.balance, -150)
+        self.assertEqual(self.child.balance, 0)
+        self.assertFalse(self.child.ledger_entries.exists())
 
     def test_reward_and_goal_proposals_create_expected_objects(self):
         reward_proposal = Proposal.objects.create(

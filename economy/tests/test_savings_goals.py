@@ -87,6 +87,7 @@ class SavingsGoalServiceTests(TestCase):
         ):
             submit_reward_request(child=self.child, reward=reward)
 
+        ChildProfile.objects.filter(pk=self.child.pk).update(min_balance=-1)
         post_ledger_entry(
             child=self.child,
             delta=-1,
@@ -128,6 +129,7 @@ class SavingsGoalServiceTests(TestCase):
         first.refresh_from_db()
         self.assertEqual(first.progress_amount, 100)
 
+        ChildProfile.objects.filter(pk=self.child.pk).update(min_balance=-50)
         post_ledger_entry(
             child=self.child,
             delta=-150,
@@ -368,6 +370,7 @@ class SavingsGoalServiceTests(TestCase):
     def test_saved_goal_dialog_uses_non_negative_available_balance(self):
         goal = self.make_goal()
         select_goal_mode(goal=goal, child=self.child, mode=GoalMode.SAVED)
+        ChildProfile.objects.filter(pk=self.child.pk).update(min_balance=-10)
         post_ledger_entry(
             child=self.child,
             delta=-10,

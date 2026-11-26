@@ -298,6 +298,9 @@ msgstr "Atribuído por"
 msgid "Assigned task"
 msgstr "Tarefa designada"
 
+msgid "Assigned task completed. %(amount)s coins credited."
+msgstr "Tarefa atribuída concluída. Foram creditadas %(amount)s moedas."
+
 msgid "Assigned task completed. You received your points."
 msgstr "Tarefa atribuída concluída. Recebeste seus pontos."
 
@@ -826,6 +829,15 @@ msgstr "Fechar a notificação"
 msgid "Close this goal?"
 msgstr "Encerrar esta meta?"
 
+msgid "Coin balance"
+msgstr "Saldo em moedas"
+
+msgid "Coin balance limit"
+msgstr "Limite de saldo em moedas"
+
+msgid "Coin limits"
+msgstr "Limites de moedas"
+
 msgid "Comment"
 msgstr "Comentário"
 
@@ -891,6 +903,9 @@ msgstr "Configurar o e-mail agora"
 
 msgid "Configure surprise cards and reward limits."
 msgstr "Configure cartões surpresa e limites de recompensa."
+
+msgid "Configured credit: %(requested)s coins"
+msgstr "Crédito configurado: %(requested)s moedas"
 
 msgid "Confirm"
 msgstr "Confirmar"
@@ -1059,6 +1074,12 @@ msgstr "Tarefa personalizada (opcional)"
 
 msgid "Customize"
 msgstr "Personalizar"
+
+msgid "Daily coin earnings limit"
+msgstr "Limite diário de ganhos em moedas"
+
+msgid "Daily coin penalty limit"
+msgstr "Limite diário de penalidades em moedas"
 
 msgid "Daily encrypted copies protect the family database and uploaded photos."
 msgstr "Cópias criptografadas diariamente protegem o banco de dados da família e enviam fotos."
@@ -1690,6 +1711,9 @@ msgstr "Acesso à Internet"
 msgid "Invalid IP address or network: %(value)s"
 msgstr "Endereço IP ou rede inválido: %(value)s"
 
+msgid "Invalid occurrence credit."
+msgstr "Crédito de ocorrência inválido."
+
 msgid "Inventory"
 msgstr "Inventário"
 
@@ -1746,6 +1770,9 @@ msgstr "Último backup bem-sucedido"
 
 msgid "Last used"
 msgstr "Última utilização"
+
+msgid "Leave a limit blank to disable it."
+msgstr "Deixe um limite em branco para desativá-lo."
 
 msgid "Leave blank to keep the current PIN."
 msgstr "Deixe em branco para manter o PIN atual."
@@ -2113,6 +2140,9 @@ msgstr "Apenas um responsável com permissão de administrador pode alterar o ac
 msgid "Only a parent administrator can manage an administrator account."
 msgstr "Apenas um responsável com permissão de administrador pode gerenciar uma conta de administrador."
 
+msgid "Only a parent administrator can reverse a transaction."
+msgstr "Somente um responsável administrador pode estornar uma transação."
+
 msgid "Only a parent administrator can revoke all devices."
 msgstr "Apenas um responsável com permissão de administrador pode revogar todos os dispositivos."
 
@@ -2411,7 +2441,7 @@ msgid "Point transactions cannot be deleted."
 msgstr "As transações de pontos não podem ser apagadas."
 
 msgid "Points"
-msgstr "Pontos"
+msgstr "Moedas"
 
 msgid "Points and tasks"
 msgstr "Pontos e tarefas"
@@ -2697,6 +2727,18 @@ msgstr "Retornado da meta"
 
 msgid "Revealed"
 msgstr "Revogado"
+
+msgid "Reversal"
+msgstr "Estorno"
+
+msgid "Reversal: %(reason)s"
+msgstr "Estorno: %(reason)s"
+
+msgid "Reverse transaction"
+msgstr "Estornar transação"
+
+msgid "Reversed by"
+msgstr "Estornado por"
 
 msgid "Review"
 msgstr "Revisar"
@@ -3172,6 +3214,9 @@ msgstr "Tarefa"
 msgid "Task approved."
 msgstr "Tarefa aprovada."
 
+msgid "Task approved. %(amount)s coins credited."
+msgstr "Tarefa aprovada. Foram creditadas %(amount)s moedas."
+
 msgid "Task finished"
 msgstr "Tarefa terminada"
 
@@ -3295,6 +3340,9 @@ msgstr "Os cartões surpresa também precisam estar ativados nas configurações
 msgid "The gift amount must be greater than zero."
 msgstr "A quantia do presente deve ser maior que zero."
 
+msgid "The gift would exceed the recipient's coin balance limit."
+msgstr "O presente ultrapassaria o limite de saldo de quem vai receber."
+
 msgid "The goal cannot be completed because the available balance changed."
 msgstr "A meta não pode ser concluído porque o saldo disponível mudou."
 
@@ -3334,6 +3382,9 @@ msgstr "O link é válido por uma hora e só pode ser usado uma vez."
 msgid "The magic shop opens after today's enchanted duties are complete."
 msgstr "A loja de magia abre depois que os deveres de hoje encantados estão completos."
 
+msgid "The maximum penalty still available is %(amount)s coins."
+msgstr "A penalidade máxima disponível é de %(amount)s moedas."
+
 msgid "The new PINs do not match."
 msgstr "Os novos PINs não correspondem."
 
@@ -3342,6 +3393,9 @@ msgstr "O novo preço é usado para cada compra de cartão futuro."
 
 msgid "The number of child profiles must be a number."
 msgstr "O número de perfis de crianças deve ser um número."
+
+msgid "The original gift could not be verified."
+msgstr "Não foi possível verificar o presente original."
 
 msgid "The owl carried your task to your parents."
 msgstr "A coruja levou a sua tarefa aos seus responsáveis."
@@ -3547,6 +3601,9 @@ msgstr "Esta mensagem permanece no servidor da sua família e é revista pelos p
 msgid "This month"
 msgstr "Este mês"
 
+msgid "This operation key was already used for another transaction."
+msgstr "Esta operação já foi registrada com dados diferentes."
+
 msgid "This operation would exceed the allowed %(limit)s point limit."
 msgstr "Esta operação excederia o limite de %(limit)s pontos permitido."
 
@@ -3582,6 +3639,9 @@ msgstr "Esta tarefa já não está ativa."
 
 msgid "This task is not awaiting corrections."
 msgstr "Esta tarefa não está à espera de correções."
+
+msgid "This transaction cannot be reversed."
+msgstr "Esta transação não pode ser estornada."
 
 msgid "This username is already in use."
 msgstr "Este nome de usuário já está em uso."
@@ -3681,6 +3741,9 @@ msgstr "Muitas tentativas de configuração. Tente novamente mais tarde."
 
 msgid "Too many sign-in attempts. Try again later."
 msgstr "Muitas tentativas de assinar. Tenta outra vez mais tarde."
+
+msgid "Transaction reversed."
+msgstr "Transação estornada."
 
 msgid "Treat Chest"
 msgstr "Tratar o tórax"
@@ -3879,6 +3942,9 @@ msgstr "Telefone com Windows"
 
 msgid "Write in the spellbook"
 msgstr "Escreva no livro de feitiços"
+
+msgid "XP"
+msgstr "XP"
 
 msgid "You can add a photo of the finished task."
 msgstr "Você pode adicionar uma foto da tarefa terminada."
@@ -4106,10 +4172,10 @@ msgid "photo bonus"
 msgstr "bônus de foto"
 
 msgid "point"
-msgstr "ponto"
+msgstr "moeda"
 
 msgid "points"
-msgstr "pontos"
+msgstr "moedas"
 
 msgid "saved"
 msgstr "salvo"

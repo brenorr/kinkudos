@@ -129,14 +129,16 @@ Os resultados da auditoria e das correções estão em [Português brasileiro e 
 
 Separar a progressão do personagem da economia de recompensas.
 
+O [plano técnico da economia](docs/ECONOMY_PLAN.md) detalha o reaproveitamento dos pontos, o crédito de XP e os critérios de migração.
+
 ## 2.1 Experiência — XP
 
-- [ ] Criar saldo acumulativo de experiência.
-- [ ] Permitir configuração de XP por missão.
-- [ ] Registrar experiência em histórico.
-- [ ] Garantir que uma missão não conceda XP duplicado.
-- [ ] Preservar experiência em dias sem atividades.
-- [ ] Impedir perda de XP por penalidades.
+- [x] Criar saldo acumulativo de experiência.
+- [ ] Ligar a configuração de XP às missões na Fase 3.
+- [x] Registrar experiência em histórico.
+- [x] Garantir crédito único por ocorrência no serviço de XP.
+- [x] Preservar experiência em dias sem atividades.
+- [x] Impedir perda de XP por penalidades.
 
 XP representa progresso e aprendizado, não poder de compra.
 
@@ -144,19 +146,20 @@ XP representa progresso e aprendizado, não poder de compra.
 
 A moeda existente deverá ser reaproveitada sempre que possível.
 
-- [ ] Configurar moedas por missão.
-- [ ] Configurar limite diário de ganhos.
-- [ ] Configurar limite máximo de saldo opcional.
-- [ ] Configurar limite diário de penalidades.
-- [ ] Permitir saldo negativo até o piso configurado por criança. Usar zero em novas instalações e preservar pisos e saldos existentes.
-- [ ] Implementar histórico financeiro completo.
-- [ ] Permitir estorno administrativo.
-- [ ] Garantir consistência transacional.
-- [ ] Implementar idempotência nas operações.
+- [x] Reutilizar a recompensa em pontos por tarefa como valor em moedas.
+- [ ] Ligar o crédito único de moedas e XP ao fluxo de missões na Fase 3.
+- [x] Configurar limite diário de ganhos.
+- [x] Configurar limite máximo de saldo opcional.
+- [x] Configurar limite diário de penalidades.
+- [x] Permitir saldo negativo até o piso configurado por criança. Usar zero em novas instalações e preservar pisos e saldos existentes.
+- [x] Registrar os metadados financeiros dos novos lançamentos e preservar o extrato legado.
+- [x] Permitir estorno administrativo.
+- [x] Garantir consistência transacional.
+- [x] Implementar idempotência nas operações.
 
 ## 2.3 Configurações iniciais
 
-Valores sugeridos, configuráveis pelos responsáveis:
+Valores iniciais para instalações novas. Os limites ficam desativados em instalações existentes até o responsável configurá-los.
 
 | Parâmetro | Valor inicial |
 |---|---:|

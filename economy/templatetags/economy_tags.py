@@ -1,8 +1,16 @@
+from uuid import uuid4
+
 from django import template
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
 register = template.Library()
+
+
+@register.simple_tag
+def new_operation_token():
+    return str(uuid4())
+
 
 ICONS = {
     "sparkles": "✦",

@@ -20,7 +20,11 @@ backup e o teste de migração devem usar instâncias isoladas dos dados familia
 | Raspadinhas | `LotteryTicket` pertence à criança e referencia lançamentos de compra e prêmio. `LotteryReminder` acompanha os lembretes semanais. |
 | Outros | `PointGift`, `BirthdayAward`, `BirthDateChangeRequest`, `PushSubscription`, `FeedbackReport` e `BackupAuditEvent` registram os fluxos correspondentes. `Theme` é uma enumeração. |
 
-As migrações do app vão até `0036_caregiver_guest_access` no ponto auditado.
+A migração `0037_economy_foundation` adiciona metadados de operação,
+data local e reversão ao extrato, três limites opcionais em `FamilySettings`
+e `OccurrenceCredit` como registro único de XP por ocorrência. Os
+lançamentos antigos ficam com os metadados novos vazios, e as solicitações
+e atribuições antigas conservam os valores prometidos.
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

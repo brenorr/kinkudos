@@ -484,7 +484,7 @@ def parent_dashboard(request):
     history_child_id = request.GET.get("history_child", "").strip()
     history_activity = request.GET.get("history_activity", "").strip()
     ledger_query = LedgerEntry.objects.filter(**ledger_child_filter).select_related(
-        "child", "actor"
+        "child", "actor", "reversal"
     )
     if history_cutoff is not None:
         ledger_query = ledger_query.filter(created_at__gte=history_cutoff)
@@ -531,7 +531,7 @@ def parent_dashboard(request):
         "rewards": [LedgerKind.REWARD],
         "gifts": [LedgerKind.GIFT],
         "scratch": [LedgerKind.LOTTERY],
-        "adjustments": [LedgerKind.ADJUSTMENT, LedgerKind.BIRTHDAY],
+        "adjustments": [LedgerKind.ADJUSTMENT, LedgerKind.BIRTHDAY, LedgerKind.REFUND],
         "goals": [
             LedgerKind.SAVINGS_TRANSFER,
             LedgerKind.SAVINGS_RETURN,
@@ -647,7 +647,11 @@ def parent_dashboard(request):
     }
     for entry in ledger_page.object_list:
         if entry.history_type == "ledger":
-            entry.task_claim = history_claims.get(entry.source_id)
+            entry.task_claim = (
+                history_claims.get(entry.source_id)
+                if entry.kind == LedgerKind.TASK and entry.source_type in ("", "task_claim")
+                else None
+            )
             entry.assigned_task = history_assigned_tasks.get(entry.source_id)
             actor = entry.actor
             actor_label = ""
@@ -662,6 +666,8 @@ def parent_dashboard(request):
                 actor_label = _("Assigned by")
             elif entry.kind == LedgerKind.PENALTY:
                 actor_label = _("Added by")
+            elif entry.kind == LedgerKind.REFUND:
+                actor_label = _("Reversed by")
             elif entry.kind == LedgerKind.ADJUSTMENT:
                 actor_label = _("Adjusted by")
             elif entry.kind == LedgerKind.SAVINGS_RETURN:

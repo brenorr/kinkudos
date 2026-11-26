@@ -182,12 +182,13 @@ def notify_assigned_tasks_nudge(batch):
 @in_family_language
 def notify_assigned_task_completed(assigned_task):
     child = assigned_task.batch.child
+    credited = assigned_task.ledger_entry.delta if assigned_task.ledger_entry_id else assigned_task.reward_snapshot
     _send(
         {
             "title": _("An assigned task was completed"),
             "body": (
                 f"{child.name}: {assigned_task.title_snapshot} "
-                f"(+{_currency_amount(assigned_task.reward_snapshot, child)})"
+                f"(+{_currency_amount(credited, child)})"
             ),
             "url": f"{_parent_dashboard_url()}#parent-history",
             "tag": f"assigned-task-completed-{assigned_task.pk}",
@@ -213,12 +214,12 @@ def notify_task_revision(claim):
 
 
 @in_family_language
-def notify_task_decision(claim, *, approved):
+def notify_task_decision(claim, *, approved, credited=None):
     if approved:
         title = _("Your task was approved")
         body = _("%(task)s: +%(amount)s") % {
             "task": claim.task_title,
-            "amount": _currency_amount(claim.total_reward, claim.child),
+            "amount": _currency_amount(claim.total_reward if credited is None else credited, claim.child),
         }
         state = "approved"
     else:

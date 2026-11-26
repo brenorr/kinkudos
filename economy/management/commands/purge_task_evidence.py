@@ -30,7 +30,8 @@ class Command(BaseCommand):
         ):
             birthday_awards = award_birthdays()
             for award in birthday_awards:
-                notify_birthday_award(award)
+                if award.points:
+                    notify_birthday_award(award)
             changed_themes = randomize_daily_themes()
         self.stdout.write(
             self.style.SUCCESS(

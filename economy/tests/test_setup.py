@@ -124,6 +124,8 @@ class BrowserSetupTests(TestCase):
         self.assertEqual(family.family_name, "Aurora")
         self.assertEqual(family.default_language, "en")
         self.assertEqual(family.timezone_name, "Europe/Vilnius")
+        self.assertEqual(family.default_min_balance, 0)
+        self.assertEqual((family.daily_coin_limit, family.coin_balance_limit, family.daily_penalty_limit), (50, 500, 10))
         self.assertIsNotNone(family.setup_completed_at)
         self.assertTrue(family.recovery_code_hash)
 

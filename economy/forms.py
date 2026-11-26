@@ -287,6 +287,7 @@ class SavingsGoalForm(EmojiFormMixin, forms.ModelForm):
 
 
 class AdjustmentForm(StyledFormMixin, forms.Form):
+    operation_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
     amount = forms.IntegerField(
         label=_("Change"),
         min_value=-MAX_POINT_AMOUNT,
@@ -302,6 +303,7 @@ class AdjustmentForm(StyledFormMixin, forms.Form):
 
 
 class ApplyPenaltyForm(StyledFormMixin, forms.Form):
+    operation_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
     penalty_id = forms.IntegerField(widget=forms.HiddenInput)
     reason = forms.CharField(label=_("Reason"), max_length=240)
 
@@ -462,6 +464,7 @@ class SaveAssignmentPresetForm(AssignTasksForm):
 
 
 class AssignPenaltiesForm(forms.Form):
+    operation_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
     penalty_ids = forms.ModelMultipleChoiceField(
         label=_("Penalties"),
         queryset=PenaltyTemplate.objects.none(),
@@ -696,10 +699,14 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
         ]
         if self.is_bound:
             data = self.data.copy()
-            for field in ("default_language", "timezone_name"):
+            for field in (
+                "default_language", "timezone_name", "daily_coin_limit",
+                "coin_balance_limit", "daily_penalty_limit",
+            ):
                 key = self.add_prefix(field)
                 if key not in data:
-                    data[key] = getattr(self.instance, field)
+                    value = getattr(self.instance, field)
+                    data[key] = "" if value is None else value
             self.data = data
         self.fields["lottery_ticket_cost"].widget.attrs.update(
             {"min": 1, "max": 10000}
@@ -714,6 +721,9 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
             "family_name",
             "default_language",
             "timezone_name",
+            "daily_coin_limit",
+            "coin_balance_limit",
+            "daily_penalty_limit",
             "photo_bonus_points",
             "birthday_points",
             "lottery_enabled",
@@ -724,6 +734,9 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
         ]
         labels = {
             "family_name": _("Family name"),
+            "daily_coin_limit": _("Daily coin earnings limit"),
+            "coin_balance_limit": _("Coin balance limit"),
+            "daily_penalty_limit": _("Daily coin penalty limit"),
             "photo_bonus_points": _("Points for a task photo"),
             "birthday_points": _("Birthday points"),
             "lottery_enabled": _("Enable surprise cards"),
@@ -901,6 +914,7 @@ class BirthDateForm(StyledFormMixin, forms.ModelForm):
 
 
 class PointGiftForm(StyledFormMixin, forms.Form):
+    operation_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
     recipient = forms.ModelChoiceField(
         queryset=ChildProfile.objects.none(),
         label=_("Recipient"),
@@ -921,7 +935,7 @@ class PointGiftForm(StyledFormMixin, forms.Form):
     def clean_amount(self):
         amount = self.cleaned_data["amount"]
         available = max(self.sender.balance, 0)
-        if amount > available:
+        if amount > available and not self.cleaned_data.get("operation_token"):
             raise forms.ValidationError(
                 _("You can give only points you have already earned.")
             )
