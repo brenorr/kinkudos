@@ -3,6 +3,7 @@ import json
 from datetime import date, datetime, time, timedelta
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib.auth import (
     get_user_model,
 )
@@ -760,6 +761,12 @@ def parent_dashboard(request):
     ).filter(
         Q(local_date=today) | Q(status__in=(MissionStatus.PENDING_APPROVAL, MissionStatus.IN_REVIEW))
     ).select_related("child").order_by("-help_requested_at")[:20]
+    rewards = list(Reward.objects.filter(is_deleted=False))
+    for reward in rewards:
+        reward.shop_fields = [
+            field for field in RewardForm(instance=reward, auto_id=f"id_reward_{reward.pk}_%s")
+            if field.name not in ("title", "cost", "icon")
+        ]
     context = {
             "children": children,
             "is_caregiver": is_caregiver,
@@ -776,7 +783,8 @@ def parent_dashboard(request):
                 is_active=True,
                 is_deleted=False,
             ),
-            "rewards": Reward.objects.filter(is_deleted=False),
+            "rewards": rewards,
+            "lottery_retired": settings.LOTTERY_RETIRED,
             "goals": all_goals,
             "goal_children": children,
             "ledger_page": ledger_page,
@@ -813,7 +821,7 @@ def parent_dashboard(request):
             "parent_account_form": ParentAccountForm(auto_id="id_new_parent_%s"),
             "child_account_form": ChildAccountForm(auto_id="id_new_child_%s"),
             "xp_curve_form": XPCurveForm(initial={"factor": FamilySettings.load().xp_curve_factor}),
-            "level_unlocks": LevelUnlock.objects.all() if not is_caregiver else (),
+            "level_unlocks": LevelUnlock.objects.filter(earned_by_level=True) if not is_caregiver else (),
             "family_preferences_form": FamilyPreferencesForm(
                 instance=FamilySettings.load(),
                 auto_id="id_family_preferences_%s",

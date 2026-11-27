@@ -130,11 +130,17 @@ msgstr "Acesso restrito"
 msgid "Access valid until"
 msgstr "Acesso válido até"
 
+msgid "Accessories"
+msgstr "Acessórios"
+
 msgid "Account type"
 msgstr "Tipo de conta"
 
 msgid "Accounts"
 msgstr "Contas"
+
+msgid "Acquired in the virtual shop"
+msgstr "Adquirido na loja virtual"
 
 msgid "Activate"
 msgstr "Ativar"
@@ -252,6 +258,9 @@ msgstr "Permitir neste dispositivo"
 
 msgid "Allowed IP addresses and networks"
 msgstr "Endereços IP e redes permitidas"
+
+msgid "Already owned"
+msgstr "Já adquirido"
 
 msgid "An assigned task was completed"
 msgstr "Uma tarefa atribuída foi concluída"
@@ -373,8 +382,17 @@ msgstr "Saldo disponível: %(balance)s %(unit)s"
 msgid "Available balance: {{ balance }} {{ unit }}"
 msgstr "Saldo disponível: {{ balance }} {{ unit }}"
 
+msgid "Available for purchase"
+msgstr "Disponível para compra"
+
+msgid "Available from"
+msgstr "Disponível a partir de"
+
 msgid "Available points count as progress and can still be spent."
 msgstr "Os pontos disponíveis contam como progresso e ainda podem ser gastos."
+
+msgid "Available until"
+msgstr "Disponível até"
 
 msgid "Avatar"
 msgstr "Avatar"
@@ -384,6 +402,9 @@ msgstr "O Avatar mudou."
 
 msgid "Awaiting approval"
 msgstr "Aguardando aprovação"
+
+msgid "Awaiting delivery"
+msgstr "Aguardando entrega"
 
 msgid "Awaiting parent approval"
 msgstr "Aguardando aprovação dos responsáveis"
@@ -535,6 +556,9 @@ msgstr "Planos de construção"
 msgid "Buy card for %(cost)s %(unit)s"
 msgstr "Comprar cartão por %(cost)s %(unit)s"
 
+msgid "Buy cosmetic"
+msgstr "Comprar cosmético"
+
 msgid "Buy for %(cost)s %(unit)s"
 msgstr "Comprar por %(cost)s %(unit)s"
 
@@ -544,8 +568,14 @@ msgstr "Dia do bolo"
 msgid "Camera"
 msgstr "Câmera"
 
+msgid "Camp lantern"
+msgstr "Lanterna de acampamento"
+
 msgid "Cancel"
 msgstr "Cancelar"
+
+msgid "Cancel and refund"
+msgstr "Cancelar e devolver moedas"
 
 msgid "Cancel remaining"
 msgstr "Cancelar o restante"
@@ -555,6 +585,9 @@ msgstr "Cancelar este link de convite?"
 
 msgid "Cancelled"
 msgstr "Cancelado"
+
+msgid "Capes"
+msgstr "Capas"
 
 msgid "Capture"
 msgstr "Capturar"
@@ -943,6 +976,9 @@ msgstr "Fechar a notificação"
 msgid "Close this goal?"
 msgstr "Encerrar esta meta?"
 
+msgid "Clothes"
+msgstr "Roupas"
+
 msgid "Coin balance"
 msgstr "Saldo em moedas"
 
@@ -969,6 +1005,9 @@ msgstr "Comentário"
 
 msgid "Comment (optional)"
 msgstr "Comentário (opcional)"
+
+msgid "Compass charm"
+msgstr "Pingente de bússola"
 
 msgid "Complete challenge"
 msgstr "Desafio completo"
@@ -1087,8 +1126,17 @@ msgstr "Copiar link"
 msgid "Copying"
 msgstr "Copiar"
 
+msgid "Cosmetic added to your collection."
+msgstr "Cosmético adicionado à sua coleção."
+
 msgid "Cosmetic item"
 msgstr "Item cosmético"
+
+msgid "Cosmetic offer saved."
+msgstr "Oferta de cosmético salva."
+
+msgid "Cosmetic purchase"
+msgstr "Compra de cosmético"
 
 msgid "Cost"
 msgstr "Custo"
@@ -1177,6 +1225,9 @@ msgstr "O limite de crédito foi alterado."
 msgid "Credit:"
 msgstr "Crédito:"
 
+msgid "Crystal staff"
+msgstr "Cajado de cristal"
+
 msgid "Cubes"
 msgstr "Cubos"
 
@@ -1234,6 +1285,9 @@ msgstr "Limite diário de penalidades em moedas"
 msgid "Daily encrypted copies protect the family database and uploaded photos."
 msgstr "Cópias criptografadas diariamente protegem o banco de dados da família e enviam fotos."
 
+msgid "Daily redemption limit"
+msgstr "Limite diário de resgates"
+
 msgid "Daily roll"
 msgstr "Jogada diária"
 
@@ -1254,6 +1308,9 @@ msgstr "Prazo"
 
 msgid "Deadline time"
 msgstr "Horário limite"
+
+msgid "Decorations"
+msgstr "Decorações"
 
 msgid "Default language"
 msgstr "Idioma padrão"
@@ -1290,6 +1347,12 @@ msgstr "Apagado por"
 
 msgid "Deliberate dishonesty"
 msgstr "Mentira deliberada"
+
+msgid "Delivered"
+msgstr "Entregue"
+
+msgid "Delivered redemptions require a separate administrative decision."
+msgstr "Resgates entregues exigem uma decisão administrativa separada."
 
 msgid "Describe a problem or suggest an improvement."
 msgstr "Descreva um problema ou sugira uma melhoria."
@@ -1417,6 +1480,9 @@ msgstr "Esmeraldas"
 msgid "Enable email"
 msgstr "Ativar o e-mail"
 
+msgid "Enable real rewards shop"
+msgstr "Ativar loja de recompensas reais"
+
 msgid "Enable surprise cards"
 msgstr "Habilitar cartões surpresa"
 
@@ -1525,6 +1591,12 @@ msgstr "Episódios"
 msgid "Equip world"
 msgstr "Usar este mundo"
 
+msgid "Equipment"
+msgstr "Equipamentos"
+
+msgid "Estimated cost in cents"
+msgstr "Custo estimado em centavos"
+
 msgid "Every day"
 msgstr "Todos os dias"
 
@@ -1566,6 +1638,9 @@ msgstr "Contas da família e configurações do aplicativo"
 
 msgid "Family created."
 msgstr "Família criada."
+
+msgid "Family currency"
+msgstr "Moeda do orçamento familiar"
 
 msgid "Family feedback"
 msgstr "Feedback da família"
@@ -1672,8 +1747,14 @@ msgstr "Por exemplo, tablet de cozinha"
 msgid "For example: s3.eu-central-003.backblazeb2.com"
 msgstr "Por exemplo: s3.eu-central-003.backblazeb2.com"
 
+msgid "Forest cape"
+msgstr "Capa da floresta"
+
 msgid "Forgot password"
 msgstr "Esqueceu a senha?"
+
+msgid "Fox companion"
+msgstr "Raposa companheira"
 
 msgid "Fri"
 msgstr "Sex"
@@ -1828,6 +1909,9 @@ msgstr "Dica do QG"
 msgid "Happy birthday!"
 msgstr "Feliz aniversário!"
 
+msgid "Hats"
+msgstr "Chapéus"
+
 msgid "Hello!"
 msgstr "Olá!"
 
@@ -1908,6 +1992,9 @@ msgstr "Se o endereço pertence a uma conta de responsável ativa, o e-mail de r
 
 msgid "If you did not make this request, ignore this email; your password will not be changed."
 msgstr "Se você não fez esta solicitação, ignore este e-mail; sua senha não será alterada."
+
+msgid "Immediate redemption"
+msgstr "Resgate imediato"
 
 msgid "In progress"
 msgstr "Em andamento"
@@ -2101,6 +2188,9 @@ msgstr "Backup manual solicitado"
 msgid "Maps new paths and discovers hidden places."
 msgstr "Mapeia novos caminhos e descobre lugares escondidos."
 
+msgid "Mark delivered"
+msgstr "Marcar como entregue"
+
 msgid "Mark repair complete"
 msgstr "Marcar reparação como concluída"
 
@@ -2112,6 +2202,9 @@ msgstr "Saldo mínimo permitido"
 
 msgid "Minimum balance"
 msgstr "Saldo mínimo"
+
+msgid "Minimum hours between redemptions"
+msgstr "Intervalo mínimo entre resgates, em horas"
 
 msgid "Mission Log"
 msgstr "Registro da Missão"
@@ -2136,6 +2229,12 @@ msgstr "Missões"
 
 msgid "Mon"
 msgstr "Seg"
+
+msgid "Monthly family budget in cents"
+msgstr "Orçamento familiar mensal em centavos"
+
+msgid "Monthly redemption limit"
+msgstr "Limite mensal de resgates"
 
 msgid "More"
 msgstr "Mais"
@@ -2199,6 +2298,9 @@ msgstr "Precisa de uma decisão"
 
 msgid "Needs a fix"
 msgstr "Precisa de uma correção"
+
+msgid "Needs administrative review"
+msgstr "Requer revisão administrativa"
 
 msgid "Needs changes"
 msgstr "Necessita de alterações"
@@ -2311,11 +2413,17 @@ msgstr "Sem acesso ativo aos convidados."
 msgid "No activity matches these filters."
 msgstr "Nenhuma atividade corresponde a estes filtros."
 
+msgid "No approved redemptions."
+msgstr "Nenhum resgate aprovado."
+
 msgid "No child devices are paired yet."
 msgstr "Nenhum dispositivo infantil ainda está pareado."
 
 msgid "No child profiles have been created yet."
 msgstr "Ainda não foram criados perfis de filhos."
+
+msgid "No cosmetics are available."
+msgstr "Nenhum cosmético disponível."
 
 msgid "No episodes recorded."
 msgstr "Nenhum episódio registrado."
@@ -2454,6 +2562,9 @@ msgstr "Apenas um responsável com permissão de administrador pode iniciar um b
 
 msgid "Only a waiting assigned task can be cancelled."
 msgstr "Apenas uma tarefa atribuída à espera pode ser cancelada."
+
+msgid "Only an approved redemption can be delivered."
+msgstr "Somente um resgate aprovado pode ser entregue."
 
 msgid "Only paired devices can see child profiles or enter a child PIN."
 msgstr "Apenas os dispositivos pareados podem ver os perfis das crianças ou inserir um PIN infantil."
@@ -2704,6 +2815,9 @@ msgstr "Pedidos pendentes"
 msgid "People and devices"
 msgstr "Pessoas e dispositivos"
 
+msgid "Pets"
+msgstr "Mascotes"
+
 msgid "Phone"
 msgstr "Celular"
 
@@ -2797,6 +2911,9 @@ msgstr "Apresentar a arte"
 msgid "Previous"
 msgstr "Anterior"
 
+msgid "Price in coins"
+msgstr "Preço em moedas"
+
 msgid "Priority"
 msgstr "Prioridade"
 
@@ -2881,6 +2998,12 @@ msgstr "Prontos para as tarefas de hoje?"
 msgid "Ready to save"
 msgstr "Pronto para salvar"
 
+msgid "Real redemption deliveries"
+msgstr "Entregas de recompensas reais"
+
+msgid "Real rewards shop"
+msgstr "Loja de recompensas reais"
+
 msgid "Reason"
 msgstr "Motivo"
 
@@ -2892,6 +3015,9 @@ msgstr "Ações de backup recentes"
 
 msgid "Recent mission credits"
 msgstr "Créditos recentes de missões"
+
+msgid "Recent real redemptions"
+msgstr "Resgates reais recentes"
 
 msgid "Recipient"
 msgstr "Destinatário"
@@ -2914,8 +3040,14 @@ msgstr "Registrar reparação"
 msgid "Recorded by"
 msgstr "Registrado por"
 
+msgid "Redemption refunded."
+msgstr "As moedas do resgate foram devolvidas."
+
 msgid "Refresh requests"
 msgstr "Atualizar os pedidos"
+
+msgid "Refunded"
+msgstr "Moedas devolvidas"
 
 msgid "Region"
 msgstr "Região"
@@ -2943,6 +3075,12 @@ msgstr "Atualize o painel antes de adicionar outra ocorrência."
 
 msgid "Reload the dashboard before recording a new episode."
 msgstr "Atualize o painel antes de registrar outro episódio."
+
+msgid "Reload the shop before making a purchase."
+msgstr "Atualize a loja antes de comprar."
+
+msgid "Remaining stock (optional)"
+msgstr "Estoque restante (opcional)"
 
 msgid "Remove"
 msgstr "Remover"
@@ -3043,6 +3181,9 @@ msgstr "Link para redefinição de senha"
 msgid "Reset password"
 msgstr "Redefinir senha"
 
+msgid "Resolve financial commitments before changing currency."
+msgstr "Resolva os compromissos financeiros antes de trocar a moeda."
+
 msgid "Resolved"
 msgstr "Resolvido"
 
@@ -3066,6 +3207,9 @@ msgstr "Resumido \"%(name)s\"."
 
 msgid "Retention"
 msgstr "Retenção"
+
+msgid "Retired tickets needing review"
+msgstr "Cartões retirados que precisam de revisão"
 
 msgid "Return points and delete"
 msgstr "Devolver os pontos e apagar"
@@ -3145,11 +3289,23 @@ msgstr "Baú de Recompensas"
 msgid "Reward approved."
 msgstr "Recompensa aprovada."
 
+msgid "Reward delivery recorded."
+msgstr "Entrega registrada."
+
+msgid "Reward redeemed."
+msgstr "Recompensa resgatada."
+
 msgid "Reward request"
 msgstr "Pedido de recompensa"
 
 msgid "Reward request rejected."
 msgstr "Pedido de recompensa rejeitado."
+
+msgid "Reward shop settings saved."
+msgstr "Configurações das lojas salvas."
+
+msgid "Reward shops"
+msgstr "Lojas de recompensas"
 
 msgid "Rewards"
 msgstr "Recompensas"
@@ -3505,8 +3661,17 @@ msgstr "Feitiço completo"
 msgid "Square buttons. Big taps."
 msgstr "Botões quadrados e grandes, fáceis de tocar."
 
+msgid "Staffs"
+msgstr "Cajados"
+
 msgid "Standard"
 msgstr "Padrão"
+
+msgid "Star hat"
+msgstr "Chapéu estrelado"
+
+msgid "Starlit theme"
+msgstr "Tema céu estrelado"
 
 msgid "Start timer"
 msgstr "Iniciar temporizador"
@@ -3763,6 +3928,9 @@ msgstr "A senha do pai atual está incorreta."
 msgid "The curve can be changed while every profile stays at level 1."
 msgstr "A curva pode mudar enquanto todos os perfis permanecem no nível 1."
 
+msgid "The end date must not precede the start date."
+msgstr "A data final deve ser igual ou posterior à inicial."
+
 msgid "The family name is required."
 msgstr "O nome da família é obrigatório."
 
@@ -3856,6 +4024,9 @@ msgstr "O valor do ponto não pode ser zero."
 msgid "The point history is empty."
 msgstr "O histórico de pontos está vazio."
 
+msgid "The price changed. Review the offer again."
+msgstr "O preço mudou. Confira a oferta novamente."
+
 msgid "The prize shop unlocks after today's assigned quests are complete."
 msgstr "A loja de prêmios desbloqueia depois das missões de hoje estarem completas."
 
@@ -3864,6 +4035,12 @@ msgstr "O perfil está temporariamente bloqueado. Peça a um pai para destravá-
 
 msgid "The profile is temporarily locked. Try again later."
 msgstr "O perfil está temporariamente bloqueado. Tenta outra vez mais tarde."
+
+msgid "The real rewards shop is turned off."
+msgstr "A loja de recompensas reais está desativada."
+
+msgid "The redemption limit for this reward has been reached."
+msgstr "O limite de resgates desta recompensa foi atingido."
 
 msgid "The remaining assigned tasks were cancelled."
 msgstr "As restantes tarefas atribuídas foram canceladas."
@@ -3928,6 +4105,9 @@ msgstr "Tema"
 msgid "Theme changed."
 msgstr "O tema mudou."
 
+msgid "Themes"
+msgstr "Temas"
+
 msgid "There are no active goals yet."
 msgstr "Ainda não há metas ativas."
 
@@ -3979,6 +4159,9 @@ msgstr "Esta tarefa atribuída expirou."
 msgid "This assigned task is no longer waiting."
 msgstr "Esta tarefa atribuída já não está à espera."
 
+msgid "This block applies to real redemptions and virtual purchases."
+msgstr "Esse bloqueio vale para resgates reais e compras virtuais."
+
 msgid "This browser or device mode does not support web notifications."
 msgstr "Este modo de navegador ou dispositivo não suporta notificações Web."
 
@@ -3996,6 +4179,9 @@ msgstr "Este nome de criança já está em uso."
 
 msgid "This code will not be shown again."
 msgstr "Este código não será mostrado novamente."
+
+msgid "This cosmetic is not available to buy."
+msgstr "Este cosmético não está disponível para compra."
 
 msgid "This device is not set up yet"
 msgstr "Este dispositivo ainda não está configurado"
@@ -4078,17 +4264,32 @@ msgstr "Esta missão necessária criaria uma dependência circular."
 msgid "This proposal has already been resolved."
 msgstr "Esta proposta já foi resolvida."
 
+msgid "This purchase request was already used with different details."
+msgstr "Esta solicitação de compra já foi usada com dados diferentes."
+
+msgid "This redemption exceeds the monthly family budget."
+msgstr "Este resgate ultrapassa o orçamento familiar do mês."
+
 msgid "This request has already been resolved."
 msgstr "Este pedido já foi resolvido."
 
+msgid "This request uses a different family currency."
+msgstr "Este pedido usa outra moeda no orçamento familiar."
+
 msgid "This reset link is no longer valid or has already been used."
 msgstr "Este link para redefinir a senha não é mais válido ou já foi usado."
+
+msgid "This reward has no remaining stock."
+msgstr "Esta recompensa está sem estoque."
 
 msgid "This reward is already awaiting approval."
 msgstr "Esta recompensa já aguarda aprovação."
 
 msgid "This reward is no longer active."
 msgstr "Esta recompensa já não está ativa."
+
+msgid "This reward is unavailable for redemption."
+msgstr "Esta recompensa está indisponível para resgate."
 
 msgid "This sign-in link is invalid or has expired."
 msgstr "Este link de login é inválido ou expirou."
@@ -4216,6 +4417,9 @@ msgstr "Débito total"
 msgid "Transaction reversed."
 msgstr "Transação estornada."
 
+msgid "Travel tunic"
+msgstr "Túnica de viagem"
+
 msgid "Treat Chest"
 msgstr "Tratar o tórax"
 
@@ -4231,11 +4435,17 @@ msgstr "Ligar os sons"
 msgid "Turn surprise cards on or off for every child."
 msgstr "Ative ou desative os cartões surpresa para todas as crianças."
 
+msgid "Turning off the real shop blocks new redemptions. Existing requests can still be resolved."
+msgstr "Desativar a loja real bloqueia novos resgates. Os pedidos existentes ainda podem ser resolvidos."
+
 msgid "Type"
 msgstr "Tipo"
 
 msgid "Type a task name"
 msgstr "Digite um nome de tarefa"
+
+msgid "Unavailable"
+msgstr "Indisponível"
 
 msgid "Unavailable today"
 msgstr "Indisponível hoje"
@@ -4333,11 +4543,17 @@ msgstr "Verificar e salvar"
 msgid "Version"
 msgstr "Versão"
 
+msgid "Virtual shop"
+msgstr "Loja virtual"
+
 msgid "Visit a world"
 msgstr "Visitar um mundo"
 
 msgid "Vocative name"
 msgstr "Nome vocativo"
+
+msgid "Wait before redeeming this reward again."
+msgstr "Aguarde antes de resgatar esta recompensa novamente."
 
 msgid "Waiting"
 msgstr "Aguardando"
@@ -4399,6 +4615,9 @@ msgstr "Limite semanal das cartas"
 msgid "Weekly limit reached"
 msgstr "Limite semanal atingido"
 
+msgid "Weekly redemption limit"
+msgstr "Limite semanal de resgates"
+
 msgid "Welcome – %(family_display_name)s"
 msgstr "Boas-vindas – %(family_display_name)s"
 
@@ -4441,6 +4660,9 @@ msgstr "Windows PC"
 msgid "Windows phone"
 msgstr "Telefone com Windows"
 
+msgid "Wooden shield"
+msgstr "Escudo de madeira"
+
 msgid "Write a message for the child."
 msgstr "Escreva uma mensagem para a criança."
 
@@ -4461,6 +4683,9 @@ msgstr "Recompensa em XP"
 
 msgid "Yes"
 msgstr "Sim"
+
+msgid "You already own this item."
+msgstr "Você já tem este item."
 
 msgid "You can add a photo of the finished task."
 msgstr "Você pode adicionar uma foto da tarefa terminada."
@@ -4506,6 +4731,9 @@ msgstr "Você não pode remover a última conta de responsável ativa."
 
 msgid "You cannot remove the last active parent administrator."
 msgstr "Você não pode remover o último responsável com permissão de administrador ativo."
+
+msgid "You do not have enough coins for this cosmetic."
+msgstr "Você ainda não tem moedas suficientes para este cosmético."
 
 msgid "You do not have enough points for this reward."
 msgstr "Não tem pontos suficientes para esta recompensa."
@@ -4632,6 +4860,9 @@ msgstr "distintivos"
 
 msgid "bamboo"
 msgstr "bambu"
+
+msgid "cents"
+msgstr "centavos"
 
 msgid "completed task"
 msgstr "tarefa completada"

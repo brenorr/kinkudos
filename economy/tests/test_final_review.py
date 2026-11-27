@@ -64,8 +64,8 @@ class FinalReviewTests(TestCase):
     def test_parent_accordions_and_settings_use_shared_compact_surface(self):
         response = self.parent_response()
         content = response.content.decode()
-        self.assertContains(response, "parent-accordion", count=13)
-        self.assertContains(response, 'class="settings-section parent-accordion"', count=13, html=False)
+        self.assertContains(response, "parent-accordion", count=12)
+        self.assertContains(response, 'class="settings-section parent-accordion"', count=12, html=False)
         self.assertNotContains(
             response,
             "settings-section-standalone",
@@ -185,7 +185,7 @@ class FinalReviewTests(TestCase):
         self.assertIn("decorateRequiredLabels", js)
         self.assertIn("data-copy-from", setup_template)
 
-    def test_child_card_metadata_keeps_credit_and_ticket_controls_together(self):
+    def test_child_card_metadata_keeps_credit_without_retired_cards(self):
         response = self.parent_response()
         content = response.content.decode()
         row = content[content.index('<div class="child-metadata-row">') :]
@@ -193,9 +193,9 @@ class FinalReviewTests(TestCase):
         self.assertIn('href="#icon-credit-card"', row)
         self.assertIn("Credit -100", row)
         self.assertIn('aria-label="About credit"', row)
-        self.assertIn('href="#icon-ticket-simple"', row)
-        self.assertIn("Cards", row)
-        self.assertIn('aria-label="About surprise cards"', row)
+        self.assertNotIn('href="#icon-ticket-simple"', row)
+        self.assertNotIn("Cards", row)
+        self.assertNotIn('aria-label="About surprise cards"', row)
         self.assertIn("meta-info-button", row)
         self.assertNotIn("child-meta-sep", row)
         css = (ROOT / "static/css/app.css").read_text(encoding="utf-8")

@@ -211,3 +211,6 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": os.environ.get("KINKUDOS_LOG_LEVEL", "INFO")},
 }
+
+# Historic tickets are retained, while the derivative no longer offers this mechanic.
+LOTTERY_RETIRED = True

@@ -400,22 +400,25 @@ Exemplos:
 
 **Prioridade: P1**
 
+O [plano técnico da loja de recompensas](docs/REWARD_SHOPS_PLAN.md) detalha o reaproveitamento dos resgates, as compras cosméticas e o uso do saldo de moedas.
+
 Separar recompensas reais de recompensas virtuais. As novas funcionalidades da loja real ficam para depois do MVP. O catálogo e os resgates existentes continuam disponíveis por compatibilidade.
 
 ## 6.1 Loja real
 
-- [ ] Catálogo administrado pelos responsáveis.
-- [ ] Custo em moedas.
-- [ ] Estoque opcional.
-- [ ] Limite diário de resgates.
-- [ ] Limite semanal de resgates.
-- [ ] Limite mensal de resgates.
-- [ ] Intervalo mínimo entre resgates.
-- [ ] Disponibilidade por período.
-- [ ] Aprovação obrigatória configurável.
-- [ ] Estorno em caso de recusa.
-- [ ] Custo financeiro opcional.
-- [ ] Orçamento mensal familiar.
+- [x] Catálogo administrado pelos responsáveis.
+- [x] Permitir que os responsáveis ativem ou desativem a loja real para toda a família.
+- [x] Custo em moedas.
+- [x] Estoque opcional.
+- [x] Limite diário de resgates.
+- [x] Limite semanal de resgates.
+- [x] Limite mensal de resgates.
+- [x] Intervalo mínimo entre resgates.
+- [x] Disponibilidade por período.
+- [x] Aprovação obrigatória configurável.
+- [x] Recusa sem débito e estorno de resgate efetivado ainda sem entrega.
+- [x] Custo financeiro opcional.
+- [x] Orçamento mensal familiar.
 
 Exemplos:
 
@@ -427,15 +430,15 @@ Exemplos:
 
 ## 6.2 Loja virtual
 
-- [ ] Roupas.
-- [ ] Chapéus.
-- [ ] Capas.
-- [ ] Cajados.
-- [ ] Equipamentos.
-- [ ] Acessórios.
-- [ ] Decorações.
-- [ ] Temas.
-- [ ] Mascotes.
+- [x] Roupas.
+- [x] Chapéus.
+- [x] Capas.
+- [x] Cajados.
+- [x] Equipamentos.
+- [x] Acessórios.
+- [x] Decorações.
+- [x] Temas.
+- [x] Mascotes.
 
 Itens exclusivamente cosméticos.
 

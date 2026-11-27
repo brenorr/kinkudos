@@ -26,6 +26,7 @@ from .views import (
     child_give_points,
     child_mission,
     child_mission_action,
+    child_purchase_cosmetic,
     child_purchase_lottery_ticket,
     child_push_subscribe,
     child_push_unsubscribe,
@@ -91,6 +92,8 @@ from .views import (
     parent_repeat_mission,
     parent_return_goal_points,
     parent_reverse_ledger_entry,
+    parent_reward_delivery,
+    parent_reward_shops,
     parent_revoke_all_devices,
     parent_revoke_device,
     parent_run_backup,
@@ -259,6 +262,7 @@ urlpatterns = [
         child_request_reward,
         name="child_request_reward",
     ),
+    path("child/cosmetics/<int:offer_id>/purchase/", child_purchase_cosmetic, name="child_purchase_cosmetic"),
     path(
         "child/lottery/purchase/",
         child_purchase_lottery_ticket,
@@ -508,6 +512,8 @@ urlpatterns = [
         parent_update_family_preferences,
         name="parent_update_family_preferences",
     ),
+    path("parents/reward-shops/", parent_reward_shops, name="parent_reward_shops"),
+    path("parents/reward-shops/orders/<int:order_id>/<str:action>/", parent_reward_delivery, name="parent_reward_delivery"),
     path("parents/settings/xp-curve/", parent_update_xp_curve, name="parent_update_xp_curve"),
     path(
         "parents/settings/unlocks/<int:unlock_id>/active/",

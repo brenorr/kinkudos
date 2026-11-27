@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm, UserCreationForm
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.text import format_lazy
@@ -31,6 +32,7 @@ from .models import (
     SavingsGoal,
     Task,
     Theme,
+    VirtualOffer,
 )
 from .net import parse_allowed_networks
 
@@ -285,16 +287,86 @@ class RewardForm(EmojiFormMixin, forms.ModelForm):
         error_messages={"min_value": _("Enter a positive point amount.")},
     )
 
+    approval_required = forms.TypedChoiceField(
+        label=_("Requires parent approval"), choices=(("1", _("Yes")), ("0", _("No"))),
+        coerce=lambda value: value == "1",
+    )
+
     class Meta:
         model = Reward
-        fields = ["title", "cost", "icon"]
-        labels = {"title": _("Reward"), "cost": _("Points"), "icon": _("Icon")}
+        fields = [
+            "title", "cost", "icon", "stock", "daily_limit", "weekly_limit", "monthly_limit",
+            "interval_hours", "available_from", "available_until", "approval_required", "financial_cost_cents",
+        ]
+        labels = {
+            "title": _("Reward"), "cost": _("Points"), "icon": _("Icon"),
+            "stock": _("Remaining stock (optional)"), "daily_limit": _("Daily redemption limit"),
+            "weekly_limit": _("Weekly redemption limit"), "monthly_limit": _("Monthly redemption limit"),
+            "interval_hours": _("Minimum hours between redemptions"), "available_from": _("Available from"),
+            "available_until": _("Available until"), "financial_cost_cents": _("Estimated cost in cents"),
+        }
+        widgets = {
+            "available_from": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "available_until": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.initial["approval_required"] = "1" if self.instance.approval_required else "0"
+        if self.is_bound:
+            data = self.data.copy()
+            for field in self.Meta.fields[3:]:
+                value = self.initial.get(field, getattr(self.instance, field))
+                data.setdefault(self.add_prefix(field), "" if value is None else value)
+            self.data = data
+        self.fields["interval_hours"].max_value = 8760
+        self.fields["interval_hours"].validators.append(MaxValueValidator(8760))
+
+    def clean_interval_hours(self):
+        return self.cleaned_data["interval_hours"] or 0
+
+    def clean(self):
+        cleaned = super().clean()
+        start, end = cleaned.get("available_from"), cleaned.get("available_until")
+        if start and end and start > end:
+            self.add_error("available_until", _("The end date must not precede the start date."))
+        return cleaned
 
     def clean_cost(self):
         cost = self.cleaned_data["cost"]
         if cost <= 0:
             raise forms.ValidationError(_("Enter a positive point amount."))
         return cost
+
+
+class RealShopSettingsForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = FamilySettings
+        fields = ["real_shop_enabled", "reward_budget_cents", "reward_currency"]
+        labels = {
+            "real_shop_enabled": _("Enable real rewards shop"),
+            "reward_budget_cents": _("Monthly family budget in cents"),
+            "reward_currency": _("Family currency"),
+        }
+
+
+class VirtualOfferForm(StyledFormMixin, forms.ModelForm):
+    cost = forms.IntegerField(label=_("Price in coins"), min_value=1, max_value=MAX_POINT_AMOUNT)
+
+    class Meta:
+        model = VirtualOffer
+        fields = ["cost", "is_active"]
+        labels = {"cost": _("Price in coins"), "is_active": _("Available for purchase")}
+
+
+class ShopRequestForm(forms.Form):
+    operation_token = forms.UUIDField(required=False)
+    confirmed_price = forms.IntegerField(min_value=1, max_value=MAX_POINT_AMOUNT, required=False)
+
+
+class CosmeticPurchaseForm(forms.Form):
+    operation_token = forms.UUIDField()
+    confirmed_price = forms.IntegerField(min_value=1, max_value=MAX_POINT_AMOUNT)
 
 
 class ProposalForm(EmojiFormMixin, forms.ModelForm):
@@ -838,6 +910,11 @@ class FamilyPreferencesForm(StyledFormMixin, forms.ModelForm):
                 if key not in data:
                     value = getattr(self.instance, field)
                     data[key] = "" if value is None else value
+            if settings.LOTTERY_RETIRED:
+                key = self.add_prefix("lottery_enabled")
+                data.setdefault(key, "on" if self.instance.lottery_enabled else "")
+                for name in ("lottery_ticket_cost", "lottery_weekly_limit"):
+                    data.setdefault(self.add_prefix(name), getattr(self.instance, name))
             self.data = data
         self.fields["lottery_ticket_cost"].widget.attrs.update(
             {"min": 1, "max": 10000}
@@ -1371,7 +1448,8 @@ class ChildEditForm(StyledFormMixin, forms.Form):
         self.child.name = self.cleaned_data["name"]
         self.child.vocative_name = self.cleaned_data["vocative_name"].strip()
         self.child.min_balance = self.cleaned_data["min_balance"]
-        self.child.lottery_enabled = self.cleaned_data["lottery_enabled"]
+        if not settings.LOTTERY_RETIRED or self.add_prefix("lottery_enabled") in self.data:
+            self.child.lottery_enabled = self.cleaned_data["lottery_enabled"]
         update_fields = ["name", "vocative_name", "min_balance", "lottery_enabled"]
         if requested_birth_date != previous_birth_date:
             self.child.birth_date = requested_birth_date

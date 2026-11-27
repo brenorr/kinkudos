@@ -170,6 +170,11 @@ class FamilySettings(models.Model):
 
     vacation_start = models.DateField(null=True, blank=True)
     vacation_end = models.DateField(null=True, blank=True)
+    real_shop_enabled = models.BooleanField(default=True)
+    reward_budget_cents = models.PositiveIntegerField(null=True, blank=True)
+    reward_currency = models.CharField(
+        max_length=3, default="BRL", choices=[("BRL", "BRL"), ("USD", "USD"), ("EUR", "EUR")],
+    )
     xp_curve_factor = models.PositiveIntegerField(default=100, validators=[MinValueValidator(1)])
     daily_coin_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
     coin_balance_limit = models.PositiveIntegerField(null=True, blank=True, default=None)
@@ -648,6 +653,16 @@ class PenaltyTemplate(CatalogBase):
 class Reward(CatalogBase):
     cost = models.PositiveIntegerField()
 
+    stock = models.PositiveIntegerField(null=True, blank=True)
+    daily_limit = models.PositiveIntegerField(null=True, blank=True)
+    weekly_limit = models.PositiveIntegerField(null=True, blank=True)
+    monthly_limit = models.PositiveIntegerField(null=True, blank=True)
+    interval_hours = models.PositiveIntegerField(default=0, blank=True)
+    available_from = models.DateField(null=True, blank=True)
+    available_until = models.DateField(null=True, blank=True)
+    approval_required = models.BooleanField(default=True)
+    financial_cost_cents = models.PositiveIntegerField(null=True, blank=True)
+
 
 class RequestStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
@@ -926,6 +941,20 @@ class RewardRequest(models.Model):
     reward = models.ForeignKey(Reward, on_delete=models.PROTECT, related_name="requests")
     reward_title = models.CharField(max_length=120)
     cost_snapshot = models.PositiveIntegerField()
+    use_shop_rules = models.BooleanField(default=True)
+    operation_token = models.UUIDField(null=True, blank=True)
+    financial_cost_cents = models.PositiveIntegerField(null=True, blank=True)
+    financial_currency = models.CharField(max_length=3, blank=True)
+    effective_on = models.DateField(null=True, blank=True)
+    stock_consumed = models.BooleanField(default=False)
+    fulfilled_at = models.DateTimeField(null=True, blank=True)
+    fulfilled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+    )
+    refunded_at = models.DateTimeField(null=True, blank=True)
+    debit = models.OneToOneField(
+        "LedgerEntry", on_delete=models.PROTECT, null=True, blank=True, related_name="real_redemption",
+    )
     status = models.CharField(max_length=16, choices=RequestStatus.choices, default=RequestStatus.PENDING)
     rejection_reason = models.TextField(blank=True)
     decided_by = models.ForeignKey(
@@ -941,6 +970,10 @@ class RewardRequest(models.Model):
     class Meta:
         ordering = ["-submitted_at"]
         constraints = [
+            models.UniqueConstraint(
+                fields=["child", "operation_token"], condition=Q(operation_token__isnull=False),
+                name="unique_real_order_token",
+            ),
             models.UniqueConstraint(
                 fields=["child", "reward"],
                 condition=Q(status=RequestStatus.PENDING),
@@ -1167,6 +1200,7 @@ class LedgerKind(models.TextChoices):
     ASSIGNED_TASK = "assigned_task", _("Assigned task")
     PENALTY = "penalty", _("Penalty")
     REWARD = "reward", _("Reward")
+    COSMETIC_PURCHASE = "cosmetic_buy", _("Cosmetic purchase")
     LOTTERY = "lottery", _("Surprise card")
     ADJUSTMENT = "adjustment", _("Adjustment")
     GIFT = "gift", _("Gift")
@@ -1327,6 +1361,7 @@ class LevelUnlock(models.Model):
     kind = models.CharField(max_length=12, choices=UnlockKind.choices)
     name = models.CharField(max_length=100)
     minimum_level = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    earned_by_level = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -1346,7 +1381,10 @@ class LevelAdvance(models.Model):
 class UnlockGrant(models.Model):
     child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="unlock_grants")
     unlock = models.ForeignKey(LevelUnlock, on_delete=models.PROTECT, related_name="grants")
-    required_level = models.PositiveIntegerField()
+    required_level = models.PositiveIntegerField(null=True, blank=True)
+    purchase_entry = models.OneToOneField(
+        LedgerEntry, on_delete=models.PROTECT, null=True, blank=True, related_name="cosmetic_grant",
+    )
     event = models.ForeignKey(
         LevelAdvance, on_delete=models.PROTECT, null=True, blank=True, related_name="grants",
     )
@@ -1354,6 +1392,25 @@ class UnlockGrant(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["child", "unlock"], name="unique_level_unlock_per_child")]
+
+
+class CosmeticCategory(models.TextChoices):
+    CLOTHES = "clothes", _("Clothes")
+    HAT = "hat", _("Hats")
+    CAPE = "cape", _("Capes")
+    STAFF = "staff", _("Staffs")
+    EQUIPMENT = "equipment", _("Equipment")
+    ACCESSORY = "accessory", _("Accessories")
+    DECORATION = "decoration", _("Decorations")
+    THEME = "theme", _("Themes")
+    PET = "pet", _("Pets")
+
+
+class VirtualOffer(models.Model):
+    unlock = models.OneToOneField(LevelUnlock, on_delete=models.PROTECT, related_name="offer")
+    category = models.CharField(max_length=16, choices=CosmeticCategory.choices)
+    cost = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    is_active = models.BooleanField(default=True)
 
 
 class SkillPractice(models.Model):
@@ -1367,6 +1424,8 @@ class SkillPractice(models.Model):
 class LotteryTicketStatus(models.TextChoices):
     OPEN = "open", _("Open")
     REVEALED = "revealed", _("Revealed")
+    REFUNDED = "refunded", _("Refunded")
+    REVIEW = "review", _("Needs administrative review")
 
 
 class LotteryTicket(models.Model):

@@ -2,6 +2,7 @@ import hashlib
 import json
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
@@ -17,7 +18,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST, require_safe
 
-from economy import missions, progression
+from economy import missions, progression, shops
 from economy.auth import (
     child_object_or_404,
     child_required,
@@ -28,10 +29,12 @@ from economy.forms import (
     BirthDateForm,
     ChangePinForm,
     CharacterClassForm,
+    CosmeticPurchaseForm,
     FirstThemeForm,
     GoalAmountForm,
     PointGiftForm,
     ProposalForm,
+    ShopRequestForm,
     TaskEvidenceForm,
     ThemeForm,
 )
@@ -67,6 +70,7 @@ from economy.models import (
     Task,
     TaskClaim,
     TaskCompletion,
+    VirtualOffer,
 )
 from economy.push import (
     notify_birth_date_change,
@@ -112,8 +116,18 @@ def child_dashboard(request):
     )
     assigned_reward_block = assigned_tasks_block_rewards(child)
     child_lottery = lottery_state(child)
-    rewards = list(Reward.objects.filter(is_active=True, is_deleted=False))
+    real_shop_enabled = FamilySettings.load().real_shop_enabled
+    rewards = list(Reward.objects.filter(is_active=True, is_deleted=False)) if real_shop_enabled else []
+    owned_ids = set(child.unlock_grants.values_list("unlock_id", flat=True))
+    offers = list(VirtualOffer.objects.filter(
+        is_active=True, unlock__is_active=True, unlock__earned_by_level=False,
+    ).select_related("unlock").order_by("category", "unlock__name"))
+    for offer in offers:
+        offer.owned = offer.unlock_id in owned_ids
     for reward in rewards:
+        reward.shop_available = reward.stock != 0 and (
+            reward.available_from is None or today >= reward.available_from
+        ) and (reward.available_until is None or today <= reward.available_until)
         reward.is_affordable = reward_is_affordable(child, reward)
         reward.missing_amount = max(reward.cost - (child.balance - child.min_balance), 0)
     goals = list(
@@ -281,6 +295,9 @@ def child_dashboard(request):
             "tasks": Task.objects.filter(is_active=True, is_deleted=False).exclude(
                 pk__in=active_assigned_tasks.exclude(task_id=None).values_list("task_id", flat=True)
             ).order_by("routine", "sort_order", "title"),
+            "real_shop_enabled": real_shop_enabled,
+            "virtual_offers": offers,
+            "recent_real_orders": child.reward_requests.filter(status=RequestStatus.APPROVED).order_by("-decided_at", "-pk")[:5],
             "rewards": rewards,
             "pending_task_ids": pending_task_ids,
             "pending_reward_ids": pending_reward_ids,
@@ -649,28 +666,55 @@ def child_acknowledge_task_response(request, claim_id):
 @child_required
 @require_POST
 def child_request_reward(request, reward_id):
-    reward = get_object_or_404(Reward, pk=reward_id, is_active=True)
-    submitted = False
+    reward = get_object_or_404(Reward, pk=reward_id)
+    form = ShopRequestForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, _("Reload the shop before making a purchase."))
+        return _child_action_response(request, ok=False)
     try:
-        reward_request = submit_reward_request(child=request.child, reward=reward)
-        notify_reward_request(reward_request)
-        messages.success(
-            request,
-            _("The reward request was sent to the parents."),
-            extra_tags="reward-success",
+        reward_request = submit_reward_request(
+            child=request.child, reward=reward, operation_token=form.cleaned_data["operation_token"],
+            confirmed_price=form.cleaned_data["confirmed_price"],
         )
-        submitted = True
     except ValidationError as exc:
         messages.error(request, exc.messages[0])
-    return _child_action_response(
-        request,
-        ok=submitted,
-        effect="reward" if submitted else None,
-    )
+        return _child_action_response(request, ok=False)
+    replayed = getattr(reward_request, "was_replayed", False)
+    if reward_request.status == RequestStatus.PENDING:
+        if not replayed:
+            notify_reward_request(reward_request)
+        message = _("The reward request was sent to the parents.")
+    else:
+        message = _("Reward redeemed.")
+    messages.success(request, message, extra_tags="reward-success")
+    return _child_action_response(request, ok=True, effect=None if replayed else "reward")
+
+
+@child_required
+@require_POST
+def child_purchase_cosmetic(request, offer_id):
+    offer = get_object_or_404(VirtualOffer, pk=offer_id)
+    form = CosmeticPurchaseForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, _("Reload the shop before making a purchase."))
+        return redirect(f"{reverse('child_dashboard')}#virtual-shop")
+    try:
+        shops.purchase_cosmetic(
+            child=request.child, offer=offer, token=form.cleaned_data["operation_token"],
+            confirmed_price=form.cleaned_data["confirmed_price"],
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(request, _("Cosmetic added to your collection."))
+    return redirect(f"{reverse('child_dashboard')}#virtual-shop")
+
 
 @child_required
 @require_POST
 def child_purchase_lottery_ticket(request):
+    if settings.LOTTERY_RETIRED:
+        raise Http404
     try:
         purchase_lottery_ticket(child=request.child)
         messages.success(request, _("Your surprise card is ready."))
@@ -681,6 +725,8 @@ def child_purchase_lottery_ticket(request):
 @child_required
 @require_POST
 def child_reveal_lottery_ticket(request, ticket_id):
+    if settings.LOTTERY_RETIRED:
+        raise Http404
     ticket = child_object_or_404(request, LotteryTicket.objects.all(), pk=ticket_id)
     revealed = reveal_lottery_ticket(ticket=ticket, child=request.child)
     revealed.refresh_from_db()
@@ -1014,10 +1060,16 @@ def _child_state_payload(child):
                 .order_by("sort_order", "title", "pk")
                 .values_list("pk", "title", "icon", "reward", "xp_reward", "requires_approval", "instructions", "checklist")
             ),
+            "reward_shops": {
+                "enabled": family_settings.real_shop_enabled,
+                "offers": list(VirtualOffer.objects.order_by("pk").values_list("pk", "cost", "is_active")),
+                "delivery": list(child.reward_requests.filter(status=RequestStatus.APPROVED)
+                                 .order_by("-decided_at", "-pk").values_list("fulfilled_at", "refunded_at")[:5]),
+            },
             "reward_catalog": list(
                 Reward.objects.filter(is_active=True, is_deleted=False)
                 .order_by("sort_order", "title", "pk")
-                .values_list("pk", "title", "icon", "cost")
+                .values_list("pk", "title", "icon", "cost", "stock", "approval_required")
             ),
             "task_completions": _relation_watermark(
                 TaskCompletion.objects.filter(child=child),

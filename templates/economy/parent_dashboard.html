@@ -339,6 +339,7 @@
         <input name="blocks_rewards" type="checkbox">
         <span>{% translate "Block reward purchases until these tasks are finished" %}</span>
       </label>
+      <small>{% translate "This block applies to real redemptions and virtual purchases." %}</small>
       <button class="button button-primary" type="submit">{% translate "Send tasks" %}</button>
       {% if not is_caregiver %}
       <div class="assignment-preset-save" data-assignment-preset-save>
@@ -598,6 +599,7 @@
     </section>
 
     <section id="manage-rewards" class="panel manage-section" data-manage-section hidden>
+      <p><a class="button button-secondary" href="{% url 'parent_reward_shops' %}">{% translate "Reward shops" %}</a></p>
       {% if rewards %}
       <div class="catalog-list">
         {% for item in rewards %}
@@ -615,6 +617,7 @@
             <label>{% translate "Reward" %}<input class="field-control" name="title" value="{{ item.title }}" maxlength="120" required></label>
             <label>{% translate "Points" %}<input class="field-control" name="cost" type="number" min="1" max="99999" maxlength="5" inputmode="numeric" value="{{ item.cost }}" required></label>
             <label>{% translate "Icon" %}<input class="field-control emoji-input" name="icon" value="{{ item.icon|icon_symbol }}" list="emoji-options" maxlength="8" required></label>
+            {% for field in item.shop_fields %}<p>{{ field.label_tag }} {{ field }}</p>{% endfor %}
             <div class="form-actions catalog-edit-actions">
               <button class="button button-primary" type="submit">{% translate "Save" %}</button>
               <button class="button button-secondary" type="button" data-cancel-edit>{% translate "Cancel" %}</button>
@@ -667,6 +670,7 @@
 <section class="content-section">
   <div class="section-heading"><h2>{% translate "Settings" %}</h2></div>
 
+  <p><a class="button button-secondary" href="{% url 'parent_reward_shops' %}">{% translate "Reward shops" %}</a></p>
   <section class="settings-block" aria-labelledby="settings-everyday-heading">
     <h3 id="settings-everyday-heading" class="settings-block-heading">{% translate "Everyday" %}</h3>
     <form method="post" action="{% url 'parent_update_family_preferences' %}" class="stack-form settings-form">
@@ -719,6 +723,7 @@
         <p>{{ family_preferences_form.vacation_end.label_tag }} {{ family_preferences_form.vacation_end }}</p>
       </div>
     </details>
+    {% if not lottery_retired %}
     <details class="settings-section parent-accordion">
         <summary><span class="settings-summary-copy"><span class="settings-summary-label">{% translate "Surprise cards" %}</span><small class="settings-summary-description">{% translate "Configure surprise cards and reward limits." %}</small></span></summary>
         <div class="settings-group">
@@ -739,6 +744,7 @@
         </p>
         </div>
       </details>
+    {% endif %}
     <details class="settings-section parent-accordion">
         <summary><span class="settings-summary-copy"><span class="settings-summary-label">{% translate "Data and retention" %}</span><small class="settings-summary-description">{% translate "Choose how long activity data and photos are kept." %}</small></span></summary>
         <div class="settings-group">
@@ -894,7 +900,7 @@
           <h2>{% translate "Edit child profile" %}</h2>
           <p class="dialog-context">{{ item.child.name }}</p>
           <form method="post" action="{% url 'parent_edit_child_account' item.child.pk %}" class="stack-form">
-            {% csrf_token %}{{ item.form.as_p }}
+            {% csrf_token %}{% if lottery_retired %}{% for field in item.form %}{% if field.name != "lottery_enabled" %}<p>{{ field.label_tag }} {{ field }}</p>{% endif %}{% endfor %}{% else %}{{ item.form.as_p }}{% endif %}
             <div class="dialog-actions">
               <button class="button button-secondary" type="button" data-close-dialog>{% translate "Cancel" %}</button>
               <button class="button button-primary" type="submit">{% translate "Save" %}</button>
@@ -1350,7 +1356,7 @@
             {% if entry.history_actor and entry.history_actor_label %}<small class="history-actor">{{ entry.history_actor_label }}: {{ entry.history_actor|user_display_name }}</small>{% endif %}
             {% if entry.source_type == "consequence_episode" %}<a href="{% url 'parent_child_consequences' entry.child_id %}?episode={{ entry.source_id }}">{% translate "Open episode" %}</a>{% endif %}
             {% if entry.limit_reason %}<small>{% blocktranslate with requested=entry.requested_delta %}Configured credit: {{ requested }} coins{% endblocktranslate %}</small>{% endif %}
-            {% if request.user.is_staff and not is_caregiver and entry.can_reverse %}
+            {% if request.user.is_staff and not is_caregiver and entry.can_reverse and not entry.reward_request.fulfilled_at %}
               <button type="button" class="button button-secondary" data-open-dialog="reverse-ledger-{{ entry.pk }}">{% translate "Reverse transaction" %}</button>
               <dialog id="reverse-ledger-{{ entry.pk }}" class="action-dialog">
                 <form method="post" action="{% url 'parent_reverse_ledger_entry' entry.pk %}" class="stack-form">

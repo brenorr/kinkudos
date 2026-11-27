@@ -140,7 +140,7 @@ def parent_set_unlock_active(request, unlock_id):
     state = request.POST.get("active")
     if state not in {"0", "1"}:
         raise Http404
-    unlock = get_object_or_404(LevelUnlock, pk=unlock_id)
+    unlock = get_object_or_404(LevelUnlock, pk=unlock_id, earned_by_level=True)
     active = state == "1"
     if active != unlock.is_active:
         unlock.is_active = active

@@ -44,6 +44,13 @@ vinculado ao primeiro crédito que atingiu o nível. `SkillPractice`
 registra uma prática por habilidade e crédito. O nível é derivado do
 XP de `OccurrenceCredit`, com fator configurável por família.
 
+A migração `0041_reward_shops` estende o catálogo e os pedidos reais
+com estoque, condições, compromisso financeiro, entrega e referência ao
+débito. `VirtualOffer` separa os cosméticos compráveis dos itens obtidos por
+nível. `UnlockGrant` mantém unicidade por criança e item e referencia o
+débito da compra quando aplicável. Os bilhetes antigos com devolução
+verificável recebem um lançamento compensatório.
+
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

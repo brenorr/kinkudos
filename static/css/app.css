@@ -1403,6 +1403,10 @@ textarea.child-claim-note { min-height: 72px; resize: none; font-size: 1rem; }
 .empty-state { max-width: 100%; margin: 0; overflow-wrap: anywhere; }
 .item-card { min-width: 0; overflow: hidden; }
 .item-card > div { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; min-width: 0; }
+.cosmetic-offer { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.cosmetic-offer > div { display: block; }
+.cosmetic-offer h4 { margin: 0 0 .25rem; overflow-wrap: anywhere; }
+.cosmetic-offer .status-pill { justify-self: start; }
 .item-card .amount { flex: 0 0 auto; white-space: nowrap; }
 .amount.negative { color: var(--danger); }
 .parent-panel .subsection-heading { margin-top: clamp(38px, 6vw, 64px); }

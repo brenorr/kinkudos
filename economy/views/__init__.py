@@ -24,6 +24,7 @@ from economy.views.child import (
     child_give_points,
     child_mission,
     child_mission_action,
+    child_purchase_cosmetic,
     child_purchase_lottery_ticket,
     child_request_goal_completion,
     child_request_reward,
@@ -121,6 +122,7 @@ from economy.views.session import (
     child_select,
     session_logout,
 )
+from economy.views.shops import parent_reward_delivery, parent_reward_shops
 from economy.views.system import (
     changelog,
     health,
@@ -149,6 +151,7 @@ __all__ = [
     "child_create_proposal",
     "child_dashboard",
     "child_give_points",
+    "child_purchase_cosmetic",
     "child_purchase_lottery_ticket",
     "child_push_subscribe",
     "child_push_unsubscribe",
@@ -214,6 +217,8 @@ __all__ = [
     "parent_remove_child_account",
     "parent_remove_parent_account",
     "parent_rename_device",
+    "parent_reward_delivery",
+    "parent_reward_shops",
     "parent_return_goal_points",
     "parent_reverse_ledger_entry",
     "parent_revoke_all_devices",

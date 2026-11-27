@@ -52,6 +52,7 @@ class OutcomeRng:
         return lower
 
 
+@override_settings(LOTTERY_RETIRED=False)
 class LotteryServiceTests(TestCase):
     def setUp(self):
         previous_language = get_language()
@@ -296,6 +297,7 @@ class LotteryServiceTests(TestCase):
 
 
 @override_settings(
+    LOTTERY_RETIRED=False,
     VAPID_PRIVATE_KEY="test-private-key",
     VAPID_SUBJECT="mailto:test@example.com",
 )
@@ -387,6 +389,7 @@ class LotteryReminderTests(TestCase):
         self.assertEqual(payload["url"], f"{reverse('child_dashboard')}#prizai")
 
 
+@override_settings(LOTTERY_RETIRED=False)
 class LotteryViewTests(TestCase):
     def setUp(self):
         self.family = FamilySettings.load()

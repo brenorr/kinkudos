@@ -1,0 +1,64 @@
+{% extends "economy/base.html" %}
+{% load economy_tags i18n l10n %}
+{% block title %}{% translate "Reward shops" %}{% endblock %}
+{% block content %}
+<section class="panel">
+  <a href="{% url 'parent_dashboard' %}#parent-catalogs" class="button button-secondary">{% translate "Back to dashboard" %}</a>
+  <h1>{% translate "Reward shops" %}</h1>
+  <h2>{% translate "Real rewards shop" %}</h2>
+  <form method="post" class="stack-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="settings">
+    {{ shop_settings.as_p }}
+    <p>{% translate "Turning off the real shop blocks new redemptions. Existing requests can still be resolved." %}</p>
+    <button class="button button-primary">{% translate "Save" %}</button>
+  </form>
+  <h2>{% translate "Real redemption deliveries" %}</h2>
+  {% for order in orders %}
+    <details class="settings-section">
+      <summary>{{ order.child.name }} · {{ order.reward_title }} · {{ order.cost_snapshot }} {% translate "Points" %}</summary>
+      <div class="settings-group">
+        {% if order.financial_cost_cents %}<p>{{ order.financial_cost_cents }} {% translate "cents" %} ({{ order.financial_currency }})</p>{% endif %}
+        {% if order.refunded_at %}
+          <p>{% translate "Refunded" %}</p>
+        {% elif order.fulfilled_at %}
+          <p>{% translate "Delivered" %} · {{ order.fulfilled_by|user_display_name }}</p>
+        {% else %}
+          <form method="post" action="{% url 'parent_reward_delivery' order.pk 'deliver' %}">
+            {% csrf_token %}<button class="button button-secondary">{% translate "Mark delivered" %}</button>
+          </form>
+          {% if request.user.is_staff and order.debit %}
+            <form method="post" action="{% url 'parent_reward_delivery' order.pk 'refund' %}" class="stack-form">
+              {% csrf_token %}
+              <label>{% translate "Reason" %}<input class="field-control" name="reason" maxlength="200" required></label>
+              <button class="button button-secondary">{% translate "Cancel and refund" %}</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
+    </details>
+  {% empty %}<p>{% translate "No approved redemptions." %}</p>{% endfor %}
+  {% if orders.has_other_pages %}
+    <nav class="pagination" aria-label="{% translate 'Real redemption deliveries' %}">
+      {% if orders.has_previous %}<a href="?page={{ orders.previous_page_number }}">{% translate "Previous" %}</a>{% endif %}
+      {% if orders.has_next %}<a href="?page={{ orders.next_page_number }}">{% translate "Next" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+  <h2>{% translate "Virtual shop" %}</h2>
+  {% for offer in offers %}
+    <form method="post" class="stack-form settings-group">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="offer">
+      <input type="hidden" name="offer_id" value="{{ offer.pk }}">
+      <h3>{{ offer.unlock }} · {{ offer.get_category_display }}</h3>
+      <label>{% translate "Price in coins" %}<input class="field-control" type="number" min="1" max="99999" name="cost" value="{{ offer.cost|unlocalize }}" required></label>
+      <label class="checkbox-field"><input type="checkbox" name="is_active"{% if offer.is_active %} checked{% endif %}>{% translate "Available for purchase" %}</label>
+      <button class="button button-secondary">{% translate "Save" %}</button>
+    </form>
+  {% endfor %}
+  {% if tickets_for_review %}
+    <h2>{% translate "Retired tickets needing review" %}</h2>
+    <ul>{% for ticket in tickets_for_review %}<li>{{ ticket.child.name }} · #{{ ticket.pk }} · {{ ticket.purchased_at|date:"SHORT_DATETIME_FORMAT" }}</li>{% endfor %}</ul>
+  {% endif %}
+</section>
+{% endblock %}

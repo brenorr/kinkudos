@@ -2,6 +2,7 @@ import random
 from collections import Counter
 from datetime import datetime, time, timedelta
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -103,6 +104,13 @@ def _draw_board(prize_amount, rng):
 
 def lottery_state(child, current_date=None, family_settings=None):
     family_settings = family_settings or FamilySettings.load()
+    if settings.LOTTERY_RETIRED:
+        return {
+            "open_ticket": None, "tickets_used": 0, "tickets_remaining": 0, "ticket_cost": 0,
+            "weekly_limit": 0, "feature_enabled": False, "is_visible": False,
+            "can_purchase": False, "block_reason": "disabled",
+            "week_start": lottery_week_start(current_date),
+        }
     ticket_cost = family_settings.lottery_ticket_cost
     weekly_limit = family_settings.lottery_weekly_limit
     feature_enabled = family_settings.lottery_enabled and child.lottery_enabled
@@ -140,6 +148,8 @@ def lottery_state(child, current_date=None, family_settings=None):
 
 @transaction.atomic
 def purchase_lottery_ticket(*, child, rng=None, current_date=None):
+    if settings.LOTTERY_RETIRED:
+        raise ValidationError(_("Surprise cards are disabled."))
     rng = rng or random.SystemRandom()
     locked_child = ChildProfile.objects.select_for_update().get(
         pk=child.pk,
@@ -190,6 +200,8 @@ def purchase_lottery_ticket(*, child, rng=None, current_date=None):
 
 @transaction.atomic
 def reveal_lottery_ticket(*, ticket, child):
+    if settings.LOTTERY_RETIRED:
+        raise ValidationError(_("Surprise cards are disabled."))
     locked_child = ChildProfile.objects.select_for_update().get(
         pk=child.pk,
         is_active=True,
@@ -252,6 +264,9 @@ def _random_reminder_time(week_start, rng):
 
 
 def send_due_lottery_reminders(*, current_time=None, rng=None):
+    if settings.LOTTERY_RETIRED:
+        return []
+
     from .push import notify_lottery_reminder
 
     current_time = current_time or timezone.now()

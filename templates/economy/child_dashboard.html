@@ -50,7 +50,7 @@
 {% endif %}
 
 <nav class="tabbar" aria-label="{% translate 'Sections' %}">
-  <a href="#darbai">{{ child.theme|theme_text:"nav_tasks" }}</a><a href="#prizai">{{ child.theme|theme_text:"nav_rewards" }}</a>{% if goals %}<a href="#tikslai">{{ child.theme|theme_text:"nav_goals" }}</a>{% endif %}<a href="#istorija">{{ child.theme|theme_text:"nav_history" }}</a>
+  <a href="#darbai">{{ child.theme|theme_text:"nav_tasks" }}</a><a href="#prizai">{{ child.theme|theme_text:"nav_rewards" }}</a><a href="#virtual-shop">{% translate "Virtual shop" %}</a>{% if goals %}<a href="#tikslai">{{ child.theme|theme_text:"nav_goals" }}</a>{% endif %}<a href="#istorija">{{ child.theme|theme_text:"nav_history" }}</a>
 </nav>
 
 <section id="darbai" class="content-section">
@@ -265,9 +265,49 @@
     </dialog>
   {% endif %}
   {% endif %}
-  <div class="item-grid">{% for reward in rewards %}<article id="reward-card-{{ reward.pk }}" class="item-card reward-card"><span class="item-icon">{{ reward.icon|icon_symbol }}</span><div><h3>{{ reward.title }}</h3><p class="amount negative">−{{ reward.cost }} {{ reward.cost|currency_unit:child.theme }}</p></div>
-  {% if reward.pk in pending_reward_ids %}<span class="status-pill">{% if child.theme == "blockville" %}{{ child.theme|theme_text:"reward_pending" }}{% else %}{% translate "Awaiting approval" %}{% endif %}</span>{% elif reward_requests_blocked %}<span class="status-pill">{{ child.theme|theme_text:"reward" }}</span>{% elif not reward.is_affordable %}<span class="status-pill" title="{% translate "Not enough points" %}">{% blocktranslate with amount=reward.missing_amount unit=reward.missing_amount|currency_unit:child.theme %}Need {{ amount }} {{ unit }} more{% endblocktranslate %}</span>{% else %}<form class="workflow-card-action" method="post" action="{% url 'child_request_reward' reward.pk %}" data-success-effect="reward">{% csrf_token %}<button class="decision-icon-button decision-approve" type="submit" aria-label="{{ child.theme|theme_text:'reward' }}" title="{{ child.theme|theme_text:'reward' }}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-check"></use></svg></button></form>{% endif %}</article>{% empty %}<p class="empty-state">{% translate "The rewards catalog is empty." %}</p>{% endfor %}</div>
+  {% if real_shop_enabled %}
+  <h3>{% translate "Real rewards shop" %}</h3>
+  <div class="item-grid">{% for reward in rewards %}<article id="reward-card-{{ reward.pk }}" class="item-card reward-card"><span class="item-icon">{{ reward.icon|icon_symbol }}</span><div><h3>{{ reward.title }}</h3><p class="amount negative">−{{ reward.cost }} {{ reward.cost|currency_unit:child.theme }}</p>{% if not reward.approval_required %}<small>{% translate "Immediate redemption" %}</small>{% endif %}</div>
+  {% if reward.pk in pending_reward_ids %}<span class="status-pill">{% if child.theme == "blockville" %}{{ child.theme|theme_text:"reward_pending" }}{% else %}{% translate "Awaiting approval" %}{% endif %}</span>{% elif not reward.shop_available %}<span class="status-pill">{% translate "Unavailable" %}</span>{% elif reward_requests_blocked %}<span class="status-pill">{{ child.theme|theme_text:"reward" }}</span>{% elif not reward.is_affordable %}<span class="status-pill" title="{% translate "Not enough points" %}">{% blocktranslate with amount=reward.missing_amount unit=reward.missing_amount|currency_unit:child.theme %}Need {{ amount }} {{ unit }} more{% endblocktranslate %}</span>{% else %}<form class="workflow-card-action" method="post" action="{% url 'child_request_reward' reward.pk %}" data-success-effect="reward">{% csrf_token %}<input type="hidden" name="operation_token" value="{% new_operation_token %}"><input type="hidden" name="confirmed_price" value="{{ reward.cost|unlocalize }}"><button class="decision-icon-button decision-approve" type="submit" aria-label="{{ child.theme|theme_text:'reward' }}" title="{{ child.theme|theme_text:'reward' }}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-check"></use></svg></button></form>{% endif %}</article>{% empty %}<p class="empty-state">{% translate "The rewards catalog is empty." %}</p>{% endfor %}</div>
+  {% else %}
+  <p class="notice-block notice-info">{% translate "The real rewards shop is turned off." %}</p>
+  {% endif %}
   {% if pending_requests %}<div class="pending-list"><h3>{% translate "Pending requests" %}</h3>{% for reward_request in pending_requests %}<div class="list-row"><span>{{ reward_request.reward_title }}</span><form method="post" action="{% url 'child_cancel_reward' reward_request.pk %}">{% csrf_token %}<button class="decision-icon-button decision-reject compact-decision-button" type="submit" aria-label="{% translate "Cancel" %}" title="{% translate "Cancel" %}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-xmark"></use></svg></button></form></div>{% endfor %}</div>{% endif %}
+  {% if recent_real_orders %}
+    <div class="pending-list">
+      <h3>{% translate "Recent real redemptions" %}</h3>
+      {% for order in recent_real_orders %}
+        <p>{{ order.reward_title }} · {% if order.refunded_at %}{% translate "Refunded" %}{% elif order.fulfilled_at %}{% translate "Delivered" %}{% else %}{% translate "Awaiting delivery" %}{% endif %}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+<section id="virtual-shop" class="content-section">
+  <div class="section-heading"><h2>{% translate "Virtual shop" %}</h2></div>
+  {% regroup virtual_offers by category as offer_groups %}
+  {% for group in offer_groups %}
+    <h3>{{ group.list.0.get_category_display }}</h3>
+    <div class="item-grid">
+      {% for offer in group.list %}
+        <article class="item-card reward-card cosmetic-offer">
+          <div><h4>{{ offer.unlock }}</h4><p>{{ offer.cost }} {% translate "Points" %}</p></div>
+          {% if offer.owned %}
+            <span class="status-pill">{% translate "Already owned" %}</span>
+          {% elif assigned_tasks_block_rewards or child.balance < offer.cost %}
+            <span class="status-pill">{% translate "Unavailable" %}</span>
+          {% else %}
+            <form method="post" action="{% url 'child_purchase_cosmetic' offer.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="operation_token" value="{% new_operation_token %}">
+              <input type="hidden" name="confirmed_price" value="{{ offer.cost|unlocalize }}">
+              <button class="button button-secondary">{% translate "Buy cosmetic" %}</button>
+            </form>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% empty %}<p class="empty-state">{% translate "No cosmetics are available." %}</p>{% endfor %}
 </section>
 
 <section class="content-section building-plan-section"><div class="{% if goals %}building-plan-layout{% endif %}">{% if goals %}<div id="tikslai" class="building-plan-goals"><div class="section-heading"><p class="eyebrow">{% translate "Save for a dream" %}</p><h2>{{ child.theme|theme_text:"nav_goals" }}</h2></div>{% for goal in goals %}<article id="goal-card-{{ goal.pk }}" class="goal-card child-goal-card">
@@ -390,7 +430,7 @@
     {% endif %}
     {% if unlock_grants %}
       <h3>{% translate "Unlocked titles and items" %}</h3>
-      <ul>{% for grant in unlock_grants %}<li>{{ grant.unlock }} · {{ grant.unlock.get_kind_display }} · {% blocktranslate with level=grant.required_level %}Level {{ level }}{% endblocktranslate %}</li>{% endfor %}</ul>
+      <ul>{% for grant in unlock_grants %}<li>{{ grant.unlock }} · {{ grant.unlock.get_kind_display }} · {% if grant.purchase_entry_id %}{% translate "Acquired in the virtual shop" %}{% else %}{% blocktranslate with level=grant.required_level %}Level {{ level }}{% endblocktranslate %}{% endif %}</li>{% endfor %}</ul>
     {% endif %}
     {% if practiced_skills %}
       <h3>{% translate "Skills practiced" %}</h3>

@@ -8,11 +8,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Exists, Q, Sum
+from django.db.models import Exists, F, Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from . import missions, progression
+from . import missions, progression, shops
 from .models import (
     AssignedTask,
     AssignedTaskBatch,
@@ -203,6 +203,9 @@ def reverse_ledger_entry(*, entry, actor, reason):
         return original.reversal
     if not original.can_reverse:
         raise ValidationError(_("This transaction cannot be reversed."))
+
+    if original.kind == LedgerKind.REWARD:
+        shops.release_real_reward(original)
 
     originals = [original]
     if original.kind == LedgerKind.GIFT:
@@ -1404,66 +1407,76 @@ def delete_savings_goal(*, goal, actor):
     return locked_goal, returned_amount
 
 
-def submit_reward_request(*, child, reward):
-    if not reward.is_active:
-        raise ValidationError(_("This reward is no longer active."))
+def submit_reward_request(*, child, reward, operation_token=None, confirmed_price=None):
     try:
         with transaction.atomic():
-            locked_child = ChildProfile.objects.select_for_update().get(pk=child.pk)
+            locked_child = ChildProfile.objects.select_for_update().get(pk=child.pk, is_active=True)
+            if operation_token:
+                existing = RewardRequest.objects.filter(child=locked_child, operation_token=operation_token).first()
+                if existing:
+                    if existing.reward_id != reward.pk or (
+                        confirmed_price is not None and confirmed_price != existing.cost_snapshot
+                    ):
+                        raise ValidationError(_("This purchase request was already used with different details."))
+                    existing.was_replayed = True
+                    return existing
+            family = shops.shop_family()
+            if not family.real_shop_enabled:
+                raise ValidationError(_("The real rewards shop is turned off."))
+            reward = Reward.objects.get(pk=reward.pk)
+            if confirmed_price is not None and confirmed_price != reward.cost:
+                raise ValidationError(_("The price changed. Review the offer again."))
             if assigned_tasks_block_rewards(locked_child):
-                raise ValidationError(
-                    _(
-                        "Complete the assigned tasks before requesting a new reward."
-                    )
-                )
+                raise ValidationError(_("Complete the assigned tasks before requesting a new reward."))
             if reward_requests_blocked(locked_child):
-                raise ValidationError(
-                    _(
-                        "New reward requests are paused after half of the credit limit is used. "
-                        "They will be available again when the balance improves."
-                    )
-                )
+                raise ValidationError(_(
+                    "New reward requests are paused after half of the credit limit is used. "
+                    "They will be available again when the balance improves."
+                ))
             if not reward_is_affordable(locked_child, reward):
-                raise ValidationError(
-                    _("You do not have enough points for this reward.")
-                )
-            return RewardRequest.objects.create(
-                child=locked_child,
-                reward=reward,
-                reward_title=reward.title,
-                cost_snapshot=reward.cost,
+                raise ValidationError(_("You do not have enough points for this reward."))
+            request = RewardRequest(
+                child=locked_child, reward=reward, reward_title=reward.title, cost_snapshot=reward.cost,
+                operation_token=operation_token, financial_cost_cents=reward.financial_cost_cents,
+                financial_currency=family.reward_currency,
             )
+            now = timezone.now()
+            shops.check_real_policy(request, family, now, shops.shop_day(family, now))
+            if not reward.approval_required and (not operation_token or confirmed_price is None):
+                raise ValidationError(_("Reload the shop before making a purchase."))
+            request.save()
+            if not reward.approval_required:
+                approve_reward_request(request=request, actor=None)
+                request.refresh_from_db()
+            return request
     except IntegrityError as exc:
         raise ValidationError(_("This reward is already awaiting approval.")) from exc
 
 
 @transaction.atomic
 def approve_reward_request(*, request, actor):
-    locked = RewardRequest.objects.select_related("child").get(pk=request.pk)
+    locked = RewardRequest.objects.select_related("child", "reward").get(pk=request.pk)
     if locked.status != RequestStatus.PENDING:
         raise ValidationError(_("This request has already been resolved."))
-    decided_at = timezone.now()
-    claimed = RewardRequest.objects.filter(
-        pk=locked.pk,
-        status=RequestStatus.PENDING,
-    ).update(
-        status=RequestStatus.APPROVED,
-        decided_by=actor,
-        decided_at=decided_at,
-    )
-    if not claimed:
-        raise ValidationError(_("This request has already been resolved."))
+    now = timezone.now()
+    family = shops.shop_family()
+    day = shops.shop_day(family, now)
+    if locked.use_shop_rules:
+        shops.check_real_policy(locked, family, now, day)
     entry = post_ledger_entry(
-        child=locked.child,
-        delta=-locked.cost_snapshot,
-        kind=LedgerKind.REWARD,
-        description=locked.reward_title,
-        actor=actor,
-        source_id=locked.pk,
-        source_type="reward_request",
-        operation_key=f"reward-request:{locked.pk}",
-        enforce_limit=True,
+        child=locked.child, delta=-locked.cost_snapshot, kind=LedgerKind.REWARD,
+        description=locked.reward_title, actor=actor, source_id=locked.pk,
+        source_type="reward_request", operation_key=f"reward-request:{locked.pk}", enforce_limit=True,
     )
+    if locked.use_shop_rules and locked.reward.stock is not None:
+        Reward.objects.filter(pk=locked.reward_id).update(stock=F("stock") - 1)
+        locked.stock_consumed = True
+    locked.status = RequestStatus.APPROVED
+    locked.decided_by = actor
+    locked.decided_at = now
+    locked.effective_on = day
+    locked.debit = entry
+    locked.save(update_fields=["status", "decided_by", "decided_at", "effective_on", "debit", "stock_consumed"])
     return entry
 
 

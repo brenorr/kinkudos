@@ -127,8 +127,8 @@ class ParentSettingsTests(TestCase):
         response = self.client.get(reverse("parent_dashboard"))
 
         self.assertContains(response, "Points for a task photo")
-        self.assertContains(response, "Surprise card price")
-        self.assertContains(response, "Weekly card limit")
+        self.assertNotContains(response, "Surprise card price")
+        self.assertNotContains(response, "Weekly card limit")
         self.assertContains(response, "Keep feedback images for")
         self.assertContains(response, 'class="catalog-divider"', count=3)
 
@@ -181,6 +181,7 @@ class ParentSettingsTests(TestCase):
             fetch_redirect_response=False,
         )
 
+    @override_settings(LOTTERY_RETIRED=False)
     def test_family_lottery_switch_can_be_disabled(self):
         self.client.force_login(self.admin)
 
@@ -311,13 +312,9 @@ class ParentSettingsTests(TestCase):
 
         response = self.client.get(reverse("parent_dashboard"))
 
-        self.assertContains(response, 'class="settings-row"', count=9, html=False)
-        self.assertContains(response, 'class="settings-row checkbox-field"', count=1)
-        self.assertContains(response, "Weekly card limit")
-        self.assertContains(
-            response,
-            "The limit resets every Monday for each child. The default is 3.",
-        )
+        self.assertContains(response, 'class="settings-row"', count=7, html=False)
+        self.assertNotContains(response, 'class="settings-row checkbox-field"')
+        self.assertNotContains(response, "Weekly card limit")
         self.assertContains(
             response,
             '<small class="helptext">Shown in family-facing headings and messages.</small>',
@@ -407,7 +404,6 @@ class ParentSettingsTests(TestCase):
         for heading in (
             "Family",
             "Points and tasks",
-            "Surprise cards",
             "Data and retention",
             "Child devices",
             "Network and security",
