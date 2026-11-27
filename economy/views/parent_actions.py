@@ -1,5 +1,5 @@
 
-from uuid import UUID
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from django.contrib import messages
 from django.contrib.auth import (
@@ -21,7 +21,7 @@ from economy.auth import (
     parent_account_required,
     parent_required,
 )
-from economy.consequences import apply_episode_debit
+from economy.consequences import apply_episode_debit, send_guardian_message
 from economy.forms import (
     AdjustmentForm,
     ApplyPenaltyForm,
@@ -53,6 +53,7 @@ from economy.models import (
     ChildProfile,
     GoalCompletionRequest,
     GoalStatus,
+    GuardianMessageKind,
     LedgerEntry,
     LedgerKind,
     PenaltyTemplate,
@@ -329,7 +330,20 @@ def parent_decide_task(request, claim_id, decision):
     child = None
     try:
         if decision == "approve":
-            entry = approve_task_claim(claim=claim, actor=request.user)
+            praise = request.POST.get("praise", "").strip()
+            if praise and request.caregiver is not None:
+                raise Http404
+            if len(praise) > 240:
+                raise ValidationError(_("Use up to 240 characters."))
+            with transaction.atomic():
+                entry = approve_task_claim(claim=claim, actor=request.user)
+                if praise and not getattr(entry, "was_replayed", False):
+                    source = claim.occurrence_id or claim.pk
+                    prefix = "mission" if claim.occurrence_id else "legacy-claim"
+                    send_guardian_message(
+                        child=claim.child, actor=request.user, text=praise, kind=GuardianMessageKind.PRAISE,
+                        mission=claim.occurrence, token=uuid5(NAMESPACE_URL, f"kinkudos:{prefix}:{source}:approve"),
+                    )
             claim.refresh_from_db()
             claim.child.refresh_from_db(fields=["balance"])
             if not getattr(entry, "was_replayed", False):

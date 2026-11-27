@@ -27,26 +27,7 @@
         </div>
       {% endif %}
 
-      <div class="character-stage{% if shown.backdrop %} has-character-backdrop{% endif %}" data-appearance="{{ child.character_appearance }}" aria-hidden="true">
-        {% if shown.backdrop.visual %}
-          <img class="character-backdrop" src="{% static shown.backdrop.visual %}" alt="">
-        {% elif shown.backdrop %}
-          <span class="character-piece character-piece-backdrop">◇</span>
-        {% endif %}
-        <div class="character-figure">
-          {% if shown.cape %}<span class="character-piece character-cape" data-visual="{{ shown.cape.grant.unlock.visual_key }}">{% include "economy/includes/character_visual.html" with item=shown.cape only %}</span>{% endif %}
-          <span class="character-face"></span>
-          <span class="character-torso{% if shown.body.visual %} has-character-tunic{% endif %}">{% if shown.body %}{% include "economy/includes/character_visual.html" with item=shown.body only %}{% elif character_style %}{{ character_style.0 }}{% endif %}</span>
-          <span class="character-boots"></span>
-          {% if shown.head %}<span class="character-piece character-piece-hat">{% include "economy/includes/character_visual.html" with item=shown.head only %}</span>{% endif %}
-          {% if shown.accessory %}<span class="character-piece character-piece-accessory">{% include "economy/includes/character_visual.html" with item=shown.accessory only %}</span>{% endif %}
-          {% if shown.main_hand %}<span class="character-piece character-piece-main-hand">{% include "economy/includes/character_visual.html" with item=shown.main_hand only %}</span>{% endif %}
-          {% if shown.off_hand %}<span class="character-piece character-piece-off-hand">{% include "economy/includes/character_visual.html" with item=shown.off_hand only %}</span>{% endif %}
-        </div>
-        {% if shown.decoration %}<span class="character-piece character-piece-decoration">{% include "economy/includes/character_visual.html" with item=shown.decoration only %}</span>{% endif %}
-        {% if shown.pet %}<span class="character-piece character-piece-pet">{% include "economy/includes/character_visual.html" with item=shown.pet only %}</span>{% endif %}
-      </div>
-      {% if equipment_title %}<p class="character-active-title">{{ equipment_title.grant.unlock }}</p>{% endif %}
+      {% include "economy/includes/character_stage.html" %}
       {% if shown_items %}
         <details class="character-preview-details">
           <summary>{% translate "Items in this look" %}</summary>

@@ -18,7 +18,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST, require_safe
 
-from economy import missions, progression, shops
+from economy import guardians, missions, progression, shops
 from economy.auth import (
     child_object_or_404,
     child_required,
@@ -49,6 +49,7 @@ from economy.lottery import (
     reveal_lottery_ticket,
 )
 from economy.models import (
+    OPEN_STORY_STATUSES,
     AssignedTask,
     AssignedTaskBatch,
     AssignedTaskStatus,
@@ -61,6 +62,8 @@ from economy.models import (
     LedgerKind,
     LevelAdvance,
     LotteryTicket,
+    MissionHelpRequest,
+    MissionKind,
     MissionOccurrence,
     MissionStatus,
     RequestStatus,
@@ -281,7 +284,8 @@ def child_dashboard(request):
         request,
         "economy/child_dashboard.html",
         {
-            "guardian_messages": child.guardian_messages.select_related("author")[:5],
+            "guardian_messages": child.guardian_messages.select_related("author__guardian_profile")[:5],
+            "open_story": child.story_sessions.filter(status__in=OPEN_STORY_STATUSES).first(),
             "shared_next_steps": child.consequence_episodes.filter(
                 ~Q(child_note="") | Q(repair__share_with_child=True)
             ).select_related("repair")[:5],
@@ -573,7 +577,11 @@ def child_start_mission(request, task_id):
 @child_required
 @require_safe
 def child_mission(request, occurrence_id):
-    occurrence = child_object_or_404(request, MissionOccurrence.objects.all(), pk=occurrence_id)
+    occurrence = child_object_or_404(
+        request, MissionOccurrence.objects.filter(local_date__lte=timezone.localdate()).select_related(
+            "child", "task", "assignment__batch__assigned_by__guardian_profile",
+        ), pk=occurrence_id,
+    )
     claim = TaskClaim.objects.filter(occurrence=occurrence).first()
     receipt = missions.completed_credit(occurrence) if occurrence.status == MissionStatus.COMPLETED else None
     return render(request, "economy/mission.html", {
@@ -583,29 +591,43 @@ def child_mission(request, occurrence_id):
         "can_edit": occurrence.status in (*missions.EDITABLE, MissionStatus.IN_REVIEW),
         "can_submit": occurrence.status in missions.EDITABLE,
         "can_help": occurrence.status in (*missions.EDITABLE, *missions.WAITING),
+        "latest_help": occurrence.help_requests.select_related("response__author__guardian_profile").first(),
+        "narrative_assignment": occurrence.mission_kind in (MissionKind.SPECIAL, MissionKind.COOPERATIVE),
+        "state_signature": _child_state_signature(request.child),
     })
 
 
 @child_required
 @require_POST
 def child_mission_action(request, occurrence_id):
-    occurrence = child_object_or_404(request, MissionOccurrence.objects.all(), pk=occurrence_id)
+    occurrence = child_object_or_404(
+        request, MissionOccurrence.objects.filter(local_date__lte=timezone.localdate()), pk=occurrence_id,
+    )
     action = request.POST.get("action")
     if action == "submit":
         return _submit_task_evidence(request, occurrence=occurrence)
     if action not in {"checklist", "help", "skip"}:
         raise Http404
     try:
-        try:
-            steps = [int(step) for step in request.POST.getlist("steps")]
-        except ValueError as exc:
-            raise ValidationError(_("Choose valid checklist steps.")) from exc
-        updated = missions.update_child_mission(
-            child=request.child, occurrence=occurrence, action=action, checked_steps=steps,
-        )
-        if action == "help" and updated:
-            notify_mission_help(occurrence)
-            messages.success(request, _("Help requested."))
+        if action == "help":
+            try:
+                reopen_after = int(request.POST.get("reopen_after") or "0") or None
+            except ValueError as exc:
+                raise ValidationError(_("Check the entered data.")) from exc
+            help_request, created = guardians.ask_for_help(
+                child=request.child, occurrence=occurrence, reopen_after=reopen_after,
+            )
+            if created:
+                notify_mission_help(help_request)
+                messages.success(request, _("Help requested."))
+        else:
+            try:
+                steps = [int(step) for step in request.POST.getlist("steps")]
+            except ValueError as exc:
+                raise ValidationError(_("Choose valid checklist steps.")) from exc
+            missions.update_child_mission(
+                child=request.child, occurrence=occurrence, action=action, checked_steps=steps,
+            )
     except ValidationError as exc:
         messages.error(request, exc.messages[0])
     return redirect("child_mission", occurrence_id=occurrence.pk)
@@ -1063,6 +1085,10 @@ def _child_state_payload(child):
                 "unlocks": list(child.unlock_grants.order_by("pk").values_list("pk", "unlock__name")),
             },
             "guardian_messages": _relation_watermark(child.guardian_messages.all(), "created_at"),
+            "mission_help": _relation_watermark(
+                MissionHelpRequest.objects.filter(occurrence__child=child), "requested_at", "answered_at",
+            ),
+            "stories": list(child.story_sessions.order_by("-pk").values_list("pk", "version")[:20]),
             "shared_next_steps": list(child.consequence_episodes.filter(
                 ~Q(child_note="") | Q(repair__share_with_child=True)
             ).order_by("-created_at", "-pk").values_list("pk", "repair__id", "repair__completed_at")[:5]),

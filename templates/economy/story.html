@@ -1,0 +1,92 @@
+{% extends "economy/base.html" %}
+{% load i18n l10n %}
+{% block title %}{{ story.title }} · {{ project_name }}{% endblock %}
+{% block body_class %}{% if child_view %}theme-{{ child.theme }} child-area{% else %}system-page theme-neutral{% endif %}{% endblock %}
+{% block child_state_url %}{% if child_view %}{{ block.super }}{% else %}{% url 'parent_story_state' story.pk %}{% endif %}{% endblock %}
+{% block child_state_signature %}{{ state_signature|unlocalize }}{% endblock %}
+{% block content %}
+<div class="guardian-workspace">
+  <div class="guardian-actions">
+    {% if child_view %}
+      <a class="button button-secondary" href="{% url 'child_dashboard' %}">{% translate "Back to dashboard" %}</a>
+    {% else %}
+      <a class="button button-secondary" href="{% url 'parent_guardian_child' child.pk %}">{% translate "Guardian wall" %}</a>
+    {% endif %}
+    <a class="button button-secondary" href="{{ request.path }}">{% translate "Refresh scene" %}</a>
+  </div>
+
+  <div class="guardian-grid guardian-story-grid">
+    <section class="panel">
+      <h1>{{ story.title }}</h1>
+      {% include "economy/includes/guardian_identity.html" with guardian=story.narrator show_avatar=child_view only %}
+      <p class="status-pill">{{ story.get_status_display }}</p>
+      <div class="guardian-passage">{{ story.passage|linebreaks }}</div>
+      {% if story.last_choice %}
+        <p><strong>{% translate "Last choice" %}</strong><br>{{ story.last_choice }}</p>
+      {% endif %}
+      {% if story.status == "active" and not story.choice_recorded %}
+        {% if story.choices %}
+          <form method="post" class="guardian-actions">
+            {% csrf_token %}
+            <input type="hidden" name="version" value="{{ story.version|unlocalize }}">
+            <input type="hidden" name="action" value="choice">
+            {% for option in story.choices %}
+              <button class="button button-secondary" name="choice" value="{{ option }}">{{ option }}</button>
+            {% endfor %}
+          </form>
+        {% endif %}
+        {% if not child_view %}
+          <form method="post" class="stack-form guardian-action">
+            {% csrf_token %}
+            <input type="hidden" name="version" value="{{ story.version|unlocalize }}">
+            {{ choice_form.as_p }}
+            <button class="button button-secondary" name="action" value="choice">{% translate "Save choice" %}</button>
+          </form>
+        {% endif %}
+      {% endif %}
+      {% if story.status == "finished" and story.summary %}
+        <h2>{% translate "Session summary" %}</h2>
+        {{ story.summary|linebreaks }}
+      {% endif %}
+    </section>
+    {% if not child_view and story.status != "finished" %}
+      <section class="panel guardian-story-controls">
+        <h2>{% translate "Narrate the session" %}</h2>
+        {% if story.status == "active" %}
+          <form class="stack-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="version" value="{{ story.version|unlocalize }}">
+            {{ advance_form.as_p }}
+            <button class="button button-primary" name="action" value="advance">{% translate "Publish passage" %}</button>
+          </form>
+        {% endif %}
+        <form method="post" class="guardian-action">
+          {% csrf_token %}
+          <input type="hidden" name="version" value="{{ story.version|unlocalize }}">
+          {% if story.status == "paused" %}
+            <button class="button button-primary" name="action" value="resume">{% translate "Resume session" %}</button>
+          {% else %}
+            <button class="button button-secondary" name="action" value="pause">{% translate "Pause session" %}</button>
+          {% endif %}
+        </form>
+        <details{% if finish_form.is_bound %} open{% endif %}>
+          <summary>{% translate "End session" %}</summary>
+          <form class="stack-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="version" value="{{ story.version|unlocalize }}">
+            {{ finish_form.as_p }}
+            <button class="button button-secondary" name="action" value="finish">{% translate "End session" %}</button>
+          </form>
+        </details>
+      </section>
+    {% endif %}
+    <section class="panel guardian-story-character">
+      <h2>{{ child.name }}</h2>
+      {% include "economy/includes/character_stage.html" %}
+      {% if shown_items %}
+        <ul>{% for label, item in shown_items %}<li>{{ label }} · {{ item.grant.unlock }}</li>{% endfor %}</ul>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

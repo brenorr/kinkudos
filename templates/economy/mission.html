@@ -1,14 +1,20 @@
 {% extends "economy/base.html" %}
-{% load i18n %}
+{% load i18n l10n %}
 {% block title %}{{ mission.title }} – {{ project_name }}{% endblock %}
 {% block body_class %}theme-{{ mission.child.theme }} child-area{% endblock %}
+{% block child_state_signature %}{{ state_signature }}{% endblock %}
 {% block content %}
 <section class="panel">
   <a class="button button-secondary" href="{% url 'child_dashboard' %}#darbai">{% translate "Back to tasks" %}</a>
   <h1>{{ mission.title }}</h1>
   {% if mission.routine %}<p>{{ mission.routine }}</p>{% endif %}
   {% if mission.task.category %}<p>{{ mission.task.category }}</p>{% endif %}
-  {% if mission.task and mission.task.mission_kind != 'standard' %}<p>{{ mission.task.get_mission_kind_display }}</p>{% endif %}
+  {% if mission.is_surprise %}<p>{% translate "Surprise mission" %}</p>
+  {% elif mission.mission_kind != 'standard' %}<p>{{ mission.get_mission_kind_display }}</p>
+  {% elif mission.task and mission.task.mission_kind != 'standard' %}<p>{{ mission.task.get_mission_kind_display }}</p>{% endif %}
+  {% if narrative_assignment and mission.assignment.batch.assigned_by %}
+    {% include "economy/includes/guardian_identity.html" with guardian=mission.assignment.batch.assigned_by show_avatar=True only %}
+  {% endif %}
   <p class="status-pill">{{ mission.get_status_display }}</p>
   {% if mission.instructions %}<div>{{ mission.instructions|linebreaks }}</div>{% endif %}
   {% if mission.suggested_at %}<p>{% translate "Suggested time" %} {{ mission.suggested_at|time:"TIME_FORMAT" }}</p>{% endif %}
@@ -20,6 +26,16 @@
   {% endif %}
   {% if claim.revision_note %}<p>{{ claim.revision_note }}</p>{% endif %}
   {% if claim.rejection_reason %}<p>{{ claim.rejection_reason }}</p>{% endif %}
+  {% if mission.cooperative_participants %}
+    <p>{% translate "Participants" %} · {{ mission.cooperative_participants }}</p>
+  {% endif %}
+  {% if latest_help.response %}
+    <section class="notice-block notice-info">
+      <h2>{% translate "Guardian reply" %}</h2>
+      <p>{{ latest_help.response.text }}</p>
+      {% include "economy/includes/guardian_identity.html" with guardian=latest_help.response.author show_avatar=True only %}
+    </section>
+  {% endif %}
   {% if can_edit and mission.timer_minutes %}
     <div data-mission-timer="{{ mission.timer_minutes }}">
       <output aria-live="off" aria-label="{% translate 'Focus timer' %}"></output>
@@ -64,7 +80,8 @@
   {% if can_help %}
     <form method="post" action="{% url 'child_mission_action' mission.pk %}">
       {% csrf_token %}
-      <button class="button button-secondary" name="action" value="help"{% if mission.help_requested_at %} disabled{% endif %}>{% if mission.help_requested_at %}{% translate "Help requested." %}{% else %}{% translate "Ask for help" %}{% endif %}</button>
+      {% if latest_help.answered_at %}<input type="hidden" name="reopen_after" value="{{ latest_help.pk|unlocalize }}">{% endif %}
+      <button class="button button-secondary" name="action" value="help"{% if latest_help and not latest_help.answered_at %} disabled{% endif %}>{% if latest_help.answered_at %}{% translate "Ask for help again" %}{% elif latest_help %}{% translate "Help requested." %}{% else %}{% translate "Ask for help" %}{% endif %}</button>
     </form>
   {% endif %}
   {% if can_submit %}

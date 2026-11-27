@@ -497,18 +497,23 @@ Transformar a participação parental em uma experiência integrada à narrativa
 
 Os responsáveis não precisarão realizar missões individuais.
 
-- [ ] Criar perfil de guardião.
-- [ ] Permitir avatar personalizado.
-- [ ] Permitir título personalizado.
-- [ ] Criar mural de mensagens.
-- [ ] Enviar elogios e incentivos.
-- [ ] Criar missões especiais.
-- [ ] Criar missões surpresa sem recompensas aleatórias.
-- [ ] Aprovar conquistas especiais.
-- [ ] Permitir participação narrativa nas campanhas.
-- [ ] Registrar atividades realizadas em conjunto.
-- [ ] Permitir que a criança solicite ajuda.
-- [ ] Criar notificações de aprovação pendente.
+As contas existentes dão acesso ao perfil narrativo, ao mural e ao
+fluxo de missões. A participação em capítulos depende da Fase 9 e a
+aprovação de conquistas depende da Fase 11.
+[Plano técnico e entrega](docs/GUARDIANS_PLAN.md)
+
+- [x] Criar perfil de guardião.
+- [x] Permitir avatar personalizado.
+- [x] Permitir título personalizado.
+- [x] Criar mural de mensagens.
+- [x] Enviar elogios e incentivos.
+- [x] Narrar uma sessão de RPG no app, com cena pronta, modo livre e
+  opção de pausar e retomar, sem movimentar XP ou moedas.
+- [x] Criar missões especiais.
+- [x] Criar missões surpresa sem recompensas aleatórias.
+- [x] Registrar atividades realizadas em conjunto.
+- [x] Permitir que a criança solicite ajuda e receba uma resposta.
+- [x] Reaproveitar as notificações da fila de aprovação pendente.
 
 ### Exemplos de interação
 

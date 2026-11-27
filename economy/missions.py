@@ -67,6 +67,7 @@ def resolve_catalog_occurrence(child, task, *, day=None, extra_token=None):
         checklist=task.checklist,
         practice_skills=task.practice_skills,
         routine=task.routine,
+        mission_kind=task.mission_kind,
         xp=task.xp_reward,
         coins=task.reward,
         requires_approval=task.requires_approval,
@@ -196,11 +197,6 @@ def record_catalog_completion(*, child, task, actor, day=None):
 def update_child_mission(*, child, occurrence, action, checked_steps=()):
     _lock_child(child)
     occurrence = MissionOccurrence.objects.get(pk=occurrence.pk, child=child)
-    if action == "help":
-        changed = MissionOccurrence.objects.filter(
-            pk=occurrence.pk, status__in=(*EDITABLE, *WAITING), help_requested_at__isnull=True,
-        ).update(help_requested_at=timezone.now())
-        return bool(changed)
     if action == "skip":
         transition(occurrence, EDITABLE, MissionStatus.SKIPPED)
         AssignedTask.objects.filter(occurrence=occurrence).update(status=AssignedTaskStatus.CANCELLED)

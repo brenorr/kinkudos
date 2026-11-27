@@ -58,6 +58,14 @@ perfil e slot e por concessão equipada. A migração mapeia o catálogo
 inicial e cria os perfis sem equipamento selecionado, preservando
 as concessões e os lançamentos anteriores.
 
+A migração `0043_guardian_participation` adiciona `GuardianProfile`,
+os tipos e o vínculo opcional de missão em `GuardianMessage` e os
+metadados narrativos em `MissionOccurrence`. `MissionHelpRequest`
+preserva a data dos pedidos ativos anteriores e admite um pedido em
+aberto por ocorrência. `StorySession` permite uma sessão ativa ou
+pausada por criança e guarda a versão do trecho. A sessão tem estado
+próprio e dispensa créditos ou lançamentos.
+
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

@@ -348,6 +348,13 @@ if (parentShell) {
   };
   const showRoute = id => {
     showPanel(id);
+    if (/^pending-task-\d+$/.test(id)) {
+      const request = document.getElementById(id);
+      if (request) {
+        window.requestAnimationFrame(() => request.scrollIntoView({ behavior: "auto", block: "start" }));
+        return true;
+      }
+    }
     if (manageSectionForHash(id)) return openManageSection(id);
     if (parentPanelForHash(id) === "parent-catalogs") return openManageSection("manage-tasks");
     return false;
@@ -1444,7 +1451,7 @@ function pendingRequestsHaveActiveInteraction(fragment) {
   return Boolean(
     fragment && (
       fragment.contains(document.activeElement) ||
-      fragment.querySelector("dialog[open]")
+      fragment.querySelector("dialog[open], .guardian-approval-praise[open]")
     )
   );
 }

@@ -38,6 +38,7 @@ from economy.forms import (
     TaskForm,
     XPCurveForm,
 )
+from economy.guardians import available_help
 from economy.lottery import (
     lottery_state,
 )
@@ -60,8 +61,7 @@ from economy.models import (
     LedgerEntry,
     LedgerKind,
     LevelUnlock,
-    MissionOccurrence,
-    MissionStatus,
+    MissionHelpRequest,
     PenaltyTemplate,
     Proposal,
     ProposalType,
@@ -310,6 +310,7 @@ def _pending_requests_fragment(request, pending_requests, pending_revision):
             "pending_requests": pending_requests,
             "pending_count": len(pending_requests),
             "pending_revision": pending_revision,
+            "is_caregiver": getattr(request, "caregiver", None) is not None,
         },
         request=request,
     )
@@ -755,12 +756,9 @@ def parent_dashboard(request):
     tasks = list(Task.objects.filter(is_deleted=False))
     for task in tasks:
         task.mission_fields = list(TaskForm(instance=task, auto_id=f"id_task_{task.pk}_%s"))[2:]
-    mission_help = MissionOccurrence.objects.filter(
-        child_id__in=child_ids, help_requested_at__isnull=False,
-        status__in=(MissionStatus.AVAILABLE, MissionStatus.IN_PROGRESS, MissionStatus.PENDING_APPROVAL, MissionStatus.IN_REVIEW),
-    ).filter(
-        Q(local_date=today) | Q(status__in=(MissionStatus.PENDING_APPROVAL, MissionStatus.IN_REVIEW))
-    ).select_related("child").order_by("-help_requested_at")[:20]
+    mission_help = available_help(
+        MissionHelpRequest.objects.filter(occurrence__child_id__in=child_ids).select_related("occurrence__child"),
+    )[:20]
     rewards = list(Reward.objects.filter(is_deleted=False))
     for reward in rewards:
         reward.shop_fields = [

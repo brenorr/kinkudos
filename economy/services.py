@@ -584,6 +584,8 @@ def assign_tasks(
     day=None,
     preset=None,
     operation_token=None,
+    custom_mission_kind=None,
+    custom_surprise=False,
 ):
     child = ChildProfile.objects.select_for_update().get(
         pk=child.pk,
@@ -620,9 +622,11 @@ def assign_tasks(
             note_snapshot=(notes.get(task.pk) or "").strip(),
         )
     if custom_title:
+        narrative = {"mission_kind": custom_mission_kind, "is_surprise": custom_surprise} if custom_mission_kind else {}
         occurrence = MissionOccurrence.objects.create(
             child=child, local_date=batch.assigned_on, title=custom_title, coins=custom_points,
             instructions=custom_note, xp=custom_xp, requires_approval=custom_requires_approval,
+            **narrative,
         )
         AssignedTask.objects.create(
             batch=batch, occurrence=occurrence, title_snapshot=custom_title,

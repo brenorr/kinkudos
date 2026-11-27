@@ -79,6 +79,9 @@ msgstr "Uma criança pediu ajuda em uma missão"
 msgid "A child profile with this name already exists."
 msgstr "Já existe um perfil infantil com este nome."
 
+msgid "A choice was already recorded for this passage."
+msgstr "Já foi registrada uma escolha para este trecho."
+
 msgid "A different theme will be selected automatically once a day."
 msgstr "Um tema diferente será selecionado automaticamente uma vez por dia."
 
@@ -114,6 +117,9 @@ msgstr "Um cartão surpresa só pode ser comprado com %(cost)s pontos que você 
 
 msgid "A task needs a little more work"
 msgstr "Uma tarefa precisa de mais trabalho"
+
+msgid "A wooden bridge crosses a quiet stream. A fox keeps watch and asks where you are going."
+msgstr "Uma ponte de madeira atravessa um riacho tranquilo. Uma raposa vigia a passagem e pergunta aonde você vai."
 
 msgid "About credit"
 msgstr "Sobre o crédito"
@@ -166,6 +172,9 @@ msgstr "Ativo"
 msgid "Active guests"
 msgstr "Convidados ativos"
 
+msgid "Activities together"
+msgstr "Atividades em conjunto"
+
 msgid "Activity Log"
 msgstr "Registro de Atividade"
 
@@ -213,6 +222,9 @@ msgstr "Ajuste"
 
 msgid "Admin login by IP"
 msgstr "Autenticação do administrador por IP"
+
+msgid "Adventure message"
+msgstr "Mensagem de aventura"
 
 msgid "Adventurer"
 msgstr "Aventureiro"
@@ -319,6 +331,9 @@ msgstr "Aprovar"
 msgid "Approve birthday change"
 msgstr "Aprovar a mudança de aniversário"
 
+msgid "Approve with praise"
+msgstr "Aprovar com elogio"
+
 msgid "Approved"
 msgstr "Aprovado"
 
@@ -342,6 +357,9 @@ msgstr "Peça a um pai para permitir o acesso dos filhos neste dispositivo ou ab
 
 msgid "Ask for help"
 msgstr "Pedir ajuda"
+
+msgid "Ask for help again"
+msgstr "Pedir ajuda novamente"
 
 msgid "Ask to improve"
 msgstr "Pedir para melhorar"
@@ -399,6 +417,9 @@ msgstr "Disponível para compra"
 
 msgid "Available from"
 msgstr "Disponível a partir de"
+
+msgid "Available on"
+msgstr "Disponível em"
 
 msgid "Available points count as progress and can still be spent."
 msgstr "Os pontos disponíveis contam como progresso e ainda podem ser gastos."
@@ -838,6 +859,9 @@ msgstr "Crianças e acesso"
 msgid "Children can propose goals from their area. Approved goals appear here."
 msgstr "As crianças podem sugerir metas na área delas. As metas aprovadas aparecem aqui."
 
+msgid "Choices (one per line)"
+msgstr "Escolhas (uma por linha)"
+
 msgid "Choose Save separately before adding points."
 msgstr "Escolha Salvar separadamente antes de adicionar pontos."
 
@@ -846,6 +870,9 @@ msgstr "Escolha uma classe"
 
 msgid "Choose a day of the month between 1 and 31."
 msgstr "Escolha um dia do mês entre 1 e 31."
+
+msgid "Choose a message type and mission for this child."
+msgstr "Escolha um tipo de mensagem e uma missão desta criança."
 
 msgid "Choose a profile"
 msgstr "Escolha um perfil"
@@ -858,6 +885,9 @@ msgstr "Escolha um modo de economia antes de completar esta meta."
 
 msgid "Choose a savings mode for this goal."
 msgstr "Escolha um modo de economia para esta meta."
+
+msgid "Choose a scene or free mode"
+msgstr "Escolher cena pronta ou modo livre"
 
 msgid "Choose a task"
 msgstr "Escolha uma tarefa"
@@ -897,6 +927,9 @@ msgstr "Escolha um episódio com ação de reparação."
 
 msgid "Choose an icon"
 msgstr "Escolha um ícone"
+
+msgid "Choose an option shown in this scene."
+msgstr "Escolha uma opção desta cena."
 
 msgid "Choose at least one active penalty."
 msgstr "Escolha pelo menos uma penalidade ativa."
@@ -1030,6 +1063,9 @@ msgstr "Débito de moedas registrado"
 msgid "Coin limits"
 msgstr "Limites de moedas"
 
+msgid "Coins"
+msgstr "Moedas"
+
 msgid "Comment"
 msgstr "Comentário"
 
@@ -1083,6 +1119,9 @@ msgstr "Complete as tarefas atribuídas para desbloquear novos pedidos de recomp
 
 msgid "Complete the prerequisite mission first."
 msgstr "Conclua primeiro a missão necessária."
+
+msgid "Complete this field for free mode."
+msgstr "Preencha este campo para jogar no modo livre."
 
 msgid "Complete today's priority missions before midnight."
 msgstr "Complete as missões prioritárias de hoje antes da meia-noite."
@@ -1147,6 +1186,9 @@ msgstr "Cooperação"
 msgid "Cooperative"
 msgstr "Cooperativa"
 
+msgid "Cooperative mission"
+msgstr "Missão cooperativa"
+
 msgid "Copied"
 msgstr "Copiado"
 
@@ -1188,6 +1230,9 @@ msgstr "Criar uma receita"
 
 msgid "Create PIN"
 msgstr "Criar PIN"
+
+msgid "Create a mission"
+msgstr "Criar uma missão"
 
 msgid "Create a prize idea"
 msgstr "Criar uma ideia de prêmio"
@@ -1257,6 +1302,9 @@ msgstr "O limite de crédito foi alterado."
 
 msgid "Credit:"
 msgstr "Crédito:"
+
+msgid "Cross the bridge"
+msgstr "Atravessar a ponte"
 
 msgid "Crystal staff"
 msgstr "Cajado de cristal"
@@ -1438,6 +1486,9 @@ msgstr "Nota do diretor"
 msgid "Disabled"
 msgstr "Desativado"
 
+msgid "Display name"
+msgstr "Nome de exibição"
+
 msgid "Disrespect"
 msgstr "Falta de respeito"
 
@@ -1552,6 +1603,9 @@ msgstr "Criptografia"
 msgid "End preview"
 msgstr "Encerrar prévia"
 
+msgid "End session"
+msgstr "Encerrar sessão"
+
 msgid "English"
 msgstr "Inglês"
 
@@ -1617,6 +1671,9 @@ msgstr "Digite o código de configuração desta instalação."
 
 msgid "Enter this world"
 msgstr "Entre neste mundo"
+
+msgid "Enter up to four different choices, with at most 160 characters each."
+msgstr "Escreva até quatro escolhas diferentes, com até 160 caracteres cada."
 
 msgid "Enter your PIN"
 msgstr "Digite seu PIN"
@@ -1807,6 +1864,9 @@ msgstr "Esqueceu a senha?"
 msgid "Fox companion"
 msgstr "Raposa companheira"
 
+msgid "Free mode"
+msgstr "Modo livre"
+
 msgid "Fri"
 msgstr "Sex"
 
@@ -1914,6 +1974,21 @@ msgstr "Entendido."
 
 msgid "Guardian"
 msgstr "Guardião"
+
+msgid "Guardian profile"
+msgstr "Perfil do guardião"
+
+msgid "Guardian profile saved."
+msgstr "Perfil do guardião salvo."
+
+msgid "Guardian reply"
+msgstr "Resposta do guardião"
+
+msgid "Guardian wall"
+msgstr "Mural dos guardiões"
+
+msgid "Guardians"
+msgstr "Guardiões"
 
 msgid "Guest access"
 msgstr "Acesso de convidados"
@@ -2122,6 +2197,9 @@ msgstr "O JavaScript é necessário para usar o link de convite privado."
 msgid "JavaScript is required to use the private pairing link."
 msgstr "O JavaScript é necessário para usar o link de pareamento privado."
 
+msgid "Join session"
+msgstr "Entrar na sessão"
+
 msgid "Keep active"
 msgstr "Manter ativo"
 
@@ -2154,6 +2232,9 @@ msgstr "Último"
 
 msgid "Last advance: level %(previous)s to %(current)s"
 msgstr "Último avanço: nível %(previous)s para %(current)s"
+
+msgid "Last choice"
+msgstr "Última escolha"
 
 msgid "Last integrity check"
 msgstr "Última verificação de integridade"
@@ -2202,6 +2283,9 @@ msgstr "Sair"
 
 msgid "Login"
 msgstr "Login"
+
+msgid "Look for another path"
+msgstr "Procurar outro caminho"
 
 msgid "Mac"
 msgstr "Mac"
@@ -2260,6 +2344,15 @@ msgstr "Marcar reparação como concluída"
 msgid "Message from the owl post"
 msgstr "Mensagem do post da coruja"
 
+msgid "Message sent."
+msgstr "Mensagem enviada."
+
+msgid "Message type"
+msgstr "Tipo de mensagem"
+
+msgid "Messages"
+msgstr "Mensagens"
+
 msgid "Minimum allowed balance"
 msgstr "Saldo mínimo permitido"
 
@@ -2283,6 +2376,9 @@ msgstr "Missão concluída. Você ganhou %(xp)s XP e %(coins)s moedas."
 
 msgid "Mission help requests"
 msgstr "Pedidos de ajuda em missões"
+
+msgid "Mission sent."
+msgstr "Missão enviada."
 
 msgid "Mission type"
 msgstr "Tipo de missão"
@@ -2361,6 +2457,15 @@ msgstr "Meu estúdio"
 
 msgid "Mystery Crate"
 msgstr "Caixa misteriosa"
+
+msgid "Narrate the session"
+msgstr "Narrar a sessão"
+
+msgid "Narrated sessions"
+msgstr "Sessões narradas"
+
+msgid "Narrative title"
+msgstr "Título narrativo"
 
 msgid "Need %(amount)s %(unit)s more"
 msgstr "Necessidade %(amount)s %(unit)s mais"
@@ -2470,6 +2575,9 @@ msgstr "Novos desbloqueios: %(unlocks)s"
 msgid "Next"
 msgstr "Próxima"
 
+msgid "Next passage"
+msgstr "Próximo trecho"
+
 msgid "Next step for the child"
 msgstr "Próximo passo para a criança"
 
@@ -2494,6 +2602,9 @@ msgstr "Nenhum dispositivo infantil ainda está pareado."
 msgid "No child profiles have been created yet."
 msgstr "Ainda não foram criados perfis de filhos."
 
+msgid "No children available."
+msgstr "Nenhuma criança disponível."
+
 msgid "No cosmetics are available."
 msgstr "Nenhum cosmético disponível."
 
@@ -2502,6 +2613,9 @@ msgstr "Nenhum episódio registrado."
 
 msgid "No equipment slot"
 msgstr "Sem encaixe"
+
+msgid "No guardian messages yet."
+msgstr "Ainda não há mensagens dos guardiões."
 
 msgid "No items equipped."
 msgstr "Nenhum item equipado."
@@ -2689,14 +2803,23 @@ msgstr "Abrir notas de versão"
 msgid "Open screenshot"
 msgstr "Abrir imagem"
 
+msgid "Open session"
+msgstr "Abrir sessão"
+
 msgid "Open task photo"
 msgstr "Abrir foto da tarefa"
+
+msgid "Open the guardian wall to respond."
+msgstr "Abra o mural dos guardiões para responder."
 
 msgid "Open this link on the child's device. It can be used once and expires in 10 minutes."
 msgstr "Abra este link no dispositivo da criança. Pode ser usado uma vez e expira em 10 minutos."
 
 msgid "Open treat chest"
 msgstr "Caixa de tratamento aberto"
+
+msgid "Opening for free mode"
+msgstr "Abertura do modo livre"
 
 msgid "Optional IP restrictions add another layer on top of device pairing and sign-in limits."
 msgstr "Restrições IP opcionais adicionam outra camada em cima do pareamento do dispositivo e limites de entrada."
@@ -2839,6 +2962,12 @@ msgstr "Nome de usuário do responsável [%(default)s]: "
 msgid "Parents may change this date without an additional approval."
 msgstr "Os pais podem alterar esta data sem uma aprovação adicional."
 
+msgid "Participants"
+msgstr "Participantes"
+
+msgid "Participants saved."
+msgstr "Participantes salvos."
+
 msgid "Passcode"
 msgstr "Código de acesso"
 
@@ -2856,6 +2985,9 @@ msgstr "Reiniciar senha por conta"
 
 msgid "Pause"
 msgstr "Pausar"
+
+msgid "Pause session"
+msgstr "Pausar sessão"
 
 msgid "Pause timer"
 msgstr "Pausar temporizador"
@@ -2989,6 +3121,12 @@ msgstr "Pontos a dar"
 msgid "Points were saved for this goal."
 msgstr "Pontos foram salvos para esta meta."
 
+msgid "Praise"
+msgstr "Elogio"
+
+msgid "Praise for the wall (optional)"
+msgstr "Elogio para o mural (opcional)"
+
 msgid "Prerequisite mission"
 msgstr "Missão necessária"
 
@@ -3055,6 +3193,9 @@ msgstr "Protege o grupo durante as aventuras."
 msgid "Provider"
 msgstr "Fornecedor"
 
+msgid "Publish passage"
+msgstr "Publicar trecho"
+
 msgid "Purchases blocked"
 msgstr "Compras bloqueadas"
 
@@ -3091,6 +3232,9 @@ msgstr "Prontos para as tarefas de hoje?"
 msgid "Ready to save"
 msgstr "Pronto para salvar"
 
+msgid "Ready-made scene"
+msgstr "Cena pronta"
+
 msgid "Real redemption deliveries"
 msgstr "Entregas de recompensas reais"
 
@@ -3118,6 +3262,9 @@ msgstr "Destinatário"
 msgid "Recognize effort, a strategy, cooperation, or asking for help."
 msgstr "Reconheça o esforço, uma estratégia, a cooperação ou um pedido de ajuda."
 
+msgid "Record a spoken choice"
+msgstr "Registrar uma escolha falada"
+
 msgid "Record a warning without a debit"
 msgstr "Registrar advertência sem débito"
 
@@ -3138,6 +3285,9 @@ msgstr "As moedas do resgate foram devolvidas."
 
 msgid "Refresh requests"
 msgstr "Atualizar os pedidos"
+
+msgid "Refresh scene"
+msgstr "Atualizar cena"
 
 msgid "Refunded"
 msgstr "Moedas devolvidas"
@@ -3162,6 +3312,9 @@ msgstr "Rejeitado por"
 
 msgid "Rejection reason"
 msgstr "Motivo da rejeição"
+
+msgid "Related mission"
+msgstr "Missão relacionada"
 
 msgid "Reload the dashboard before adding another occurrence."
 msgstr "Atualize o painel antes de adicionar outra ocorrência."
@@ -3226,6 +3379,9 @@ msgstr "Repetir senha"
 msgid "Repeat: "
 msgstr "Repito: "
 
+msgid "Reply sent."
+msgstr "Resposta enviada."
+
 msgid "Report a KinKudos bug"
 msgstr "Reportar um erro KinKudos"
 
@@ -3262,6 +3418,9 @@ msgstr "Necessário antes de alterar o acesso à rede."
 msgid "Required before changing sensitive email settings."
 msgstr "Necessário antes de alterar as configurações de email sensíveis."
 
+msgid "Requires approval"
+msgstr "Exige aprovação"
+
 msgid "Requires parent approval"
 msgstr "Exige aprovação do responsável"
 
@@ -3294,6 +3453,12 @@ msgstr "Restrinja o acesso das crianças"
 
 msgid "Resume"
 msgstr "Retomar"
+
+msgid "Resume session"
+msgstr "Retomar sessão"
+
+msgid "Resume the session before continuing."
+msgstr "Retome a sessão para continuar."
 
 msgid "Resumed \"%(name)s\"."
 msgstr "Resumido \"%(name)s\"."
@@ -3333,6 +3498,9 @@ msgstr "Regressado de %(title)s"
 
 msgid "Returned from goal"
 msgstr "Retornado da meta"
+
+msgid "Reveal mission"
+msgstr "Revelar missão"
 
 msgid "Revealed"
 msgstr "Revogado"
@@ -3481,6 +3649,9 @@ msgstr "Salvar o aniversário"
 msgid "Save checklist"
 msgstr "Salvar etapas"
 
+msgid "Save choice"
+msgstr "Salvar escolha"
+
 msgid "Save class"
 msgstr "Salvar classe"
 
@@ -3498,6 +3669,9 @@ msgstr "Salvar o código de bloqueio"
 
 msgid "Save new PIN"
 msgstr "Salvar o novo PIN"
+
+msgid "Save participants"
+msgstr "Salvar participantes"
 
 msgid "Save passcode"
 msgstr "Salvar a senha"
@@ -3610,8 +3784,14 @@ msgstr "Selecionar o pacote de pele"
 msgid "Self-portrait"
 msgstr "Autorretrato"
 
+msgid "Send a guardian mission"
+msgstr "Enviar missão de guardião"
+
 msgid "Send a link"
 msgstr "Enviar uma ligação"
+
+msgid "Send a message"
+msgstr "Enviar uma mensagem"
 
 msgid "Send a signal to HQ"
 msgstr "Enviar um sinal para o QG"
@@ -3643,6 +3823,15 @@ msgstr "Enviar para aprovação"
 msgid "Send gift"
 msgstr "Enviar presente"
 
+msgid "Send message"
+msgstr "Enviar mensagem"
+
+msgid "Send mission"
+msgstr "Enviar missão"
+
+msgid "Send reply"
+msgstr "Enviar resposta"
+
 msgid "Send reset link"
 msgstr "Enviar link para redefinir a senha"
 
@@ -3663,6 +3852,21 @@ msgstr "Enviado para %(email)s."
 
 msgid "Server"
 msgstr "Servidor"
+
+msgid "Session ended"
+msgstr "Sessão encerrada"
+
+msgid "Session in progress"
+msgstr "Sessão em andamento"
+
+msgid "Session paused"
+msgstr "Sessão pausada"
+
+msgid "Session summary"
+msgstr "Resumo da sessão"
+
+msgid "Session summary (optional)"
+msgstr "Resumo da sessão (opcional)"
 
 msgid "Set a new password here:"
 msgstr "Define aqui uma nova senha:"
@@ -3751,6 +3955,9 @@ msgstr "Dia do Spawn"
 msgid "Special"
 msgstr "Especial"
 
+msgid "Special mission"
+msgstr "Missão especial"
+
 msgid "Spell complete"
 msgstr "Feitiço completo"
 
@@ -3769,6 +3976,12 @@ msgstr "Chapéu estrelado"
 msgid "Starlit theme"
 msgstr "Tema céu estrelado"
 
+msgid "Start an RPG session"
+msgstr "Iniciar sessão de RPG"
+
+msgid "Start session"
+msgstr "Iniciar sessão"
+
 msgid "Start timer"
 msgstr "Iniciar temporizador"
 
@@ -3780,6 +3993,9 @@ msgstr "Etapa"
 
 msgid "Storage provider"
 msgstr "Prestador de armazenamento"
+
+msgid "Story mode"
+msgstr "Modo de narrativa"
 
 msgid "Studio priority"
 msgstr "Prioridade do estúdio"
@@ -3871,6 +4087,9 @@ msgstr "Cartões surpresa esta semana: %(remaining)s de %(limit)s"
 msgid "Surprise cards used this week. The limit resets every Monday."
 msgstr "Cartões surpresa usados nesta semana. O limite é renovado toda segunda-feira."
 
+msgid "Surprise mission"
+msgstr "Missão surpresa"
+
 msgid "Surprise mood"
 msgstr "Momento surpresa"
 
@@ -3891,6 +4110,9 @@ msgstr "Retirar do baú"
 
 msgid "Take photo"
 msgstr "Tirar uma foto"
+
+msgid "Talk to the fox"
+msgstr "Conversar com a raposa"
 
 msgid "Tap a world. It changes colours, words, and sounds."
 msgstr "Tocar num mundo. Muda cores, palavras e sons."
@@ -4039,6 +4261,9 @@ msgstr "O nome da família ou apelido é necessário."
 msgid "The family-wide surprise card switch must also be enabled."
 msgstr "Os cartões surpresa também precisam estar ativados nas configurações da família."
 
+msgid "The forest bridge"
+msgstr "A ponte da floresta"
+
 msgid "The gift amount must be greater than zero."
 msgstr "A quantia do presente deve ser maior que zero."
 
@@ -4162,6 +4387,9 @@ msgstr "O catálogo de recompensas está vazio."
 msgid "The saved amount no longer reaches this goal."
 msgstr "A quantidade salva não atinge mais esta meta."
 
+msgid "The scene has changed. Read the latest version and try again."
+msgstr "A cena mudou. Leia a versão mais recente e tente novamente."
+
 msgid "The selected child profile is not available."
 msgstr "O perfil da criança selecionada não está disponível."
 
@@ -4264,6 +4492,9 @@ msgstr "Esse bloqueio vale para resgates reais e compras virtuais."
 msgid "This browser or device mode does not support web notifications."
 msgstr "Este modo de navegador ou dispositivo não suporta notificações Web."
 
+msgid "This child already has a session to resume."
+msgstr "Esta criança já tem uma sessão que pode ser retomada."
+
 msgid "This child can spend points down to %(limit)s."
 msgstr "Esta criança pode gastar pontos até %(limit)s."
 
@@ -4333,6 +4564,9 @@ msgstr "Esta solicitação de mensagem já foi usada."
 msgid "This message stays on your family server and is reviewed by parents."
 msgstr "Esta mensagem permanece no servidor da sua família e é revista pelos pais."
 
+msgid "This mission is no longer accepting help requests."
+msgstr "Esta missão não está mais aceitando pedidos de ajuda."
+
 msgid "This mission is no longer awaiting that action."
 msgstr "O estado atual da missão não permite esta ação."
 
@@ -4392,6 +4626,12 @@ msgstr "Esta recompensa já não está ativa."
 
 msgid "This reward is unavailable for redemption."
 msgstr "Esta recompensa está indisponível para resgate."
+
+msgid "This session has ended."
+msgstr "Esta sessão já foi encerrada."
+
+msgid "This session is already in progress."
+msgstr "Esta sessão já está em andamento."
 
 msgid "This sign-in link is invalid or has expired."
 msgstr "Este link de login é inválido ou expirou."
@@ -4767,6 +5007,9 @@ msgstr "Quem ganha pontos hoje?"
 
 msgid "Who is earning tokens today?"
 msgstr "Quem está ganhando fichas hoje?"
+
+msgid "Who participated?"
+msgstr "Quem participou?"
 
 msgid "Why was the task rejected?"
 msgstr "Por que a tarefa foi rejeitada?"

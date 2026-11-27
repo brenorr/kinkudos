@@ -5,8 +5,6 @@ from django.http import HttpResponsePermanentRedirect
 from django.urls import path, reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .views.character import child_change_equipment, child_character, child_preview_cosmetic
-
 from .views import (
     ParentLoginView,
     ParentPasswordResetCompleteView,
@@ -39,11 +37,11 @@ from .views import (
     child_select,
     child_set_avatar,
     child_set_birth_date,
-    child_set_goal_mode,
     child_set_character_class,
+    child_set_goal_mode,
     child_set_theme,
-    child_state,
     child_start_mission,
+    child_state,
     child_submit_task,
     child_theme_onboarding,
     feedback_screenshot,
@@ -94,10 +92,10 @@ from .views import (
     parent_repeat_mission,
     parent_return_goal_points,
     parent_reverse_ledger_entry,
-    parent_reward_delivery,
-    parent_reward_shops,
     parent_revoke_all_devices,
     parent_revoke_device,
+    parent_reward_delivery,
+    parent_reward_shops,
     parent_run_backup,
     parent_save_assignment_preset,
     parent_set_min_balance,
@@ -118,6 +116,8 @@ from .views import (
     submit_feedback,
     task_evidence,
 )
+from .views import guardians as guardian_views
+from .views.character import child_change_equipment, child_character, child_preview_cosmetic
 
 
 def _legacy_query_string(request, url_name):
@@ -228,6 +228,9 @@ urlpatterns = [
     ),
     path("child/", child_select, name="child_select"),
     path("child/home/", child_dashboard, name="child_dashboard"),
+    path("child/guardians/", guardian_views.child_guardian_wall, name="child_guardian_wall"),
+    path("child/guardians/avatar/<int:profile_id>/", guardian_views.child_guardian_avatar, name="child_guardian_avatar"),
+    path("child/story/<int:session_id>/", guardian_views.child_story, name="child_story"),
     path("child/state/", child_state, name="child_state"),
     path(
         "child/first-login/",
@@ -307,6 +310,15 @@ urlpatterns = [
     path("child/pin/", child_change_pin, name="child_change_pin"),
     path("child/avatar/", child_set_avatar, name="child_set_avatar"),
     path("parents/", parent_dashboard, name="parent_dashboard"),
+    path("parents/guardians/", guardian_views.parent_guardians, name="parent_guardians"),
+    path("parents/guardians/profile/", guardian_views.parent_guardian_profile, name="parent_guardian_profile"),
+    path("parents/guardians/child/<int:child_id>/", guardian_views.parent_guardian_child, name="parent_guardian_child"),
+    path("parents/guardians/child/<int:child_id>/help/<int:help_id>/", guardian_views.parent_answer_mission_help,
+         name="parent_answer_mission_help"),
+    path("parents/guardians/child/<int:child_id>/cooperative/<int:occurrence_id>/",
+         guardian_views.parent_record_cooperative_participants, name="parent_record_cooperative_participants"),
+    path("parents/guardians/story/<int:session_id>/", guardian_views.parent_story, name="parent_story"),
+    path("parents/guardians/story/<int:session_id>/state/", guardian_views.parent_story_state, name="parent_story_state"),
     path(
         "parents/pending-requests/state/",
         parent_pending_state,

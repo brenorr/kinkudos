@@ -1,0 +1,37 @@
+{% extends "economy/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Guardians" %} · {{ project_name }}{% endblock %}
+{% block content %}
+<div class="guardian-workspace">
+  <a class="button button-secondary" href="{% url 'parent_dashboard' %}">{% translate "Back to dashboard" %}</a>
+  <h1>{% translate "Guardians" %}</h1>
+  <div class="guardian-grid">
+    <section class="panel">
+      <h2>{% translate "Children" %}</h2>
+      <ul class="guardian-links">
+        {% for child in children %}
+          <li><a href="{% url 'parent_guardian_child' child.pk %}">{{ child.name }}</a></li>
+        {% empty %}<li>{% translate "No children available." %}</li>{% endfor %}
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>{% translate "Guardian profile" %}</h2>
+      <form method="post" enctype="multipart/form-data" action="{% url 'parent_guardian_profile' %}" class="stack-form">
+        {% csrf_token %}
+        {{ profile_form.as_p }}
+        <button class="button button-primary">{% translate "Save profile" %}</button>
+      </form>
+    </section>
+  </div>
+  {% if stories %}
+    <section class="panel">
+      <h2>{% translate "Narrated sessions" %}</h2>
+      <ul class="guardian-links">
+        {% for story in stories %}
+          <li><a href="{% url 'parent_story' story.pk %}">{{ story.title }}</a> · {{ story.child.name }} · {{ story.get_status_display }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

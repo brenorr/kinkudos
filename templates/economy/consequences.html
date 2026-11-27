@@ -7,6 +7,7 @@
   <h1>{% translate "Consequences and encouragement" %}</h1>
   <p>{{ child.name }}</p>
   {% if not is_caregiver %}
+    <p><a href="{% url 'parent_guardian_child' child.pk %}">{% translate "Guardian wall" %}</a></p>
     <details class="settings-section parent-accordion">
       <summary>{% translate "Send encouragement" %}</summary>
       <form method="post" class="stack-form settings-group">

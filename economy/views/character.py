@@ -14,6 +14,23 @@ from economy.models import CharacterSlot, UnlockGrant
 from economy.progression import CHARACTER_STYLES
 
 
+def _character_look(shown):
+    return {
+        "shown": {slot.replace("-", "_"): item for slot, item in shown.items()},
+        "shown_items": [(label, shown[slot]) for slot, label in CharacterSlot.choices if slot in shown],
+        "equipment_title": shown.get(CharacterSlot.TITLE),
+    }
+
+
+def equipped_character(child):
+    shown = {}
+    for outfit in child.equipped_cosmetics.filter(grant__child=child).select_related("grant__unlock"):
+        unlock = outfit.grant.unlock
+        if inventory.item_slot(unlock) == outfit.slot:
+            shown[outfit.slot] = {"grant": outfit.grant, "visual": inventory.item_visual(unlock)}
+    return _character_look(shown)
+
+
 @child_required
 @never_cache
 @require_http_methods(["GET", "HEAD", "POST"])
@@ -69,15 +86,13 @@ def _character_page(request, preview_id=None):
     if preview:
         shown[preview["slot"]] = preview
     return render(request, "economy/child_character.html", {
+        **_character_look(shown),
         "child": child,
         "style_form": style_form,
         "character_style": CHARACTER_STYLES.get(child.character_class),
         "collection": [(label, groups[slot]) for slot, label in CharacterSlot.choices if groups[slot]],
         "unmapped_items": groups[""],
         "preview": preview,
-        "shown": {slot.replace("-", "_"): item for slot, item in shown.items()},
-        "shown_items": [(label, shown[slot]) for slot, label in CharacterSlot.choices if slot in shown],
-        "equipment_title": shown.get(CharacterSlot.TITLE),
     })
 
 

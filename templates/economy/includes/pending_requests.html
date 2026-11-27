@@ -1,4 +1,4 @@
-{% load economy_tags i18n %}
+{% load economy_tags i18n l10n %}
 <div id="parent-pending-requests-fragment" class="pending-requests-fragment" data-pending-requests-fragment data-pending-count="{{ pending_count }}" data-pending-revision="{{ pending_revision }}">
   <div class="pending-requests-panel">
     <header class="pending-panel-heading">
@@ -8,7 +8,7 @@
     {% if pending_requests %}
       <div class="pending-request-list" data-pending-request-list role="list">
         {% for pending_item in pending_requests %}
-          <article class="pending-request-row{% if pending_item.kind == 'task' and pending_item.claim.has_evidence %} has-evidence{% endif %}" data-pending-request-row role="listitem">
+          <article{% if pending_item.kind == 'task' %} id="pending-task-{{ pending_item.claim.pk|unlocalize }}"{% endif %} class="pending-request-row{% if pending_item.kind == 'task' and pending_item.claim.has_evidence %} has-evidence{% endif %}" data-pending-request-row role="listitem">
             <div class="pending-request-avatar">
               {% if pending_item.child.avatar %}
                 <img class="profile-mini profile-photo" src="{% url 'child_avatar' pending_item.child.pk %}" alt="">
@@ -22,6 +22,16 @@
                 <h3>{{ pending_item.claim.task_title }}</h3>
                 <p class="amount positive">+{{ pending_item.claim.reward_snapshot }} {{ pending_item.claim.reward_snapshot|currency_unit:"neutral" }}</p>
                 {% if pending_item.claim.photo_bonus_snapshot %}<p class="photo-bonus">+{{ pending_item.claim.photo_bonus_snapshot }} {{ pending_item.claim.photo_bonus_snapshot|currency_unit:"neutral" }} · {% translate "photo bonus" %}</p>{% endif %}
+                {% if not is_caregiver %}
+                  <details class="guardian-approval-praise">
+                    <summary>{% translate "Praise" %}</summary>
+                    <form method="post" action="{% url 'parent_decide_task' pending_item.claim.pk 'approve' %}" class="stack-form" data-parent-approval-form>
+                      {% csrf_token %}
+                      <label>{% translate "Praise" %}<textarea name="praise" rows="2" maxlength="240" required></textarea></label>
+                      <button class="button button-primary" type="submit" data-approval-submit>{% translate "Approve with praise" %}</button>
+                    </form>
+                  </details>
+                {% endif %}
               {% elif pending_item.kind == "reward" %}
                 <h3>{{ pending_item.reward_request.reward_title }}</h3>
                 <p class="amount">−{{ pending_item.reward_request.cost_snapshot }} {{ pending_item.reward_request.cost_snapshot|currency_unit:"neutral" }}</p>

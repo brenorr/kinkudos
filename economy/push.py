@@ -118,13 +118,13 @@ def notify_level_advance(advance_id):
 
 
 @in_family_language
-def notify_mission_help(occurrence):
+def notify_mission_help(help_request):
     _send(
         {
             "title": _("A child asked for help with a mission"),
-            "body": f"{occurrence.child.name}: {occurrence.title}",
-            "url": _parent_dashboard_url(),
-            "tag": f"mission-help-{occurrence.pk}",
+            "body": _("Open the guardian wall to respond."),
+            "url": f"{reverse('parent_guardian_child', args=[help_request.occurrence.child_id])}#help-{help_request.pk}",
+            "tag": f"mission-help-{help_request.pk}",
         },
         _parent_subscriptions(),
     )
@@ -136,7 +136,7 @@ def notify_task_claim(claim):
         {
             "title": _("A new task is awaiting approval"),
             "body": f"{claim.child.name}: {claim.task_title} (+{claim.total_reward})",
-            "url": _parent_dashboard_url(),
+            "url": f"{_parent_dashboard_url()}#pending-task-{claim.pk}",
             "tag": f"task-claim-{claim.pk}",
         },
         _parent_subscriptions(),

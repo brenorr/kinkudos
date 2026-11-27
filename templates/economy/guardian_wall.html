@@ -1,0 +1,121 @@
+{% extends "economy/base.html" %}
+{% load i18n l10n %}
+{% block title %}{% translate "Guardian wall" %} · {{ child.name }}{% endblock %}
+{% block body_class %}{% if child_view %}theme-{{ child.theme }} child-area{% else %}system-page theme-neutral{% endif %}{% endblock %}
+{% block child_state_signature %}{{ state_signature }}{% endblock %}
+{% block content %}
+<div class="guardian-workspace">
+  {% if child_view %}
+    <a class="button button-secondary" href="{% url 'child_dashboard' %}">{% translate "Back to dashboard" %}</a>
+  {% else %}
+    <a class="button button-secondary" href="{% url 'parent_guardians' %}">{% translate "Guardians" %}</a>
+  {% endif %}
+  <h1>{% translate "Guardian wall" %} · {{ child.name }}</h1>
+
+  {% if not child_view %}
+    <section class="panel" id="start-story">
+      <h2>{% translate "Start an RPG session" %}</h2>
+      {% if open_story %}
+        <p>{{ open_story.title }} · {{ open_story.get_status_display }}</p>
+        {% if open_story.narrator_id == request.user.pk %}
+          <a class="button button-primary" href="{% url 'parent_story' open_story.pk %}">{% translate "Open session" %}</a>
+        {% endif %}
+      {% else %}
+        <details{% if story_form.is_bound %} open{% endif %}>
+          <summary>{% translate "Choose a scene or free mode" %}</summary>
+          <form method="post" class="stack-form">
+            {% csrf_token %}{{ story_form.as_p }}
+            <button class="button button-primary" name="action" value="story">{% translate "Start session" %}</button>
+          </form>
+        </details>
+      {% endif %}
+    </section>
+
+    <div class="guardian-grid">
+      <section class="panel">
+        <h2>{% translate "Send a message" %}</h2>
+        <form method="post" class="stack-form">
+          {% csrf_token %}{{ message_form.as_p }}
+          <button class="button button-primary" name="action" value="message">{% translate "Send message" %}</button>
+        </form>
+      </section>
+      <section class="panel">
+        <h2>{% translate "Send a guardian mission" %}</h2>
+        <details{% if mission_form.is_bound %} open{% endif %}>
+          <summary>{% translate "Create a mission" %}</summary>
+          <form method="post" class="stack-form">
+            {% csrf_token %}{{ mission_form.as_p }}
+            <button class="button button-primary" name="action" value="mission">{% translate "Send mission" %}</button>
+          </form>
+        </details>
+      </section>
+    </div>
+
+    {% if help_requests %}
+    <section class="panel">
+      <h2>{% translate "Mission help requests" %}</h2>
+      {% for help in help_requests %}
+        <form id="help-{{ help.pk|unlocalize }}" class="stack-form guardian-action" method="post" action="{% url 'parent_answer_mission_help' child.pk help.pk %}">
+          {% csrf_token %}
+          <h3>{{ help.occurrence.title }}</h3>
+          <p>{{ help.requested_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+          <label>{% translate "Guardian reply" %}<textarea name="text" maxlength="240" rows="2" required></textarea></label>
+          <button class="button button-secondary">{% translate "Send reply" %}</button>
+        </form>
+      {% endfor %}
+    </section>
+    {% endif %}
+  {% endif %}
+
+  {% if cooperative_missions %}
+    <section class="panel">
+      <h2>{% translate "Activities together" %}</h2>
+      {% for mission in cooperative_missions %}
+        {% if child_view %}
+          <article class="guardian-action">
+            <h3><a href="{% url 'child_mission' mission.pk %}">{{ mission.title }}</a></h3>
+            {% if mission.cooperative_participants %}<p>{{ mission.cooperative_participants }}</p>{% endif %}
+          </article>
+        {% else %}
+          <form class="stack-form guardian-action" method="post" action="{% url 'parent_record_cooperative_participants' child.pk mission.pk %}">
+            {% csrf_token %}
+            <h3>{{ mission.title }}</h3>
+            <label>{% translate "Who participated?" %}<input name="participants" maxlength="240" value="{{ mission.cooperative_participants }}"></label>
+            <button class="button button-secondary">{% translate "Save participants" %}</button>
+          </form>
+        {% endif %}
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if finished_stories %}
+    <section class="panel">
+      <h2>{% translate "Narrated sessions" %}</h2>
+      <ul class="guardian-links">
+        {% for story in finished_stories %}<li><a href="{% url 'child_story' story.pk %}">{{ story.title }}</a></li>{% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section class="panel">
+    <h2>{% translate "Messages" %}</h2>
+    {% for message in wall %}
+      <article class="guardian-action">
+        {% include "economy/includes/guardian_identity.html" with guardian=message.author show_avatar=child_view only %}
+        <p class="guardian-meta">{{ message.get_kind_display }} · {{ message.created_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+        <p>{{ message.text|linebreaksbr }}</p>
+        {% if message.mission_id %}
+          {% if child_view %}<a href="{% url 'child_mission' message.mission_id %}">{{ message.mission.title }}</a>
+          {% else %}<p>{{ message.mission.title }}</p>{% endif %}
+        {% endif %}
+      </article>
+    {% empty %}<p>{% translate "No guardian messages yet." %}</p>{% endfor %}
+    {% if wall.has_other_pages %}
+      <nav class="guardian-actions" aria-label="{% translate 'Messages' %}">
+        {% if wall.has_previous %}<a class="button button-secondary" href="?page={{ wall.previous_page_number }}">{% translate "Previous" %}</a>{% endif %}
+        {% if wall.has_next %}<a class="button button-secondary" href="?page={{ wall.next_page_number }}">{% translate "Next" %}</a>{% endif %}
+      </nav>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

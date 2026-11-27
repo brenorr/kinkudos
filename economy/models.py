@@ -625,6 +625,9 @@ class MissionOccurrence(models.Model):
     checklist = models.JSONField(default=list, blank=True)
     checked_steps = models.JSONField(default=list, blank=True)
     routine = models.CharField(max_length=80, blank=True)
+    mission_kind = models.CharField(max_length=16, choices=MissionKind.choices, default=MissionKind.STANDARD)
+    is_surprise = models.BooleanField(default=False)
+    cooperative_participants = models.CharField(max_length=240, blank=True)
     xp = models.PositiveIntegerField(default=0)
     coins = models.PositiveIntegerField()
     requires_approval = models.BooleanField(default=True)
@@ -1330,17 +1333,86 @@ class RepairAction(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
 
+class GuardianProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="guardian_profile")
+    display_name = models.CharField(max_length=80, blank=True)
+    title = models.CharField(max_length=80, blank=True)
+    avatar = models.ImageField(upload_to="guardians/%Y/%m/", blank=True)
+
+
+class GuardianMessageKind(models.TextChoices):
+    ENCOURAGEMENT = "encouragement", _("Encouragement")
+    PRAISE = "praise", _("Praise")
+    ADVENTURE = "adventure", _("Adventure message")
+    HELP = "help", _("Guardian reply")
+
+
 class GuardianMessage(models.Model):
     child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="guardian_messages")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     text = models.CharField(max_length=240)
     created_at = models.DateTimeField(auto_now_add=True)
     operation_token = models.UUIDField()
+    kind = models.CharField(max_length=16, choices=GuardianMessageKind.choices, default=GuardianMessageKind.ENCOURAGEMENT)
+    mission = models.ForeignKey(MissionOccurrence, on_delete=models.PROTECT, null=True, blank=True,
+                                related_name="guardian_messages")
 
     class Meta:
         ordering = ["-created_at", "-pk"]
         constraints = [
             models.UniqueConstraint(fields=["child", "operation_token"], name="unique_guardian_message_token"),
+        ]
+
+
+class MissionHelpRequest(models.Model):
+    occurrence = models.ForeignKey(MissionOccurrence, on_delete=models.CASCADE, related_name="help_requests")
+    requested_at = models.DateTimeField(default=timezone.now)
+    answered_at = models.DateTimeField(null=True, blank=True)
+    response = models.OneToOneField(GuardianMessage, on_delete=models.PROTECT, null=True, blank=True)
+
+    class Meta:
+        ordering = ["-requested_at", "-pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["occurrence"], condition=Q(answered_at__isnull=True),
+                                    name="unique_open_help_per_mission"),
+        ]
+
+
+class StoryMode(models.TextChoices):
+    PREPARED = "prepared", _("Ready-made scene")
+    FREE = "free", _("Free mode")
+
+
+class StoryStatus(models.TextChoices):
+    ACTIVE = "active", _("Session in progress")
+    PAUSED = "paused", _("Session paused")
+    FINISHED = "finished", _("Session ended")
+
+
+OPEN_STORY_STATUSES = (StoryStatus.ACTIVE, StoryStatus.PAUSED)
+
+
+class StorySession(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="story_sessions")
+    narrator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="narrated_sessions")
+    mode = models.CharField(max_length=12, choices=StoryMode.choices)
+    status = models.CharField(max_length=12, choices=StoryStatus.choices, default=StoryStatus.ACTIVE)
+    title = models.CharField(max_length=100)
+    scene_code = models.SlugField(max_length=32, blank=True)
+    opening = models.CharField(max_length=1000)
+    passage = models.CharField(max_length=1000)
+    choices = models.JSONField(default=list, blank=True)
+    last_choice = models.CharField(max_length=160, blank=True)
+    choice_recorded = models.BooleanField(default=False)
+    summary = models.CharField(max_length=500, blank=True)
+    version = models.PositiveBigIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["child"], condition=Q(status__in=OPEN_STORY_STATUSES),
+                                    name="unique_unfinished_story_per_child"),
         ]
 
 

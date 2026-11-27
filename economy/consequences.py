@@ -9,6 +9,7 @@ from .models import (
     ChildProfile,
     ConsequenceEpisode,
     GuardianMessage,
+    GuardianMessageKind,
     LedgerKind,
     PenaltyTemplate,
     RepairAction,
@@ -139,12 +140,15 @@ def complete_repair(*, child, actor, episode_id):
 
 
 @transaction.atomic
-def send_guardian_message(*, child, actor, text, token):
+def send_guardian_message(*, child, actor, text, token, kind=GuardianMessageKind.ENCOURAGEMENT, mission=None):
     child = _lock_child(child, actor, guardian_only=True)
     text = _validate_text(text, _("Write a message for the child."))
+    if kind not in GuardianMessageKind.values or (mission is not None and mission.child_id != child.pk):
+        raise ValidationError(_("Choose a message type and mission for this child."))
+    details = {"author": actor, "text": text, "kind": kind, "mission": mission}
     message, created = GuardianMessage.objects.get_or_create(
-        child=child, operation_token=token, defaults={"text": text, "author": actor},
+        child=child, operation_token=token, defaults=details,
     )
-    if not created and (message.author_id != actor.pk or message.text != text):
+    if not created and any(getattr(message, field) != value for field, value in details.items()):
         raise ValidationError(_("This message request has already been used."))
     return message

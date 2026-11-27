@@ -27,11 +27,21 @@
   <div class="balance-orb" aria-label="{% translate "Coin balance" %}"><strong>{{ child.balance }}</strong><span>{{ child.balance|currency_unit:child.theme }}</span></div>
 </section>
 
-{% if guardian_messages %}
+{% if open_story %}
   <section class="notice-block notice-info">
-    <h2>{% translate "Encouragement from your guardians" %}</h2>
-    <ul>{% for message in guardian_messages %}<li>{{ message.text }} · {{ message.author|user_display_name }}</li>{% endfor %}</ul>
+    <h2>{{ open_story.title }}</h2>
+    <p>{{ open_story.get_status_display }}</p>
+    <a class="button button-primary" href="{% url 'child_story' open_story.pk %}">{% translate "Join session" %}</a>
   </section>
+{% endif %}
+{% if guardian_messages %}
+  <section class="notice-block notice-info" id="guardian-wall">
+    <h2>{% translate "Encouragement from your guardians" %}</h2>
+    <ul>{% for message in guardian_messages %}<li>{{ message.text }} · {{ message.author|guardian_display_name }}</li>{% endfor %}</ul>
+    <a href="{% url 'child_guardian_wall' %}">{% translate "Guardian wall" %}</a>
+  </section>
+{% else %}
+  <p><a href="{% url 'child_guardian_wall' %}">{% translate "Guardian wall" %}</a></p>
 {% endif %}
 {% if shared_next_steps %}
   <section class="notice-block notice-info">
@@ -77,9 +87,9 @@
       <article class="assigned-task-row">
         <span class="item-icon">{{ assigned_task.icon_snapshot|icon_symbol }}</span>
         <div>
-          <h3>{{ assigned_task.title_snapshot }}</h3>
-          <p class="amount positive">+{{ assigned_task.reward_snapshot }} {{ assigned_task.reward_snapshot|currency_unit:child.theme }}</p>
-          {% if assigned_task.note_snapshot %}
+          <h3>{% if assigned_task.occurrence.is_surprise %}{% translate "Surprise mission" %}{% else %}{{ assigned_task.title_snapshot }}{% endif %}</h3>
+          {% if not assigned_task.occurrence.is_surprise %}<p class="amount positive">+{{ assigned_task.reward_snapshot }} {{ assigned_task.reward_snapshot|currency_unit:child.theme }}</p>{% endif %}
+          {% if assigned_task.note_snapshot and not assigned_task.occurrence.is_surprise %}
           <p class="assigned-task-note">
             <span class="assigned-task-note-label">{{ child.theme|theme_text:"assigned_note_label" }}</span>
             <span class="assigned-task-note-body">{{ assigned_task.note_snapshot }}</span>
@@ -87,7 +97,7 @@
           {% endif %}
         </div>
         {% if assigned_task.occurrence_id %}
-          <a class="button button-secondary" href="{% url 'child_mission' assigned_task.occurrence_id %}">{% translate "Open mission" %}</a>
+          <a class="button button-secondary" href="{% url 'child_mission' assigned_task.occurrence_id %}">{% if assigned_task.occurrence.is_surprise %}{% translate "Reveal mission" %}{% else %}{% translate "Open mission" %}{% endif %}</a>
         {% else %}
         <form method="post" action="{% url 'child_complete_assigned_task' assigned_task.pk %}" data-success-effect="task">{% csrf_token %}
           <button class="decision-icon-button decision-approve" type="submit" aria-label="{{ child.theme|theme_text:'assigned_complete' }}" title="{{ child.theme|theme_text:'assigned_complete' }}"><svg class="action-icon" aria-hidden="true"><use href="#icon-circle-check"></use></svg></button>

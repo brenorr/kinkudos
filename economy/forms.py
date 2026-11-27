@@ -477,9 +477,12 @@ class RepairActionForm(StyledFormMixin, forms.Form):
     share_with_child = forms.BooleanField(label=_("Show this step to the child"), required=False)
 
 
-class GuardianMessageForm(StyledFormMixin, forms.Form):
-    operation_token = forms.UUIDField(widget=forms.HiddenInput)
+class GuardianTextForm(StyledFormMixin, forms.Form):
     text = forms.CharField(label=_("Encouragement"), max_length=240)
+
+
+class GuardianMessageForm(GuardianTextForm):
+    operation_token = forms.UUIDField(widget=forms.HiddenInput)
 
 
 class BehaviorCategoryForm(StyledFormMixin, forms.ModelForm):

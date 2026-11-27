@@ -1,5 +1,5 @@
 {% extends "economy/base.html" %}
-{% load economy_tags i18n %}
+{% load economy_tags i18n l10n %}
 {% block title %}{% translate "Parent area" %} – {{ project_name }}{% endblock %}
 {% block body_class %}parent-area{% endblock %}
 {% block parent_state_config %}parentStateUrl: "{% url 'parent_pending_state' %}",{% endblock %}
@@ -163,10 +163,15 @@
   </div>
   <div class="parent-workspace">
   <section id="parent-home" class="parent-panel parent-home-panel" data-parent-panel="home">
+    {% if not is_caregiver %}
+      <p><a class="button button-secondary" href="{% url 'parent_guardians' %}">{% translate "Guardians" %}</a></p>
+    {% endif %}
     {% if mission_help %}
       <div class="notice-block notice-info">
         <h2>{% translate "Mission help requests" %}</h2>
-        <ul>{% for mission in mission_help %}<li>{{ mission.child.name }} · {{ mission.title }}</li>{% endfor %}</ul>
+        <ul>{% for help in mission_help %}<li>{{ help.occurrence.child.name }} · {{ help.occurrence.title }}
+          {% if not is_caregiver %}<a href="{% url 'parent_guardian_child' help.occurrence.child_id %}#help-{{ help.pk|unlocalize }}">{% translate "Send reply" %}</a>{% endif %}
+        </li>{% endfor %}</ul>
       </div>
     {% endif %}
 <section class="content-section parent-children-section">

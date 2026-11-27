@@ -1,0 +1,11 @@
+{% load economy_tags %}
+{% with profile=guardian.guardian_profile %}
+<span class="guardian-identity">
+  {% if show_avatar and profile.avatar %}
+    <img src="{% url 'child_guardian_avatar' profile.pk %}" alt="" width="32" height="32">
+  {% else %}
+    <span class="guardian-initial" aria-hidden="true">{{ guardian|guardian_display_name|first }}</span>
+  {% endif %}
+  <span>{{ guardian|guardian_display_name }}{% if profile.title %} · {{ profile.title }}{% endif %}</span>
+</span>
+{% endwith %}

@@ -335,6 +335,13 @@ def user_display_name(user):
     return full_name or user.get_username()
 
 
+@register.filter
+def guardian_display_name(user):
+    from economy.guardians import guardian_name
+
+    return guardian_name(user)
+
+
 def _lithuanian_form(number, singular, paucal, plural):
     last_two = number % 100
     last = number % 10
