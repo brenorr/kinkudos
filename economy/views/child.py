@@ -53,6 +53,7 @@ from economy.models import (
     AssignedTaskBatch,
     AssignedTaskStatus,
     BirthDateChangeRequest,
+    CharacterSlot,
     ChildProfile,
     FamilySettings,
     GoalCompletionRequest,
@@ -70,6 +71,7 @@ from economy.models import (
     Task,
     TaskClaim,
     TaskCompletion,
+    UnlockKind,
     VirtualOffer,
 )
 from economy.push import (
@@ -287,6 +289,12 @@ def child_dashboard(request):
             "progress": progress,
             "last_level_advance": LevelAdvance.objects.filter(credit__child=child).order_by("-created_at", "-pk").first(),
             "unlock_grants": child.unlock_grants.select_related("unlock").order_by("required_level", "unlock__code"),
+            "equipped_title": child.equipped_cosmetics.filter(
+                slot=CharacterSlot.TITLE,
+                grant__child=child,
+                grant__unlock__slot=CharacterSlot.TITLE,
+                grant__unlock__kind=UnlockKind.TITLE,
+            ).select_related("grant__unlock").first(),
             "practiced_skills": progression.practiced_skills(child),
             "character_style": progression.CHARACTER_STYLES.get(child.character_class),
             "character_class_form": CharacterClassForm(initial={"character_class": child.character_class}),
@@ -707,6 +715,7 @@ def child_purchase_cosmetic(request, offer_id):
         messages.error(request, exc.messages[0])
     else:
         messages.success(request, _("Cosmetic added to your collection."))
+        return redirect(f"{reverse('child_character')}#collection")
     return redirect(f"{reverse('child_dashboard')}#virtual-shop")
 
 
@@ -1049,6 +1058,8 @@ def _child_state_payload(child):
             "progression": {
                 "curve_factor": FamilySettings.load().xp_curve_factor,
                 "character_class": child.character_class,
+                "appearance": child.character_appearance,
+                "equipment": list(child.equipped_cosmetics.order_by("slot").values_list("slot", "grant_id")),
                 "unlocks": list(child.unlock_grants.order_by("pk").values_list("pk", "unlock__name")),
             },
             "guardian_messages": _relation_watermark(child.guardian_messages.all(), "created_at"),

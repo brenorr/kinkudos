@@ -17,6 +17,7 @@ from .models import (
     AssignmentPresetWeekendMode,
     BehaviorCategory,
     BirthDateChangeRequest,
+    CharacterAppearance,
     CharacterClass,
     ChildProfile,
     FamilySettings,
@@ -712,6 +713,10 @@ class CharacterClassForm(StyledFormMixin, forms.Form):
         label=_("Character class"), choices=[("", _("Choose a class")), *CharacterClass.choices],
         required=False,
     )
+
+
+class CharacterStyleForm(CharacterClassForm):
+    character_appearance = forms.ChoiceField(label=_("Appearance"), choices=CharacterAppearance.choices)
 
 
 class XPCurveForm(StyledFormMixin, forms.Form):

@@ -5,6 +5,8 @@ from django.http import HttpResponsePermanentRedirect
 from django.urls import path, reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from .views.character import child_change_equipment, child_character, child_preview_cosmetic
+
 from .views import (
     ParentLoginView,
     ParentPasswordResetCompleteView,
@@ -295,6 +297,10 @@ urlpatterns = [
         name="child_request_goal_completion",
     ),
     path("child/character-class/", child_set_character_class, name="child_set_character_class"),
+    path("child/character/", child_character, name="child_character"),
+    path("child/character/try/<int:grant_id>/", child_preview_cosmetic, name="child_preview_cosmetic"),
+    path("child/character/equip/<int:grant_id>/", child_change_equipment, {"equip": True}, name="child_equip_cosmetic"),
+    path("child/character/unequip/<int:grant_id>/", child_change_equipment, {"equip": False}, name="child_unequip_cosmetic"),
     path("child/theme/", child_set_theme, name="child_set_theme"),
     path("child/gifts/points/", child_give_points, name="child_give_points"),
     path("child/birthday/", child_set_birth_date, name="child_set_birth_date"),

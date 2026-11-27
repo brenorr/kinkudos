@@ -457,19 +457,24 @@ Itens exclusivamente cosméticos.
 
 **Prioridade: P1**
 
-- [ ] Editor de personagem.
-- [ ] Seleção de classe.
-- [ ] Seleção de aparência.
-- [ ] Personalização de roupas.
-- [ ] Inventário individual.
-- [ ] Equipar e desequipar itens.
-- [ ] Sistema de raridade cosmética.
-- [ ] Desbloqueios por nível.
-- [ ] Desbloqueios por conquistas.
-- [ ] Pré-visualização de equipamentos.
-- [ ] Persistência das configurações.
+A tela **Meu personagem** usa as concessões por nível e por compra.
+As regras de conquistas entram na Fase 11 e as interações dos mascotes
+na Fase 10. [Plano técnico e entrega](docs/INVENTORY_PLAN.md)
 
-## Slots sugeridos
+- [ ] Revisar o visual provisório do personagem e dos cosméticos antes
+  de iniciar a [Fase 10 — Mascotes virtuais](#fase-10--mascotes-virtuais).
+- [x] Editor de personagem.
+- [x] Seleção de classe.
+- [x] Seleção de aparência.
+- [x] Personalização de roupas.
+- [x] Inventário individual.
+- [x] Equipar, trocar e desequipar itens.
+- [x] Raridade cosmética com classificação fixa no catálogo.
+- [x] Reaproveitamento dos desbloqueios por nível.
+- [x] Pré-visualização de equipamentos.
+- [x] Persistência das configurações.
+
+## Slots
 
 - Cabeça.
 - Corpo.
@@ -479,6 +484,8 @@ Itens exclusivamente cosméticos.
 - Acessório.
 - Mascote.
 - Título.
+- Decoração do personagem.
+- Tema do personagem.
 
 ---
 

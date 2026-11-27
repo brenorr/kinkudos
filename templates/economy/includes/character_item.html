@@ -1,0 +1,34 @@
+{% load i18n l10n %}
+{% with grant=item.grant unlock=item.grant.unlock %}
+  <article class="item-card character-item" id="item-{{ grant.pk|unlocalize }}">
+    <div class="character-item-info">
+      <span class="item-icon" aria-hidden="true">{% include "economy/includes/character_visual.html" with item=item only %}</span>
+      <div>
+        <h4>{{ unlock }}</h4>
+        <p>{% if grant.purchase_entry_id %}{% translate "Acquired in the virtual shop" %}{% elif grant.required_level %}{% blocktranslate with level=grant.required_level %}Unlocked at level {{ level }}{% endblocktranslate %}{% endif %}</p>
+      </div>
+    </div>
+    {% if item.equipped %}<p class="status-pill">{% translate "Equipped" %}</p>{% endif %}
+    {% if unlock.kind == "cosmetic" %}
+      <details class="character-item-details"><summary>{% translate "Details" %}</summary><p>{% blocktranslate with rarity=unlock.get_rarity_display %}Rarity: {{ rarity }}{% endblocktranslate %}</p></details>
+    {% endif %}
+    {% if item.slot %}
+      {% if item.equipped %}
+        <form method="post" action="{% url 'child_unequip_cosmetic' grant.pk %}">
+          {% csrf_token %}
+          <button class="button button-secondary" type="submit">{% translate "Unequip" %}<span class="sr-only"> {{ unlock }}</span></button>
+        </form>
+      {% else %}
+        <div class="character-actions">
+          <a class="button button-secondary" href="{% url 'child_preview_cosmetic' grant.pk %}#character-preview">{% translate "Try on" %}<span class="sr-only"> {{ unlock }}</span></a>
+          <form method="post" action="{% url 'child_equip_cosmetic' grant.pk %}">
+            {% csrf_token %}
+            <button class="button button-primary" type="submit">{% if item.replaces %}{% translate "Swap to this item" %}{% else %}{% translate "Equip" %}{% endif %}<span class="sr-only"> {{ unlock }}</span></button>
+          </form>
+        </div>
+      {% endif %}
+    {% else %}
+      <p>{% translate "No equipment slot" %}</p>
+    {% endif %}
+  </article>
+{% endwith %}

@@ -465,6 +465,12 @@ class CharacterClass(models.TextChoices):
     ARCHER = "archer", _("Archer")
 
 
+class CharacterAppearance(models.TextChoices):
+    VIOLET = "violet", _("Violet")
+    MOSS = "moss", _("Moss green")
+    OCEAN = "ocean", _("Ocean blue")
+
+
 class ChildProfile(models.Model):
     name = models.CharField(max_length=80, unique=True)
     vocative_name = models.CharField(max_length=80, blank=True)
@@ -477,6 +483,9 @@ class ChildProfile(models.Model):
     birth_date_initialized = models.BooleanField(default=False)
     pin_hash = models.CharField(max_length=255)
     character_class = models.CharField(max_length=16, choices=CharacterClass.choices, blank=True)
+    character_appearance = models.CharField(
+        max_length=8, choices=CharacterAppearance.choices, default=CharacterAppearance.VIOLET,
+    )
     balance = models.IntegerField(default=0)
     min_balance = models.IntegerField(default=-100)
     lottery_enabled = models.BooleanField(default=True)
@@ -1356,6 +1365,24 @@ class UnlockKind(models.TextChoices):
     COSMETIC = "cosmetic", _("Cosmetic item")
 
 
+class CharacterSlot(models.TextChoices):
+    TITLE = "title", _("Title")
+    HEAD = "head", _("Head")
+    BODY = "body", _("Body")
+    MAIN_HAND = "main-hand", _("Main hand")
+    OFF_HAND = "off-hand", _("Off hand")
+    CAPE = "cape", _("Cape")
+    ACCESSORY = "accessory", _("Accessory")
+    DECORATION = "decoration", _("Decoration")
+    BACKDROP = "backdrop", _("Character background")
+    PET = "pet", _("Pet")
+
+
+class CosmeticRarity(models.TextChoices):
+    COMMON = "common", _("Common")
+    RARE = "rare", _("Rare")
+
+
 class LevelUnlock(models.Model):
     code = models.SlugField(max_length=48, unique=True)
     kind = models.CharField(max_length=12, choices=UnlockKind.choices)
@@ -1363,6 +1390,9 @@ class LevelUnlock(models.Model):
     minimum_level = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     earned_by_level = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
+    slot = models.CharField(max_length=12, choices=CharacterSlot.choices, blank=True)
+    visual_key = models.SlugField(max_length=48, blank=True)
+    rarity = models.CharField(max_length=8, choices=CosmeticRarity.choices, default=CosmeticRarity.COMMON)
 
     class Meta:
         ordering = ["minimum_level", "code"]
@@ -1392,6 +1422,18 @@ class UnlockGrant(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["child", "unlock"], name="unique_level_unlock_per_child")]
+
+
+class EquippedCosmetic(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name="equipped_cosmetics")
+    grant = models.OneToOneField(UnlockGrant, on_delete=models.CASCADE, related_name="equipped_cosmetic")
+    slot = models.CharField(max_length=12, choices=CharacterSlot.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["child", "slot"], name="unique_equipped_slot_per_child"),
+            models.CheckConstraint(condition=models.Q(slot__in=CharacterSlot.values), name="valid_equipped_slot"),
+        ]
 
 
 class CosmeticCategory(models.TextChoices):

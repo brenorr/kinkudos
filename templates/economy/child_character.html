@@ -1,0 +1,92 @@
+{% extends "economy/base.html" %}
+{% load i18n l10n static %}
+{% block title %}{% translate "My character" %} – {{ project_name }}{% endblock %}
+{% block body_class %}theme-{{ child.theme }} child-area{% endblock %}
+
+{% block content %}
+<div class="character-page">
+  <h1>{% translate "My character" %}</h1>
+  <nav class="character-actions character-nav">
+    <a class="button button-secondary" href="{% url 'child_dashboard' %}">← {% translate "Back to dashboard" %}</a>
+    <a class="button button-secondary" href="#collection">{% translate "My collection" %} ↓</a>
+  </nav>
+
+  <section class="character-editor" aria-label="{% translate 'Customize your character' %}">
+    <div class="panel character-preview" id="character-preview" tabindex="-1">
+      <h2>{% translate "Character preview" %}</h2>
+      {% if preview %}
+        <p>{% blocktranslate with item=preview.grant.unlock %}Trying on {{ item }}. Your saved look stays the same until you equip it.{% endblocktranslate %}</p>
+        <div class="character-actions">
+          {% if not preview.equipped %}
+            <form method="post" action="{% url 'child_equip_cosmetic' preview.grant.pk %}">
+              {% csrf_token %}
+              <button class="button button-primary" type="submit">{% if preview.replaces %}{% translate "Swap to this item" %}{% else %}{% translate "Equip" %}{% endif %}</button>
+            </form>
+          {% endif %}
+          <a class="button button-secondary" href="{% url 'child_character' %}#item-{{ preview.grant.pk|unlocalize }}">{% translate "End preview" %}</a>
+        </div>
+      {% endif %}
+
+      <div class="character-stage{% if shown.backdrop %} has-character-backdrop{% endif %}" data-appearance="{{ child.character_appearance }}" aria-hidden="true">
+        {% if shown.backdrop.visual %}
+          <img class="character-backdrop" src="{% static shown.backdrop.visual %}" alt="">
+        {% elif shown.backdrop %}
+          <span class="character-piece character-piece-backdrop">◇</span>
+        {% endif %}
+        <div class="character-figure">
+          {% if shown.cape %}<span class="character-piece character-cape" data-visual="{{ shown.cape.grant.unlock.visual_key }}">{% include "economy/includes/character_visual.html" with item=shown.cape only %}</span>{% endif %}
+          <span class="character-face"></span>
+          <span class="character-torso{% if shown.body.visual %} has-character-tunic{% endif %}">{% if shown.body %}{% include "economy/includes/character_visual.html" with item=shown.body only %}{% elif character_style %}{{ character_style.0 }}{% endif %}</span>
+          <span class="character-boots"></span>
+          {% if shown.head %}<span class="character-piece character-piece-hat">{% include "economy/includes/character_visual.html" with item=shown.head only %}</span>{% endif %}
+          {% if shown.accessory %}<span class="character-piece character-piece-accessory">{% include "economy/includes/character_visual.html" with item=shown.accessory only %}</span>{% endif %}
+          {% if shown.main_hand %}<span class="character-piece character-piece-main-hand">{% include "economy/includes/character_visual.html" with item=shown.main_hand only %}</span>{% endif %}
+          {% if shown.off_hand %}<span class="character-piece character-piece-off-hand">{% include "economy/includes/character_visual.html" with item=shown.off_hand only %}</span>{% endif %}
+        </div>
+        {% if shown.decoration %}<span class="character-piece character-piece-decoration">{% include "economy/includes/character_visual.html" with item=shown.decoration only %}</span>{% endif %}
+        {% if shown.pet %}<span class="character-piece character-piece-pet">{% include "economy/includes/character_visual.html" with item=shown.pet only %}</span>{% endif %}
+      </div>
+      {% if equipment_title %}<p class="character-active-title">{{ equipment_title.grant.unlock }}</p>{% endif %}
+      {% if shown_items %}
+        <details class="character-preview-details">
+          <summary>{% translate "Items in this look" %}</summary>
+          <dl>
+            {% for label, item in shown_items %}<dt>{{ label }}</dt><dd>{{ item.grant.unlock }}</dd>{% endfor %}
+          </dl>
+        </details>
+      {% else %}
+        <p>{% translate "No items equipped." %}</p>
+      {% endif %}
+    </div>
+
+    <form class="panel stack-form character-style-form" method="post" action="{% url 'child_character' %}">
+      {% csrf_token %}
+      <h2>{% translate "Class and appearance" %}</h2>
+      {{ style_form.as_p }}
+      {% if character_style %}<p>{{ character_style.1 }}</p>{% endif %}
+      <button class="button button-secondary" type="submit">{% translate "Save appearance" %}</button>
+    </form>
+  </section>
+
+  <section id="collection" class="content-section" aria-labelledby="collection-heading">
+    <h2 id="collection-heading">{% translate "My collection" %}</h2>
+    {% if not collection and not unmapped_items %}<p class="panel">{% translate "Your collection is empty." %}</p>{% endif %}
+    {% for label, items in collection %}
+      <section class="character-collection-group">
+        <h3>{{ label }}</h3>
+        <div class="character-item-grid">
+          {% for item in items %}{% include "economy/includes/character_item.html" %}{% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+    {% if unmapped_items %}
+      <section class="character-collection-group">
+        <h3>{% translate "Items without a slot" %}</h3>
+        <div class="character-item-grid">
+          {% for item in unmapped_items %}{% include "economy/includes/character_item.html" %}{% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

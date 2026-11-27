@@ -51,6 +51,13 @@ nível. `UnlockGrant` mantém unicidade por criança e item e referencia o
 débito da compra quando aplicável. Os bilhetes antigos com devolução
 verificável recebem um lançamento compensatório.
 
+A migração `0042_character_inventory` adiciona aparência ao perfil
+e slot, recurso visual e raridade ao catálogo. `EquippedCosmetic`
+liga o perfil a uma concessão existente e garante unicidade por
+perfil e slot e por concessão equipada. A migração mapeia o catálogo
+inicial e cria os perfis sem equipamento selecionado, preservando
+as concessões e os lançamentos anteriores.
+
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

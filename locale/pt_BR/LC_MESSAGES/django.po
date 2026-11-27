@@ -16,6 +16,15 @@ msgstr "%(family)s – acesso aos convidados"
 msgid "%(family_display_name)s – password reset"
 msgstr "%(family_display_name)s – redefinição de senha"
 
+msgid "%(item)s equipped."
+msgstr "Item equipado: %(item)s."
+
+msgid "%(item)s is already unequipped."
+msgstr "Este item já está desequipado: %(item)s."
+
+msgid "%(item)s unequipped."
+msgstr "Item desequipado: %(item)s."
+
 msgid "%(name)s 4-digit PIN: "
 msgstr "PIN de 4 dígitos %(name)s: "
 
@@ -132,6 +141,9 @@ msgstr "Acesso válido até"
 
 msgid "Accessories"
 msgstr "Acessórios"
+
+msgid "Accessory"
+msgstr "Acessório"
 
 msgid "Account type"
 msgstr "Tipo de conta"
@@ -532,6 +544,9 @@ msgstr "Bloco enviado aos responsáveis para aprovação."
 msgid "Blockville World"
 msgstr "Mundo de Blockville"
 
+msgid "Body"
+msgstr "Corpo"
+
 msgid "Brazilian Portuguese"
 msgstr "Português (Brasil)"
 
@@ -585,6 +600,9 @@ msgstr "Cancelar este link de convite?"
 
 msgid "Cancelled"
 msgstr "Cancelado"
+
+msgid "Cape"
+msgstr "Capa"
 
 msgid "Capes"
 msgstr "Capas"
@@ -655,11 +673,20 @@ msgstr "Changelog"
 msgid "Changelog pages"
 msgstr "Páginas do Changelog"
 
+msgid "Character appearance saved."
+msgstr "Aparência do personagem salva."
+
+msgid "Character background"
+msgstr "Tema do personagem"
+
 msgid "Character class"
 msgstr "Classe do personagem"
 
 msgid "Character class saved."
 msgstr "Classe do personagem salva."
+
+msgid "Character preview"
+msgstr "Prévia do personagem"
 
 msgid "Character progression"
 msgstr "Progressão do personagem"
@@ -958,6 +985,9 @@ msgstr "Dias de semana escolhidos"
 msgid "Claim prize"
 msgstr "Resgatar prêmio"
 
+msgid "Class and appearance"
+msgstr "Classe e aparência"
+
 msgid "Classified Surprise"
 msgstr "Surpresa secreta"
 
@@ -1005,6 +1035,9 @@ msgstr "Comentário"
 
 msgid "Comment (optional)"
 msgstr "Comentário (opcional)"
+
+msgid "Common"
+msgstr "Comum"
 
 msgid "Compass charm"
 msgstr "Pingente de bússola"
@@ -1276,6 +1309,9 @@ msgstr "Tarefa personalizada (opcional)"
 msgid "Customize"
 msgstr "Personalizar"
 
+msgid "Customize your character"
+msgstr "Personalize seu personagem"
+
 msgid "Daily coin earnings limit"
 msgstr "Limite diário de ganhos em moedas"
 
@@ -1308,6 +1344,9 @@ msgstr "Prazo"
 
 msgid "Deadline time"
 msgstr "Horário limite"
+
+msgid "Decoration"
+msgstr "Decoração"
 
 msgid "Decorations"
 msgstr "Decorações"
@@ -1368,6 +1407,9 @@ msgstr "Descreva o que aconteceu. Emoções e dificuldades involuntárias não s
 
 msgid "Description"
 msgstr "Descrição"
+
+msgid "Details"
+msgstr "Detalhes"
 
 msgid "Development device"
 msgstr "Dispositivo de desenvolvimento"
@@ -1507,6 +1549,9 @@ msgstr "Incentivo enviado."
 msgid "Encryption"
 msgstr "Criptografia"
 
+msgid "End preview"
+msgstr "Encerrar prévia"
+
 msgid "English"
 msgstr "Inglês"
 
@@ -1588,11 +1633,17 @@ msgstr "Episódio registrado."
 msgid "Episodes"
 msgstr "Episódios"
 
+msgid "Equip"
+msgstr "Equipar"
+
 msgid "Equip world"
 msgstr "Usar este mundo"
 
 msgid "Equipment"
 msgstr "Equipamentos"
+
+msgid "Equipped"
+msgstr "Equipado"
 
 msgid "Estimated cost in cents"
 msgstr "Custo estimado em centavos"
@@ -1912,6 +1963,9 @@ msgstr "Feliz aniversário!"
 msgid "Hats"
 msgstr "Chapéus"
 
+msgid "Head"
+msgstr "Cabeça"
+
 msgid "Hello!"
 msgstr "Olá!"
 
@@ -2053,6 +2107,12 @@ msgstr "Ligação para convites:"
 msgid "It costs %(cost)s earned %(unit)s. Your points may go up by up to 150, stay the same, or go down by up to 50. The result cannot reduce your balance below your credit limit."
 msgstr "O cartão custa %(cost)s %(unit)s que você ganhou. Você pode ganhar até 150 pontos, perder até 50 pontos ou ficar com o mesmo saldo. O resultado não pode deixar seu saldo abaixo do limite de crédito."
 
+msgid "Items in this look"
+msgstr "Itens desta combinação"
+
+msgid "Items without a slot"
+msgstr "Itens sem encaixe"
+
 msgid "JPEG, PNG, WebP, HEIC, or HEIF, up to 5 MB. The image will be cropped to a square."
 msgstr "JPEG, PNG, WebP, HEIC, ou HEIF, até 5 MB. A imagem será cortada para um quadrado."
 
@@ -2161,6 +2221,9 @@ msgstr "Loja de Magia"
 msgid "Main"
 msgstr "Principal"
 
+msgid "Main hand"
+msgstr "Mão principal"
+
 msgid "Make a panda wish"
 msgstr "Faz um desejo panda"
 
@@ -2245,6 +2308,9 @@ msgstr "Mais ações"
 msgid "More information"
 msgstr "Mais informações"
 
+msgid "Moss green"
+msgstr "Verde-musgo"
+
 msgid "Move available points into this goal."
 msgstr "Mova os pontos disponíveis para esta meta."
 
@@ -2262,6 +2328,12 @@ msgstr "Minha Galeria"
 
 msgid "My PIN"
 msgstr "Meu PIN"
+
+msgid "My character"
+msgstr "Meu personagem"
+
+msgid "My collection"
+msgstr "Minha coleção"
 
 msgid "My cozy den"
 msgstr "Meu cantinho aconchegante"
@@ -2428,6 +2500,12 @@ msgstr "Nenhum cosmético disponível."
 msgid "No episodes recorded."
 msgstr "Nenhum episódio registrado."
 
+msgid "No equipment slot"
+msgstr "Sem encaixe"
+
+msgid "No items equipped."
+msgstr "Nenhum item equipado."
+
 msgid "No new features in this release."
 msgstr "Nenhuma nova funcionalidade neste lançamento."
 
@@ -2505,6 +2583,12 @@ msgstr "Número de perfis de filhos [1]: "
 
 msgid "Observes carefully and helps the group from afar."
 msgstr "Observa com atenção e ajuda o grupo à distância."
+
+msgid "Ocean blue"
+msgstr "Azul-oceano"
+
+msgid "Off hand"
+msgstr "Mão secundária"
 
 msgid "Old PIN"
 msgstr "Antigo PIN"
@@ -2815,6 +2899,9 @@ msgstr "Pedidos pendentes"
 msgid "People and devices"
 msgstr "Pessoas e dispositivos"
 
+msgid "Pet"
+msgstr "Mascote"
+
 msgid "Pets"
 msgstr "Mascotes"
 
@@ -2985,6 +3072,12 @@ msgstr "Ações rápidas"
 
 msgid "Random skin"
 msgstr "Pele aleatória"
+
+msgid "Rare"
+msgstr "Raro"
+
+msgid "Rarity: %(rarity)s"
+msgstr "Raridade: %(rarity)s"
 
 msgid "Reached goal"
 msgstr "Meta alcançada"
@@ -3372,6 +3465,9 @@ msgstr "Salvar conta"
 
 msgid "Save adjustment"
 msgstr "Salvar o ajuste"
+
+msgid "Save appearance"
+msgstr "Salvar aparência"
 
 msgid "Save as a set"
 msgstr "Salvar como conjunto"
@@ -3780,6 +3876,9 @@ msgstr "Momento surpresa"
 
 msgid "Surprise world"
 msgstr "Mundo surpresa"
+
+msgid "Swap to this item"
+msgstr "Trocar por este item"
 
 msgid "Switch profile"
 msgstr "Mudar de perfil"
@@ -4225,6 +4324,9 @@ msgstr "Este acesso aos convidados já não está disponível."
 msgid "This is a surprise — the result is unknown until all fields are open."
 msgstr "É uma surpresa! Revele todos os campos para descobrir o resultado."
 
+msgid "This item has no equipment slot."
+msgstr "Este item não tem um encaixe."
+
 msgid "This message request has already been used."
 msgstr "Esta solicitação de mensagem já foi usada."
 
@@ -4423,6 +4525,12 @@ msgstr "Túnica de viagem"
 msgid "Treat Chest"
 msgstr "Tratar o tórax"
 
+msgid "Try on"
+msgstr "Experimentar"
+
+msgid "Trying on %(item)s. Your saved look stays the same until you equip it."
+msgstr "Experimentando %(item)s. A aparência salva só muda quando você equipar o item."
+
 msgid "Tue"
 msgstr "Ter"
 
@@ -4456,6 +4564,9 @@ msgstr "Revele os nove campos"
 msgid "Uncover every field to see the result."
 msgstr "Revele todos os campos para ver o resultado."
 
+msgid "Unequip"
+msgstr "Desequipar"
+
 msgid "Unknown device"
 msgstr "Dispositivo desconhecido"
 
@@ -4467,6 +4578,9 @@ msgstr "Catálogo de desbloqueios atualizado."
 
 msgid "Unlock profile"
 msgstr "Desbloquear o perfil"
+
+msgid "Unlocked at level %(level)s"
+msgstr "Desbloqueado no nível %(level)s"
 
 msgid "Unlocked titles and items"
 msgstr "Títulos e itens desbloqueados"
@@ -4542,6 +4656,9 @@ msgstr "Verificar e salvar"
 
 msgid "Version"
 msgstr "Versão"
+
+msgid "Violet"
+msgstr "Violeta"
 
 msgid "Virtual shop"
 msgstr "Loja virtual"
@@ -4776,6 +4893,9 @@ msgstr "A sua mudança de aniversário foi aprovada"
 
 msgid "Your birthday change was rejected"
 msgstr "Sua mudança de aniversário foi rejeitada."
+
+msgid "Your collection is empty."
+msgstr "Sua coleção está vazia."
 
 msgid "Your credit limit kept some points safe."
 msgstr "Seu limite de crédito protegeu parte dos seus pontos."
