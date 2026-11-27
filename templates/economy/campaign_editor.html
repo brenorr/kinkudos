@@ -1,0 +1,34 @@
+{% extends "economy/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Adventure campaigns" %} · {{ project_name }}{% endblock %}
+{% block content %}
+<div class="guardian-workspace adventure-page">
+  <a class="button button-secondary" href="{% url 'parent_campaigns' %}">{% translate "Adventure campaigns" %}</a>
+  {% if latest %}
+    <h1>{% translate "New campaign edition" %}</h1>
+  {% else %}
+    <h1>{% translate "Create campaign" %}</h1>
+  {% endif %}
+  <form method="post" class="stack-form">
+    {% csrf_token %}
+    <section class="panel">
+      {{ definition.as_p }}
+      {% if latest %}<p>{% translate "Adventures already started keep their edition." %}</p>{% endif %}
+    </section>
+    <section class="panel">
+      <h2>{% translate "Chapters" %}</h2>
+      {{ chapters.management_form }}
+      {{ chapters.non_form_errors }}
+      {% for form in chapters %}
+        <details class="adventure-editor-chapter"{% if form.initial or form.errors or forloop.first %} open{% endif %}>
+          <summary>{% blocktranslate with number=forloop.counter %}Chapter {{ number }}{% endblocktranslate %}</summary>
+          <div class="stack-form">
+          {{ form.as_p }}
+          </div>
+        </details>
+      {% endfor %}
+    </section>
+    <button class="button button-primary">{% translate "Publish edition" %}</button>
+  </form>
+</div>
+{% endblock %}

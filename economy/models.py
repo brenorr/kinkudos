@@ -17,7 +17,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import get_language
+from django.utils.translation import get_language, gettext
 from django.utils.translation import gettext_lazy as _
 
 from .device_detection import identify_device
@@ -1461,6 +1461,7 @@ class LevelUnlock(models.Model):
     name = models.CharField(max_length=100)
     minimum_level = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     earned_by_level = models.BooleanField(default=True)
+    campaign_reward = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     slot = models.CharField(max_length=12, choices=CharacterSlot.choices, blank=True)
     visual_key = models.SlugField(max_length=48, blank=True)
@@ -1490,10 +1491,149 @@ class UnlockGrant(models.Model):
     event = models.ForeignKey(
         LevelAdvance, on_delete=models.PROTECT, null=True, blank=True, related_name="grants",
     )
+    campaign_completion = models.ForeignKey(
+        "ChapterCompletion", on_delete=models.PROTECT, null=True, blank=True, related_name="grants",
+    )
     granted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["child", "unlock"], name="unique_level_unlock_per_child")]
+
+
+class AdventureRegion(models.Model):
+    code = models.SlugField(unique=True)
+    name = models.CharField(max_length=100)
+    position = models.PositiveSmallIntegerField(unique=True)
+
+    class Meta:
+        ordering = ["position"]
+
+    def __str__(self):
+        return str(_(self.name))
+
+
+class Campaign(models.Model):
+    code = models.SlugField(unique=True)
+
+
+class CampaignEdition(models.Model):
+    campaign = models.ForeignKey(Campaign, on_delete=models.PROTECT, related_name="editions")
+    number = models.PositiveIntegerField(default=1)
+    title = models.CharField(max_length=100)
+    description = models.CharField(max_length=400, blank=True)
+    is_builtin = models.BooleanField(default=False)
+
+    @property
+    def display_title(self):
+        return self.display_text(self.title)
+
+    @property
+    def display_description(self):
+        return self.display_text(self.description)
+
+    def display_text(self, text):
+        return gettext(text) if self.is_builtin and text else text
+
+    class Meta:
+        ordering = ["campaign_id", "-number"]
+        constraints = [
+            models.UniqueConstraint(fields=["campaign", "number"], name="unique_campaign_edition_number"),
+        ]
+
+
+class CampaignChapter(models.Model):
+    edition = models.ForeignKey(CampaignEdition, on_delete=models.PROTECT, related_name="chapters")
+    region = models.ForeignKey(AdventureRegion, on_delete=models.PROTECT)
+    position = models.PositiveSmallIntegerField()
+    title = models.CharField(max_length=100)
+    opening = models.CharField(max_length=800)
+    npc = models.CharField(max_length=80, blank=True)
+    dialogue = models.CharField(max_length=400, blank=True)
+    reward = models.ForeignKey(LevelUnlock, on_delete=models.PROTECT, null=True, blank=True)
+
+    @property
+    def display_title(self):
+        return self.edition.display_text(self.title)
+
+    @property
+    def display_opening(self):
+        return self.edition.display_text(self.opening)
+
+    @property
+    def display_npc(self):
+        return self.edition.display_text(self.npc)
+
+    @property
+    def display_dialogue(self):
+        return self.edition.display_text(self.dialogue)
+
+    class Meta:
+        ordering = ["position"]
+        constraints = [
+            models.UniqueConstraint(fields=["edition", "position"], name="unique_campaign_chapter_position"),
+        ]
+
+
+class CampaignActivityKind(models.TextChoices):
+    MISSION = "mission", _("Mission")
+    STORY = "story", _("Narrated session")
+
+
+class CampaignRequirement(models.Model):
+    chapter = models.ForeignKey(CampaignChapter, on_delete=models.PROTECT, related_name="requirements")
+    kind = models.CharField(max_length=8, choices=CampaignActivityKind.choices)
+
+    class Meta:
+        ordering = ["pk"]
+
+
+class CampaignRunStatus(models.TextChoices):
+    ACTIVE = "active", _("Adventure in progress")
+    PAUSED = "paused", _("Adventure paused")
+    FINISHED = "finished", _("Adventure completed")
+
+
+class CampaignRun(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.PROTECT, related_name="campaign_runs")
+    campaign = models.ForeignKey(Campaign, on_delete=models.PROTECT)
+    edition = models.ForeignKey(CampaignEdition, on_delete=models.PROTECT, related_name="runs")
+    status = models.CharField(max_length=8, choices=CampaignRunStatus.choices, default=CampaignRunStatus.ACTIVE)
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["child", "campaign"], name="unique_campaign_run_per_child"),
+        ]
+
+
+class CampaignActivity(models.Model):
+    run = models.ForeignKey(CampaignRun, on_delete=models.PROTECT, related_name="activities")
+    requirement = models.ForeignKey(CampaignRequirement, on_delete=models.PROTECT)
+    mission = models.OneToOneField(MissionOccurrence, on_delete=models.PROTECT, null=True, blank=True)
+    story = models.OneToOneField(StorySession, on_delete=models.PROTECT, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["run", "requirement"], name="unique_campaign_activity_per_requirement"),
+            models.CheckConstraint(
+                condition=(Q(mission__isnull=False, story__isnull=True) | Q(mission__isnull=True, story__isnull=False)),
+                name="campaign_activity_has_one_source",
+            ),
+        ]
+
+
+class ChapterCompletion(models.Model):
+    run = models.ForeignKey(CampaignRun, on_delete=models.PROTECT, related_name="completions")
+    chapter = models.ForeignKey(CampaignChapter, on_delete=models.PROTECT)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["chapter__position"]
+        constraints = [
+            models.UniqueConstraint(fields=["run", "chapter"], name="unique_campaign_chapter_completion"),
+        ]
 
 
 class EquippedCosmetic(models.Model):

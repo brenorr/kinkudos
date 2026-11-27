@@ -118,7 +118,7 @@ def purchase_cosmetic(*, child, offer, token, confirmed_price):
 
     offer = VirtualOffer.objects.select_related("unlock").get(pk=offer.pk)
     item = offer.unlock
-    if not offer.is_active or not item.is_active or item.earned_by_level or item.kind != UnlockKind.COSMETIC:
+    if not offer.is_active or not item.is_active or item.earned_by_level or item.campaign_reward or item.kind != UnlockKind.COSMETIC:
         raise ValidationError(_("This cosmetic is not available to buy."))
     if confirmed_price != offer.cost:
         raise ValidationError(_("The price changed. Review the offer again."))

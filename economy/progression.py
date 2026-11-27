@@ -65,7 +65,7 @@ def practiced_skills(child):
 def grant_eligible_unlocks(child, level, *, event=None, using=None):
     granted = UnlockGrant.objects.using(using).filter(child=child).values("unlock_id")
     candidates = LevelUnlock.objects.using(using).filter(
-        is_active=True, earned_by_level=True, minimum_level__lte=level,
+        is_active=True, earned_by_level=True, campaign_reward=False, minimum_level__lte=level,
     ).exclude(pk__in=granted)
     return UnlockGrant.objects.using(using).bulk_create([
         UnlockGrant(child=child, unlock=unlock, required_level=unlock.minimum_level, event=event)

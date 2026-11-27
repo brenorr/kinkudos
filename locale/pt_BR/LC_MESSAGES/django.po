@@ -10,6 +10,9 @@ msgstr "%(amount)s pontos guardados serão devolvidos ao saldo disponível de %(
 msgid "%(current)s of %(target)s XP in this level"
 msgstr "%(current)s de %(target)s XP neste nível"
 
+msgid "%(done)s of %(total)s chapters completed"
+msgstr "%(done)s de %(total)s capítulos concluídos"
+
 msgid "%(family)s – guest access"
 msgstr "%(family)s – acesso aos convidados"
 
@@ -73,6 +76,9 @@ msgstr "Uma mudança de aniversário já está à espera da aprovação dos resp
 msgid "A birthday change is awaiting approval"
 msgstr "Uma mudança de aniversário está aguardando aprovação"
 
+msgid "A chapter needs at least one mission or narrated session."
+msgstr "Cada capítulo precisa de pelo menos uma missão ou sessão narrada."
+
 msgid "A child asked for help with a mission"
 msgstr "Uma criança pediu ajuda em uma missão"
 
@@ -84,6 +90,9 @@ msgstr "Já foi registrada uma escolha para este trecho."
 
 msgid "A different theme will be selected automatically once a day."
 msgstr "Um tema diferente será selecionado automaticamente uma vez por dia."
+
+msgid "A guide asks you to prepare a bag before leaving the village."
+msgstr "Uma guia pede que você prepare a mochila antes de sair da vila."
 
 msgid "A new suggestion is awaiting approval"
 msgstr "Uma nova sugestão aguarda aprovação"
@@ -103,6 +112,9 @@ msgstr "É necessária uma razão."
 msgid "A rejection reason is required."
 msgstr "É necessária uma razão de rejeição."
 
+msgid "A replacement mission is needed."
+msgstr "É preciso escolher outra missão."
+
 msgid "A reward is awaiting approval"
 msgstr "Uma recompensa aguarda aprovação"
 
@@ -111,6 +123,9 @@ msgstr "Uma chave secreta única. Abra-o no dispositivo da criança — então e
 
 msgid "A shared family space"
 msgstr "Um espaço familiar compartilhado"
+
+msgid "A small bridge leads across the stream and into the forest."
+msgstr "Uma pequena ponte atravessa o riacho e leva à floresta."
 
 msgid "A surprise card can be bought only with %(cost)s points you have earned."
 msgstr "Um cartão surpresa só pode ser comprado com %(cost)s pontos que você ganhou."
@@ -126,6 +141,9 @@ msgstr "Sobre o crédito"
 
 msgid "About surprise cards"
 msgstr "Sobre cartões surpresa"
+
+msgid "Academy of Magic"
+msgstr "Academia de Magia"
 
 msgid "Access"
 msgstr "Acesso"
@@ -223,14 +241,35 @@ msgstr "Ajuste"
 msgid "Admin login by IP"
 msgstr "Autenticação do administrador por IP"
 
+msgid "Adventure campaigns"
+msgstr "Campanhas de aventura"
+
+msgid "Adventure completed"
+msgstr "Aventura concluída"
+
+msgid "Adventure in progress"
+msgstr "Aventura em andamento"
+
+msgid "Adventure map"
+msgstr "Mapa de aventuras"
+
 msgid "Adventure message"
 msgstr "Mensagem de aventura"
+
+msgid "Adventure paused"
+msgstr "Aventura pausada"
+
+msgid "Adventure regions"
+msgstr "Regiões do mapa"
 
 msgid "Adventurer"
 msgstr "Aventureiro"
 
 msgid "Adventurer cape"
 msgstr "Capa de aventura"
+
+msgid "Adventures already started keep their edition."
+msgstr "As aventuras já iniciadas mantêm a edição original."
 
 msgid "After"
 msgstr "Após"
@@ -325,6 +364,9 @@ msgstr "Aplicar"
 msgid "Apprentice"
 msgstr "Aprendiz"
 
+msgid "Apprentices' Village"
+msgstr "Vila dos Aprendizes"
+
 msgid "Approve"
 msgstr "Aprovar"
 
@@ -364,8 +406,17 @@ msgstr "Pedir ajuda novamente"
 msgid "Ask to improve"
 msgstr "Pedir para melhorar"
 
+msgid "Ask your guardian to start an adventure with you."
+msgstr "Convide seu guardião para começar uma aventura com você."
+
 msgid "Assign"
 msgstr "Atribuir"
+
+msgid "Assign a catalog task"
+msgstr "Atribuir uma tarefa do catálogo"
+
+msgid "Assign and link"
+msgstr "Atribuir e vincular"
 
 msgid "Assign penalty"
 msgstr "Atribuir penalidade"
@@ -607,6 +658,15 @@ msgstr "Câmera"
 msgid "Camp lantern"
 msgstr "Lanterna de acampamento"
 
+msgid "Campaign"
+msgstr "Campanha"
+
+msgid "Campaign catalog"
+msgstr "Catálogo de campanhas"
+
+msgid "Campaign edition published."
+msgstr "Edição da campanha publicada."
+
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -693,6 +753,18 @@ msgstr "Changelog"
 
 msgid "Changelog pages"
 msgstr "Páginas do Changelog"
+
+msgid "Chapter %(number)s"
+msgstr "Capítulo %(number)s"
+
+msgid "Chapter cosmetic"
+msgstr "Cosmético do capítulo"
+
+msgid "Chapter opening"
+msgstr "Abertura do capítulo"
+
+msgid "Chapters"
+msgstr "Capítulos"
 
 msgid "Character appearance saved."
 msgstr "Aparência do personagem salva."
@@ -874,8 +946,23 @@ msgstr "Escolha um dia do mês entre 1 e 31."
 msgid "Choose a message type and mission for this child."
 msgstr "Escolha um tipo de mensagem e uma missão desta criança."
 
+msgid "Choose a mission for this child."
+msgstr "Escolha uma missão desta criança."
+
+msgid "Choose a mission that can still be completed."
+msgstr "Escolha uma missão que ainda possa ser concluída."
+
 msgid "Choose a profile"
 msgstr "Escolha um perfil"
+
+msgid "Choose a published campaign edition."
+msgstr "Escolha uma edição publicada da campanha."
+
+msgid "Choose a requirement from the current chapter."
+msgstr "Escolha um requisito do capítulo atual."
+
+msgid "Choose a requirement from this campaign."
+msgstr "Escolha um requisito desta campanha."
 
 msgid "Choose a reward"
 msgstr "Escolha uma recompensa"
@@ -888,6 +975,9 @@ msgstr "Escolha um modo de economia para esta meta."
 
 msgid "Choose a scene or free mode"
 msgstr "Escolher cena pronta ou modo livre"
+
+msgid "Choose a session for this child."
+msgstr "Escolha uma sessão desta criança."
 
 msgid "Choose a task"
 msgstr "Escolha uma tarefa"
@@ -915,6 +1005,9 @@ msgstr "Escolher um mundo"
 
 msgid "Choose an active behavior category."
 msgstr "Escolha uma categoria ativa."
+
+msgid "Choose an activity for the chapter."
+msgstr "Escolha uma atividade para o capítulo."
 
 msgid "Choose an emoji or enter one using your device keyboard."
 msgstr "Escolha um emoji ou digite um usando o teclado do dispositivo."
@@ -1168,6 +1261,9 @@ msgstr "Consequências e incentivos"
 msgid "Continue"
 msgstr "Continuar"
 
+msgid "Continue adventure"
+msgstr "Continuar aventura"
+
 msgid "Continue uncovering"
 msgstr "Continuar a descobrir"
 
@@ -1243,6 +1339,9 @@ msgstr "Criar conta"
 msgid "Create and manage temporary guest access."
 msgstr "Crie e gerencie o acesso temporário de convidados."
 
+msgid "Create campaign"
+msgstr "Criar campanha"
+
 msgid "Create guest PIN"
 msgstr "Criar PIN de convidado"
 
@@ -1306,6 +1405,9 @@ msgstr "Crédito:"
 msgid "Cross the bridge"
 msgstr "Atravessar a ponte"
 
+msgid "Crystal Valley"
+msgstr "Vale dos Cristais"
+
 msgid "Crystal staff"
 msgstr "Cajado de cristal"
 
@@ -1323,6 +1425,9 @@ msgstr "Endereço IP atual"
 
 msgid "Current PIN"
 msgstr "PIN atual"
+
+msgid "Current chapter"
+msgstr "Capítulo atual"
 
 msgid "Current code"
 msgstr "Código atual"
@@ -1477,6 +1582,9 @@ msgstr "Nome do dispositivo salvo."
 msgid "Device pairing"
 msgstr "Pareamento de dispositivos"
 
+msgid "Dialogue"
+msgstr "Diálogo"
+
 msgid "Difficulty"
 msgstr "Dificuldade"
 
@@ -1513,11 +1621,17 @@ msgstr "Druida"
 msgid "Each child receives this many points once a year on their birthday. Use 0 to disable birthday gifts."
 msgstr "Cada criança recebe tantos pontos uma vez por ano em seu aniversário. Use 0 para desativar presentes de aniversário."
 
+msgid "Earned on an adventure"
+msgstr "Ganho em uma aventura"
+
 msgid "Edit"
 msgstr "Editar"
 
 msgid "Edit accounts"
 msgstr "Editar contas"
+
+msgid "Edit as a new edition"
+msgstr "Editar como nova edição"
 
 msgid "Edit child profile"
 msgstr "Editar perfil da criança"
@@ -1533,6 +1647,9 @@ msgstr "Editar conta de responsável"
 
 msgid "Edit settings"
 msgstr "Editar configurações"
+
+msgid "Edition %(number)s"
+msgstr "Edição %(number)s"
 
 msgid "Email"
 msgstr "E-mail"
@@ -1584,6 +1701,9 @@ msgstr "Ativar as cartas surpresas para esta criança"
 
 msgid "Enabled"
 msgstr "Ativado"
+
+msgid "Enchanted Forest"
+msgstr "Floresta Encantada"
 
 msgid "Enchanted Surprise"
 msgstr "Surpresa encantada"
@@ -1638,6 +1758,9 @@ msgstr "Digite um intervalo de datas válido."
 
 msgid "Enter a valid point amount."
 msgstr "Digite um valor de ponto válido."
+
+msgid "Enter both the character and their dialogue."
+msgstr "Preencha o nome do personagem e sua fala."
 
 msgid "Enter both the custom task name and its point amount."
 msgstr "Indique o nome da tarefa personalizada e a sua quantidade de pontos."
@@ -1719,6 +1842,12 @@ msgstr "Galeões de troca"
 
 msgid "Existing accounts"
 msgstr "Contas existentes"
+
+msgid "Existing mission"
+msgstr "Missão existente"
+
+msgid "Existing narrated session"
+msgstr "Sessão narrada existente"
 
 msgid "Experiments with mixtures and invents tools."
 msgstr "Experimenta misturas e inventa ferramentas."
@@ -1864,6 +1993,9 @@ msgstr "Esqueceu a senha?"
 msgid "Fox companion"
 msgstr "Raposa companheira"
 
+msgid "Fox keeper"
+msgstr "Raposa sentinela"
+
 msgid "Free mode"
 msgstr "Modo livre"
 
@@ -1990,6 +2122,9 @@ msgstr "Mural dos guardiões"
 msgid "Guardians"
 msgstr "Guardiões"
 
+msgid "Guardians' Mountain"
+msgstr "Montanha dos Guardiões"
+
 msgid "Guest access"
 msgstr "Acesso de convidados"
 
@@ -2061,6 +2196,9 @@ msgstr "Retrato de herói"
 
 msgid "Hero profile"
 msgstr "Perfil do herói"
+
+msgid "Heroes' Castle"
+msgstr "Castelo dos Heróis"
 
 msgid "Hi! I'm sharing temporary access to our family space. This is a temporary sign-in link — keep it private. After you open it, create your own PIN so you can approve requests and assign day-to-day tasks."
 msgstr "Olá! Estou a compartilhar o acesso temporário ao nosso espaço familiar. Este é um link de entrada temporária — mantenha-o privado. Depois de abri-lo, crie seu próprio PIN para que você possa aprovar solicitações e atribuir tarefas diárias."
@@ -2263,6 +2401,12 @@ msgstr "Nível %(level)s"
 msgid "Level unlock catalog"
 msgstr "Catálogo de desbloqueios por nível"
 
+msgid "Link activity"
+msgstr "Vincular atividade"
+
+msgid "Link an existing activity"
+msgstr "Vincular uma atividade existente"
+
 msgid "Link expires"
 msgstr "O link expira"
 
@@ -2361,6 +2505,9 @@ msgstr "Saldo mínimo"
 
 msgid "Minimum hours between redemptions"
 msgstr "Intervalo mínimo entre resgates, em horas"
+
+msgid "Mission"
+msgstr "Missão"
 
 msgid "Mission Log"
 msgstr "Registro da Missão"
@@ -2461,6 +2608,9 @@ msgstr "Caixa misteriosa"
 msgid "Narrate the session"
 msgstr "Narrar a sessão"
 
+msgid "Narrated session"
+msgstr "Sessão narrada"
+
 msgid "Narrated sessions"
 msgstr "Sessões narradas"
 
@@ -2520,6 +2670,9 @@ msgstr "Novo avatar"
 
 msgid "New balance: {balance}."
 msgstr "Novo saldo: {balance}."
+
+msgid "New campaign edition"
+msgstr "Nova edição da campanha"
 
 msgid "New category"
 msgstr "Nova categoria"
@@ -2595,6 +2748,9 @@ msgstr "Nenhuma atividade corresponde a estes filtros."
 
 msgid "No approved redemptions."
 msgstr "Nenhum resgate aprovado."
+
+msgid "No chapter here yet."
+msgstr "Ainda não há um capítulo aqui."
 
 msgid "No child devices are paired yet."
 msgstr "Nenhum dispositivo infantil ainda está pareado."
@@ -2872,6 +3028,9 @@ msgstr "Teclado PIN"
 msgid "PIN locked"
 msgstr "PIN bloqueado"
 
+msgid "Pack an explorer's bag"
+msgstr "Prepare uma mochila de exploração"
+
 msgid "Page"
 msgstr "Página"
 
@@ -2985,6 +3144,9 @@ msgstr "Reiniciar senha por conta"
 
 msgid "Pause"
 msgstr "Pausar"
+
+msgid "Pause adventure"
+msgstr "Pausar aventura"
 
 msgid "Pause session"
 msgstr "Pausar sessão"
@@ -3127,6 +3289,9 @@ msgstr "Elogio"
 msgid "Praise for the wall (optional)"
 msgstr "Elogio para o mural (opcional)"
 
+msgid "Prepare for an adventure and find out who is waiting at the forest bridge."
+msgstr "Prepare-se para a aventura e descubra quem está esperando na ponte da floresta."
+
 msgid "Prerequisite mission"
 msgstr "Missão necessária"
 
@@ -3192,6 +3357,9 @@ msgstr "Protege o grupo durante as aventuras."
 
 msgid "Provider"
 msgstr "Fornecedor"
+
+msgid "Publish edition"
+msgstr "Publicar edição"
 
 msgid "Publish passage"
 msgstr "Publicar trecho"
@@ -3294,6 +3462,15 @@ msgstr "Moedas devolvidas"
 
 msgid "Region"
 msgstr "Região"
+
+msgid "Region locked"
+msgstr "Região bloqueada"
+
+msgid "Region open"
+msgstr "Região aberta"
+
+msgid "Regions and adventure history"
+msgstr "Regiões e histórico da aventura"
 
 msgid "Reject"
 msgstr "Rejeitar"
@@ -3418,6 +3595,12 @@ msgstr "Necessário antes de alterar o acesso à rede."
 msgid "Required before changing sensitive email settings."
 msgstr "Necessário antes de alterar as configurações de email sensíveis."
 
+msgid "Required missions"
+msgstr "Missões obrigatórias"
+
+msgid "Required narrated sessions"
+msgstr "Sessões narradas obrigatórias"
+
 msgid "Requires approval"
 msgstr "Exige aprovação"
 
@@ -3453,6 +3636,9 @@ msgstr "Restrinja o acesso das crianças"
 
 msgid "Resume"
 msgstr "Retomar"
+
+msgid "Resume adventure"
+msgstr "Retomar aventura"
 
 msgid "Resume session"
 msgstr "Retomar sessão"
@@ -3976,8 +4162,17 @@ msgstr "Chapéu estrelado"
 msgid "Starlit theme"
 msgstr "Tema céu estrelado"
 
+msgid "Start a campaign"
+msgstr "Iniciar uma campanha"
+
+msgid "Start adventure"
+msgstr "Começar aventura"
+
 msgid "Start an RPG session"
 msgstr "Iniciar sessão de RPG"
+
+msgid "Start and link"
+msgstr "Iniciar e vincular"
 
 msgid "Start session"
 msgstr "Iniciar sessão"
@@ -3993,6 +4188,9 @@ msgstr "Etapa"
 
 msgid "Storage provider"
 msgstr "Prestador de armazenamento"
+
+msgid "Story character"
+msgstr "Personagem da história"
 
 msgid "Story mode"
 msgstr "Modo de narrativa"
@@ -4111,6 +4309,9 @@ msgstr "Retirar do baú"
 msgid "Take photo"
 msgstr "Tirar uma foto"
 
+msgid "Take what you need for the trail. We can take it one step at a time."
+msgstr "Leve o que vai precisar na trilha. Podemos fazer isso um passo de cada vez."
+
 msgid "Talk to the fox"
 msgstr "Conversar com a raposa"
 
@@ -4131,6 +4332,9 @@ msgstr "Tarefa aprovada. Foram creditadas %(amount)s moedas."
 
 msgid "Task finished"
 msgstr "Tarefa terminada"
+
+msgid "Task from the catalog"
+msgstr "Tarefa do catálogo"
 
 msgid "Task name"
 msgstr "Nome da tarefa"
@@ -4263,6 +4467,9 @@ msgstr "Os cartões surpresa também precisam estar ativados nas configurações
 
 msgid "The forest bridge"
 msgstr "A ponte da floresta"
+
+msgid "The forest trail"
+msgstr "A trilha da floresta"
 
 msgid "The gift amount must be greater than zero."
 msgstr "A quantia do presente deve ser maior que zero."
@@ -4480,6 +4687,9 @@ msgstr "Estes pontos estarão novamente disponíveis para recompensas."
 msgid "These points will no longer be available for rewards."
 msgstr "Estes pontos não estarão mais disponíveis para recompensas."
 
+msgid "This activity already belongs to another requirement."
+msgstr "Esta atividade já pertence a outro requisito."
+
 msgid "This assigned task has expired."
 msgstr "Esta tarefa atribuída expirou."
 
@@ -4606,11 +4816,17 @@ msgstr "Esta solicitação de compra já foi usada com dados diferentes."
 msgid "This redemption exceeds the monthly family budget."
 msgstr "Este resgate ultrapassa o orçamento familiar do mês."
 
+msgid "This region opens when an adventure reaches its first chapter here."
+msgstr "A região abre quando uma aventura chega ao primeiro capítulo neste local."
+
 msgid "This request has already been resolved."
 msgstr "Este pedido já foi resolvido."
 
 msgid "This request uses a different family currency."
 msgstr "Este pedido usa outra moeda no orçamento familiar."
+
+msgid "This requirement already has an activity."
+msgstr "Este requisito já tem uma atividade."
 
 msgid "This reset link is no longer valid or has already been used."
 msgstr "Este link para redefinir a senha não é mais válido ou já foi usado."
@@ -4756,6 +4972,9 @@ msgstr "Muitas tentativas de assinar. Tenta outra vez mais tarde."
 msgid "Total debit"
 msgstr "Débito total"
 
+msgid "Trail brooch"
+msgstr "Broche da trilha"
+
 msgid "Transaction reversed."
 msgstr "Transação estornada."
 
@@ -4897,6 +5116,9 @@ msgstr "Verificar e salvar"
 msgid "Version"
 msgstr "Versão"
 
+msgid "Village guide"
+msgstr "Guia da vila"
+
 msgid "Violet"
 msgstr "Violeta"
 
@@ -4926,6 +5148,9 @@ msgstr "À espera dos construtores"
 
 msgid "Waiting for the director"
 msgstr "À espera do diretor."
+
+msgid "Waiting for the guardian to link an activity."
+msgstr "Esperando o guardião vincular uma atividade."
 
 msgid "Waiting for the panda keepers"
 msgstr "À espera dos anfitriões"
@@ -5001,6 +5226,9 @@ msgstr "O que está arranjado?"
 
 msgid "What's new?"
 msgstr "O que há de novo?"
+
+msgid "Where are you going, explorer?"
+msgstr "Aonde você vai, explorador?"
 
 msgid "Who is earning points today?"
 msgstr "Quem ganha pontos hoje?"

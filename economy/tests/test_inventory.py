@@ -168,7 +168,7 @@ class CharacterInventoryTests(TestCase):
 
     def test_catalog_cosmetics_have_packaged_artwork(self):
         cosmetics = LevelUnlock.objects.filter(kind="cosmetic").exclude(visual_key="")
-        self.assertEqual(cosmetics.count(), 10)
+        self.assertEqual(cosmetics.count(), 11)
         for cosmetic in cosmetics:
             with self.subTest(cosmetic=cosmetic.code):
                 self.assertTrue(item_visual(cosmetic))

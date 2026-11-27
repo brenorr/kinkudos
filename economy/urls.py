@@ -116,6 +116,7 @@ from .views import (
     submit_feedback,
     task_evidence,
 )
+from .views import campaigns as campaign_views
 from .views import guardians as guardian_views
 from .views.character import child_change_equipment, child_character, child_preview_cosmetic
 
@@ -228,6 +229,9 @@ urlpatterns = [
     ),
     path("child/", child_select, name="child_select"),
     path("child/home/", child_dashboard, name="child_dashboard"),
+    path("child/adventures/", campaign_views.child_adventures, name="child_adventures"),
+    path("child/adventures/state/", campaign_views.child_adventure_state, name="child_adventure_state"),
+    path("child/adventures/run/<int:run_id>/", campaign_views.child_campaign_run_action, name="child_campaign_run_action"),
     path("child/guardians/", guardian_views.child_guardian_wall, name="child_guardian_wall"),
     path("child/guardians/avatar/<int:profile_id>/", guardian_views.child_guardian_avatar, name="child_guardian_avatar"),
     path("child/story/<int:session_id>/", guardian_views.child_story, name="child_story"),
@@ -310,6 +314,14 @@ urlpatterns = [
     path("child/pin/", child_change_pin, name="child_change_pin"),
     path("child/avatar/", child_set_avatar, name="child_set_avatar"),
     path("parents/", parent_dashboard, name="parent_dashboard"),
+    path("parents/adventures/", campaign_views.parent_campaigns, name="parent_campaigns"),
+    path("parents/adventures/create/", campaign_views.parent_campaign_editor, name="parent_campaign_create"),
+    path("parents/adventures/edit/<int:campaign_id>/", campaign_views.parent_campaign_editor, name="parent_campaign_edit"),
+    path("parents/adventures/child/<int:child_id>/", campaign_views.parent_campaign_child, name="parent_campaign_child"),
+    path("parents/adventures/child/<int:child_id>/run/<int:run_id>/", campaign_views.parent_campaign_run_action,
+         name="parent_campaign_run_action"),
+    path("parents/adventures/child/<int:child_id>/run/<int:run_id>/step/<int:requirement_id>/",
+         campaign_views.parent_campaign_link, name="parent_campaign_link"),
     path("parents/guardians/", guardian_views.parent_guardians, name="parent_guardians"),
     path("parents/guardians/profile/", guardian_views.parent_guardian_profile, name="parent_guardian_profile"),
     path("parents/guardians/child/<int:child_id>/", guardian_views.parent_guardian_child, name="parent_guardian_child"),

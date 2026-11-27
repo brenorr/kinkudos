@@ -1,0 +1,60 @@
+{% load economy_tags i18n %}
+<div class="adventure-step">
+  <h3>{{ step.requirement.get_kind_display }} {{ step.number }}</h3>
+  {% if step.activity.mission_id %}
+    {% with mission=step.activity.mission %}
+      {% if step.available %}
+        {% if parent_view %}
+          <p>{{ mission.title }} · {{ mission.get_status_display }}</p>
+        {% else %}
+          <a href="{% url 'child_mission' mission.pk %}">{% if mission.is_surprise and not step.complete %}{% translate "Reveal mission" %}{% else %}{{ mission.title }}{% endif %}</a>
+          <p>{{ mission.get_status_display }}</p>
+        {% endif %}
+        {% if step.replaceable %}<p>{% translate "A replacement mission is needed." %}</p>{% endif %}
+      {% else %}
+        <p>{% if parent_view %}{{ mission.title }} · {% endif %}{% translate "Available on" %} {{ mission.local_date|date:"SHORT_DATE_FORMAT" }}</p>
+      {% endif %}
+    {% endwith %}
+  {% elif step.activity.story_id %}
+    {% with story=step.activity.story %}
+      {% if parent_view and request.user.pk == story.narrator_id %}
+        <a href="{% url 'parent_story' story.pk %}">{{ story.title }}</a>
+      {% elif not parent_view %}
+        <a href="{% url 'child_story' story.pk %}">{{ story.title }}</a>
+      {% else %}
+        <p>{{ story.title }}</p>
+      {% endif %}
+      <p>{{ story.get_status_display }} · {{ story.narrator|guardian_display_name }}</p>
+      {% if story.summary %}{{ story.summary|linebreaks }}{% endif %}
+    {% endwith %}
+  {% else %}
+    <p>{% translate "Waiting for the guardian to link an activity." %}</p>
+  {% endif %}
+  {% if step.link_form %}
+    <details>
+      <summary>{% translate "Link an existing activity" %}</summary>
+      <form method="post" class="stack-form" action="{% url 'parent_campaign_link' child.pk run.pk step.requirement.pk %}">
+        {% csrf_token %}
+        {{ step.link_form.as_p }}
+        <button class="button button-secondary" name="action" value="link">{% translate "Link activity" %}</button>
+      </form>
+    </details>
+    {% if step.create_form %}
+      <details>
+        <summary>{% if step.requirement.kind == "mission" %}{% translate "Assign a catalog task" %}{% else %}{% translate "Start an RPG session" %}{% endif %}</summary>
+        <form method="post" class="stack-form" action="{% url 'parent_campaign_link' child.pk run.pk step.requirement.pk %}">
+          {% csrf_token %}
+          {{ step.create_form.as_p }}
+          <button class="button button-secondary" name="action" value="create">
+            {% if step.requirement.kind == "mission" %}{% translate "Assign and link" %}{% else %}{% translate "Start and link" %}{% endif %}
+          </button>
+        </form>
+      </details>
+    {% endif %}
+    {% if step.requirement.kind == "mission" %}
+      <p><a href="{% url 'parent_guardian_child' child.pk %}">{% translate "Create a mission" %}</a></p>
+    {% elif step.open_story and request.user.pk == step.open_story.narrator_id %}
+      <p><a href="{% url 'parent_story' step.open_story.pk %}">{% translate "Open session" %}</a></p>
+    {% endif %}
+  {% endif %}
+</div>

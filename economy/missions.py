@@ -105,6 +105,7 @@ def transition(occurrence, allowed, target, **updates):
 
 
 def finalize(occurrence, *, allowed, actor=None, bonus=0):
+    from .campaigns import activity_finished
     from .services import credit_occurrence, ensure_task_completion
 
     completed_at = timezone.now()
@@ -120,6 +121,7 @@ def finalize(occurrence, *, allowed, actor=None, bonus=0):
     ensure_task_completion(
         child=occurrence.child, task=occurrence.task, completed_on=occurrence.local_date,
     )
+    activity_finished("mission", occurrence.pk)
     return result
 
 

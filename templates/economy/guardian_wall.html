@@ -11,6 +11,7 @@
     <a class="button button-secondary" href="{% url 'parent_guardians' %}">{% translate "Guardians" %}</a>
   {% endif %}
   <h1>{% translate "Guardian wall" %} · {{ child.name }}</h1>
+  {% if not child_view %}<p><a class="button button-secondary" href="{% url 'parent_campaign_child' child.pk %}">{% translate "Adventure campaigns" %}</a></p>{% endif %}
 
   {% if not child_view %}
     <section class="panel" id="start-story">

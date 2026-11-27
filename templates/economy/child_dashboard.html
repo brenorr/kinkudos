@@ -22,6 +22,7 @@
       <p class="child-greeting-supporting">{% translate "Ready for today's tasks?" %}</p>
       <p class="child-greeting-supporting"><a href="#progression">{% blocktranslate with level=progress.level %}Level {{ level }}{% endblocktranslate %}</a> · {{ experience_total }} {% translate "XP" %}</p>
       <p class="child-character-link"><a class="button button-secondary" href="{% url 'child_character' %}">{% translate "My character" %}</a>{% if equipped_title %} <strong>{{ equipped_title.grant.unlock }}</strong>{% endif %}</p>
+      <p><a class="button button-secondary" href="{% url 'child_adventures' %}">{% translate "Adventure map" %}</a></p>
     </div>
   </div>
   <div class="balance-orb" aria-label="{% translate "Coin balance" %}"><strong>{{ child.balance }}</strong><span>{{ child.balance|currency_unit:child.theme }}</span></div>
@@ -449,7 +450,7 @@
     {% endif %}
     {% if unlock_grants %}
       <h3>{% translate "Unlocked titles and items" %}</h3>
-      <ul>{% for grant in unlock_grants %}<li>{{ grant.unlock }} · {{ grant.unlock.get_kind_display }} · {% if grant.purchase_entry_id %}{% translate "Acquired in the virtual shop" %}{% else %}{% blocktranslate with level=grant.required_level %}Level {{ level }}{% endblocktranslate %}{% endif %}</li>{% endfor %}</ul>
+      <ul>{% for grant in unlock_grants %}<li>{{ grant.unlock }} · {{ grant.unlock.get_kind_display }}{% if grant.purchase_entry_id %} · {% translate "Acquired in the virtual shop" %}{% elif grant.campaign_completion_id %} · {% translate "Earned on an adventure" %}{% elif grant.required_level %} · {% blocktranslate with level=grant.required_level %}Level {{ level }}{% endblocktranslate %}{% endif %}</li>{% endfor %}</ul>
     {% endif %}
     {% if practiced_skills %}
       <h3>{% translate "Skills practiced" %}</h3>

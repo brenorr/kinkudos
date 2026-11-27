@@ -5,7 +5,7 @@
       <span class="item-icon" aria-hidden="true">{% include "economy/includes/character_visual.html" with item=item only %}</span>
       <div>
         <h4>{{ unlock }}</h4>
-        <p>{% if grant.purchase_entry_id %}{% translate "Acquired in the virtual shop" %}{% elif grant.required_level %}{% blocktranslate with level=grant.required_level %}Unlocked at level {{ level }}{% endblocktranslate %}{% endif %}</p>
+        <p>{% if grant.purchase_entry_id %}{% translate "Acquired in the virtual shop" %}{% elif grant.campaign_completion_id %}{% translate "Earned on an adventure" %}{% elif grant.required_level %}{% blocktranslate with level=grant.required_level %}Unlocked at level {{ level }}{% endblocktranslate %}{% endif %}</p>
       </div>
     </div>
     {% if item.equipped %}<p class="status-pill">{% translate "Equipped" %}</p>{% endif %}

@@ -125,7 +125,7 @@ def child_dashboard(request):
     rewards = list(Reward.objects.filter(is_active=True, is_deleted=False)) if real_shop_enabled else []
     owned_ids = set(child.unlock_grants.values_list("unlock_id", flat=True))
     offers = list(VirtualOffer.objects.filter(
-        is_active=True, unlock__is_active=True, unlock__earned_by_level=False,
+        is_active=True, unlock__is_active=True, unlock__earned_by_level=False, unlock__campaign_reward=False,
     ).select_related("unlock").order_by("category", "unlock__name"))
     for offer in offers:
         offer.owned = offer.unlock_id in owned_ids

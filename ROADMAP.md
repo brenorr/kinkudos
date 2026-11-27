@@ -538,6 +538,12 @@ aprovação de conquistas depende da Fase 11.
 
 Criar um mundo visual onde o personagem evolui conforme realiza missões.
 
+O mapa usa missões e sessões narradas como requisitos de capítulos e
+guarda a edição e o progresso por criança. A campanha inicial percorre
+a Vila dos Aprendizes e a Floresta Encantada. As outras regiões ficam
+disponíveis para configurar novos capítulos.
+[Plano técnico e entrega](docs/CAMPAIGNS_PLAN.md)
+
 ## Regiões iniciais
 
 1. Vila dos Aprendizes.
@@ -549,16 +555,15 @@ Criar um mundo visual onde o personagem evolui conforme realiza missões.
 
 ## Funcionalidades
 
-- [ ] Mapa interativo.
-- [ ] Regiões desbloqueáveis.
-- [ ] Campanhas configuráveis.
-- [ ] Capítulos narrativos.
-- [ ] Personagens NPC.
-- [ ] Missões vinculadas a campanhas.
-- [ ] Diálogos.
-- [ ] Desafios especiais.
-- [ ] Recompensas cosméticas.
-- [ ] Histórico de aventuras.
+- [x] Mapa interativo com lista acessível de regiões.
+- [x] Regiões desbloqueáveis.
+- [x] Campanhas configuráveis e edições publicadas.
+- [x] Capítulos narrativos.
+- [x] Personagens NPC e falas nos capítulos.
+- [x] Missões e sessões narradas vinculadas a campanhas.
+- [x] Desafios especiais pelo fluxo de missões dos guardiões.
+- [x] Recompensas cosméticas.
+- [x] Histórico de aventuras.
 
 ## Regras
 

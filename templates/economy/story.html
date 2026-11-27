@@ -9,8 +9,10 @@
   <div class="guardian-actions">
     {% if child_view %}
       <a class="button button-secondary" href="{% url 'child_dashboard' %}">{% translate "Back to dashboard" %}</a>
+      {% if story.campaignactivity %}<a class="button button-secondary" href="{% url 'child_adventures' %}#run-{{ story.campaignactivity.run_id|unlocalize }}">{% translate "Adventure map" %}</a>{% endif %}
     {% else %}
       <a class="button button-secondary" href="{% url 'parent_guardian_child' child.pk %}">{% translate "Guardian wall" %}</a>
+      {% if story.campaignactivity %}<a class="button button-secondary" href="{% url 'parent_campaign_child' child.pk %}#run-{{ story.campaignactivity.run_id|unlocalize }}">{% translate "Adventure campaigns" %}</a>{% endif %}
     {% endif %}
     <a class="button button-secondary" href="{{ request.path }}">{% translate "Refresh scene" %}</a>
   </div>

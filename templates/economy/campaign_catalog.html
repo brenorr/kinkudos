@@ -1,0 +1,31 @@
+{% extends "economy/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Adventure campaigns" %} · {{ project_name }}{% endblock %}
+{% block content %}
+<div class="guardian-workspace adventure-page">
+  <a class="button button-secondary" href="{% url 'parent_guardians' %}">{% translate "Guardians" %}</a>
+  <h1>{% translate "Adventure campaigns" %}</h1>
+  <div class="guardian-grid">
+    <section class="panel">
+      <h2>{% translate "Children" %}</h2>
+      <ul class="guardian-links">
+        {% for child in children %}
+          <li><a href="{% url 'parent_campaign_child' child.pk %}">{{ child.name }}</a></li>
+        {% empty %}<li>{% translate "No children available." %}</li>{% endfor %}
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>{% translate "Campaign catalog" %}</h2>
+      <a class="button button-primary" href="{% url 'parent_campaign_create' %}">{% translate "Create campaign" %}</a>
+      {% for edition in editions %}
+        <article class="guardian-action">
+          <h3>{{ edition.display_title }}</h3>
+          <p>{% blocktranslate with number=edition.number %}Edition {{ number }}{% endblocktranslate %}</p>
+          {% if edition.display_description %}<p>{{ edition.display_description }}</p>{% endif %}
+          <a href="{% url 'parent_campaign_edit' edition.campaign_id %}">{% translate "Edit as a new edition" %}</a>
+        </article>
+      {% endfor %}
+    </section>
+  </div>
+</div>
+{% endblock %}

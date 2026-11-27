@@ -66,6 +66,15 @@ aberto por ocorrência. `StorySession` permite uma sessão ativa ou
 pausada por criança e guarda a versão do trecho. A sessão tem estado
 próprio e dispensa créditos ou lançamentos.
 
+A migração `0044_adventure_campaigns` cria o catálogo de regiões e
+edições com capítulos e requisitos. `CampaignRun` fixa uma edição por
+criança e campanha. `CampaignActivity` vincula cada requisito da
+partida a uma única ocorrência ou sessão. `ChapterCompletion`
+registra uma conclusão por partida e capítulo. O campo
+`UnlockGrant.campaign_completion` identifica a origem de um
+cosmético novo de campanha. A migração cadastra uma aventura de
+exemplo e mantém o histórico existente.
+
 O histórico de moedas deve continuar conciliável com o saldo armazenado. As
 instalações existentes podem conter saldos abaixo de zero e pedidos em estados
 intermediários.

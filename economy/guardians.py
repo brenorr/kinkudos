@@ -122,4 +122,8 @@ def change_story(*, session_id, actor_scope, action, version, data):
                 )
     session.version += 1
     session.save(update_fields=fields)
+    if action == "finish":
+        from economy.campaigns import activity_finished
+
+        activity_finished("story", session.pk)
     return session

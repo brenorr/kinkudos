@@ -6,6 +6,7 @@
 {% block content %}
 <section class="panel">
   <a class="button button-secondary" href="{% url 'child_dashboard' %}#darbai">{% translate "Back to tasks" %}</a>
+  {% if mission.campaignactivity %}<a class="button button-secondary" href="{% url 'child_adventures' %}#run-{{ mission.campaignactivity.run_id|unlocalize }}">{% translate "Adventure map" %}</a>{% endif %}
   <h1>{{ mission.title }}</h1>
   {% if mission.routine %}<p>{{ mission.routine }}</p>{% endif %}
   {% if mission.task.category %}<p>{{ mission.task.category }}</p>{% endif %}

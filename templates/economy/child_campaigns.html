@@ -1,0 +1,109 @@
+{% extends "economy/base.html" %}
+{% load i18n l10n %}
+{% block title %}{% translate "Adventure map" %} · {{ project_name }}{% endblock %}
+{% block body_class %}{% if parent_view %}system-page theme-neutral{% else %}theme-{{ child.theme }} child-area{% endif %}{% endblock %}
+{% block child_state_url %}{% if not parent_view %}{% url 'child_adventure_state' %}{% endif %}{% endblock %}
+{% block child_state_signature %}{{ state_signature }}{% endblock %}
+{% block content %}
+<div class="guardian-workspace adventure-page">
+  <div class="guardian-actions">
+    {% if parent_view %}
+      <a class="button button-secondary" href="{% url 'parent_campaigns' %}">{% translate "Adventure campaigns" %}</a>
+      <a class="button button-secondary" href="{% url 'parent_guardian_child' child.pk %}">{% translate "Guardian wall" %}</a>
+    {% else %}
+      <a class="button button-secondary" href="{% url 'child_dashboard' %}">{% translate "Back to dashboard" %}</a>
+    {% endif %}
+  </div>
+  {% if parent_view %}
+    <h1>{% translate "Adventure campaigns" %} · {{ child.name }}</h1>
+    {% if start_form.fields.edition.queryset or start_form.errors %}
+      <section class="panel">
+        <h2>{% translate "Start a campaign" %}</h2>
+        <form method="post" class="stack-form">
+          {% csrf_token %}
+          {{ start_form.as_p }}
+          <button class="button button-primary">{% translate "Start adventure" %}</button>
+        </form>
+      </section>
+    {% endif %}
+  {% else %}
+    <h1>{% translate "Adventure map" %}</h1>
+    <nav class="adventure-map" aria-label="{% translate 'Adventure regions' %}">
+      {% for location in regions %}
+        <a class="adventure-pin adventure-pin-{{ location.region.code }}{% if location.open %} adventure-pin-open{% endif %}" href="#region-{{ location.region.code }}">
+          <strong>{{ location.region }}</strong>
+          <span>{% if location.open %}{% translate "Region open" %}{% else %}{% translate "Region locked" %}{% endif %}</span>
+        </a>
+      {% endfor %}
+    </nav>
+    {% if not cards %}<p class="panel">{% translate "Ask your guardian to start an adventure with you." %}</p>{% endif %}
+  {% endif %}
+
+  {% for card in cards %}
+    <section class="panel adventure-run" id="run-{{ card.run.pk|unlocalize }}">
+      <div class="adventure-run-heading">
+        <div>
+          <h2>{{ card.run.edition.display_title }}</h2>
+          {% if card.run.edition.display_description %}<p>{{ card.run.edition.display_description }}</p>{% endif %}
+          <p class="status-pill">{{ card.run.get_status_display }}</p>
+          <p>{% blocktranslate with done=card.done total=card.total %}{{ done }} of {{ total }} chapters completed{% endblocktranslate %}</p>
+        </div>
+        {% if card.run.status != "finished" %}
+          <form method="post" class="guardian-actions"
+            action="{% if parent_view %}{% url 'parent_campaign_run_action' child.pk card.run.pk %}{% else %}{% url 'child_campaign_run_action' card.run.pk %}{% endif %}">
+            {% csrf_token %}
+            {% if card.run.status == "paused" %}
+              <button class="button button-primary" name="action" value="resume">{% translate "Resume adventure" %}</button>
+            {% else %}
+              <button class="button button-primary" name="action" value="continue">{% translate "Continue adventure" %}</button>
+              <button class="button button-secondary" name="action" value="pause">{% translate "Pause adventure" %}</button>
+            {% endif %}
+          </form>
+        {% endif %}
+      </div>
+      {% for row in card.chapters %}
+        <details class="adventure-chapter" id="chapter-{{ card.run.pk|unlocalize }}-{{ row.chapter.pk|unlocalize }}"{% if row.current %} open{% endif %}>
+          <summary>
+            <span><strong>{{ row.chapter.display_title }}</strong><small>{{ row.chapter.region }}</small></span>
+            <span class="status-pill">{% if row.completion %}{% translate "Completed" %}{% else %}{% translate "Current chapter" %}{% endif %}</span>
+          </summary>
+          <div class="adventure-chapter-body">
+            {{ row.chapter.display_opening|linebreaks }}
+            {% if row.chapter.npc %}
+              <blockquote><strong>{{ row.chapter.display_npc }}</strong><p>{{ row.chapter.display_dialogue|linebreaksbr }}</p></blockquote>
+            {% endif %}
+            {% if row.chapter.reward %}<p>{% translate "Chapter cosmetic" %} · {{ row.chapter.reward }}</p>{% endif %}
+            {% if row.completion %}<p>{{ row.completion.completed_at|date:"SHORT_DATETIME_FORMAT" }}</p>{% endif %}
+            {% for step in row.steps %}
+              {% include "economy/includes/campaign_step.html" with run=card.run %}
+            {% endfor %}
+          </div>
+        </details>
+      {% endfor %}
+    </section>
+  {% endfor %}
+
+  {% if regions %}
+    <section class="panel">
+      <h2>{% translate "Regions and adventure history" %}</h2>
+      {% for location in regions %}
+        <article class="adventure-region" id="region-{{ location.region.code }}">
+          <h3>{{ location.region }}</h3>
+          {% if location.chapters %}
+            <ul class="guardian-links">
+              {% for entry in location.chapters %}
+                <li><a href="#chapter-{{ entry.run.pk|unlocalize }}-{{ entry.row.chapter.pk|unlocalize }}">{{ entry.row.chapter.display_title }}</a>
+                  · {% if entry.row.completion %}{% translate "Completed" %}{% else %}{% translate "Current chapter" %}{% endif %}</li>
+              {% endfor %}
+            </ul>
+          {% elif location.open %}
+            <p>{% translate "No chapter here yet." %}</p>
+          {% else %}
+            <p>{% translate "This region opens when an adventure reaches its first chapter here." %}</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
